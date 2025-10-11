@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:fragment="head(title)">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${title} + ' · Event Tickets'">Event Tickets</title>
+  <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+<body>
+
+<header th:fragment="header" class="site-header">
+  <div class="container">
+    <a class="brand" th:href="@{/}">Event Tickets</a>
+    <nav class="nav">
+      <a th:href="@{/}">Events</a>
+    </nav>
+  </div>
+</header>
+
+<footer th:fragment="footer" class="site-footer">
+  <div class="container">Event Tickets · tickets for small venues and meetups</div>
+</footer>
+
+</body>
+</html>
