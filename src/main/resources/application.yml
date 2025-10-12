@@ -28,3 +28,8 @@ management:
     health:
       probes:
         enabled: true
+
+app:
+  admin:
+    email: ${ADMIN_EMAIL:}
+    password: ${ADMIN_PASSWORD:}
