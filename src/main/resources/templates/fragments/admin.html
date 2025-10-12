@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<body>
+<header th:fragment="header(section)" class="site-header">
+  <div class="container">
+    <a class="brand" th:href="@{/admin}">Event Tickets · Admin</a>
+    <nav class="nav">
+      <a th:href="@{/admin}" th:classappend="${section == 'dashboard'} ? 'active'">Dashboard</a>
+      <a th:href="@{/}" target="_blank">Public site</a>
+      <form th:action="@{/admin/logout}" method="post" style="display:inline">
+        <span class="muted" sec:authentication="name">admin</span>
+        <button class="btn" type="submit">Sign out</button>
+      </form>
+    </nav>
+  </div>
+</header>
+</body>
+</html>
