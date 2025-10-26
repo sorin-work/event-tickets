@@ -244,3 +244,14 @@ th {
   max-width: 420px;
   margin: 0 auto;
 }
+
+.status-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.status-bar form {
+  margin: 0;
+}

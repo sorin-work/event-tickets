@@ -7,6 +7,19 @@
   <div th:replace="~{fragments/admin :: flash}"></div>
   <p><a th:href="@{/admin/events}">&larr; All events</a></p>
   <h1 th:text="${event} ? ${event.title} : 'New event'">New event</h1>
+  <div th:if="${event}" class="card status-bar">
+    <span>Status: <span class="badge" th:text="${event.status}">DRAFT</span></span>
+    <form th:if="${event.status.name() == 'DRAFT'}" method="post" th:action="@{/admin/events/{id}/publish(id=${event.id})}">
+      <button class="btn btn-primary" type="submit">Publish</button>
+    </form>
+    <form th:if="${event.status.name() == 'PUBLISHED'}" method="post" th:action="@{/admin/events/{id}/unpublish(id=${event.id})}">
+      <button class="btn" type="submit">Back to draft</button>
+    </form>
+    <form th:if="${event.status.name() != 'CANCELLED'}" method="post" th:action="@{/admin/events/{id}/cancel(id=${event.id})}"
+          onsubmit="return confirm('Cancel this event? Ticket sales stop immediately.')">
+      <button class="btn btn-danger" type="submit">Cancel event</button>
+    </form>
+  </div>
   <form class="card" method="post" th:object="${form}"
         th:action="${event} ? @{/admin/events/{id}(id=${event.id})} : @{/admin/events}">
     <div class="field">

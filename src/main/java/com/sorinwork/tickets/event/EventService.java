@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.event;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.common.Slugs;
 import java.time.Clock;
@@ -46,6 +47,32 @@ public class EventService {
     Event event = get(id);
     event.setTitle(form.getTitle().trim());
     apply(event, form);
+    event.setUpdatedAt(clock.instant());
+    return event;
+  }
+
+  public Event publish(long id) {
+    Event event = get(id);
+    if (event.getStatus() == EventStatus.CANCELLED) {
+      throw new BusinessException("A cancelled event cannot be published again.");
+    }
+    return changeStatus(event, EventStatus.PUBLISHED);
+  }
+
+  public Event unpublish(long id) {
+    Event event = get(id);
+    if (event.getStatus() != EventStatus.PUBLISHED) {
+      throw new BusinessException("Only published events can be moved back to draft.");
+    }
+    return changeStatus(event, EventStatus.DRAFT);
+  }
+
+  public Event cancel(long id) {
+    return changeStatus(get(id), EventStatus.CANCELLED);
+  }
+
+  private Event changeStatus(Event event, EventStatus status) {
+    event.setStatus(status);
     event.setUpdatedAt(clock.instant());
     return event;
   }

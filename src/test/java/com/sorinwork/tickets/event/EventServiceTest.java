@@ -3,6 +3,7 @@ package com.sorinwork.tickets.event;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.support.IntegrationTest;
 import java.time.LocalDateTime;
@@ -57,5 +58,29 @@ class EventServiceTest extends IntegrationTest {
   @Test
   void getUnknownEventThrows() {
     assertThatThrownBy(() -> service.get(999)).isInstanceOf(NotFoundException.class);
+  }
+
+  @Test
+  void publishesAndUnpublishes() {
+    Event event = service.create(form("Open Mic"));
+
+    assertThat(service.publish(event.getId()).getStatus()).isEqualTo(EventStatus.PUBLISHED);
+    assertThat(service.unpublish(event.getId()).getStatus()).isEqualTo(EventStatus.DRAFT);
+  }
+
+  @Test
+  void cannotPublishCancelledEvent() {
+    Event event = service.create(form("Open Mic"));
+    service.cancel(event.getId());
+
+    assertThatThrownBy(() -> service.publish(event.getId())).isInstanceOf(BusinessException.class);
+  }
+
+  @Test
+  void cannotUnpublishDraft() {
+    Event event = service.create(form("Open Mic"));
+
+    assertThatThrownBy(() -> service.unpublish(event.getId()))
+        .isInstanceOf(BusinessException.class);
   }
 }

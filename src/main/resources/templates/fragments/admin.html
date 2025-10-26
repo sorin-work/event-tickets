@@ -16,6 +16,9 @@
   </div>
 </header>
 
-<div th:fragment="flash" th:if="${flash}" class="alert alert-ok" th:text="${flash}">Saved.</div>
+<div th:fragment="flash">
+  <div th:if="${flash}" class="alert alert-ok" th:text="${flash}">Saved.</div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}">Something went wrong.</div>
+</div>
 </body>
 </html>

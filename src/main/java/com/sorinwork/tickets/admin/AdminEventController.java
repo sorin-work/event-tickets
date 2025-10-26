@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.admin;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
@@ -83,6 +84,32 @@ public class AdminEventController {
     }
     events.update(id, form);
     redirect.addFlashAttribute("flash", "Event saved.");
+    return "redirect:/admin/events/" + id + "/edit";
+  }
+
+  @PostMapping("/{id}/publish")
+  public String publish(@PathVariable long id, RedirectAttributes redirect) {
+    return changeStatus(id, redirect, () -> events.publish(id), "Event published.");
+  }
+
+  @PostMapping("/{id}/unpublish")
+  public String unpublish(@PathVariable long id, RedirectAttributes redirect) {
+    return changeStatus(id, redirect, () -> events.unpublish(id), "Event moved back to draft.");
+  }
+
+  @PostMapping("/{id}/cancel")
+  public String cancel(@PathVariable long id, RedirectAttributes redirect) {
+    return changeStatus(id, redirect, () -> events.cancel(id), "Event cancelled.");
+  }
+
+  private String changeStatus(
+      long id, RedirectAttributes redirect, Runnable action, String message) {
+    try {
+      action.run();
+      redirect.addFlashAttribute("flash", message);
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
     return "redirect:/admin/events/" + id + "/edit";
   }
 }
