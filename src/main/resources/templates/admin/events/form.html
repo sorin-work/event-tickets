@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${event} ? 'Edit event' : 'New event')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <p><a th:href="@{/admin/events}">&larr; All events</a></p>
+  <h1 th:text="${event} ? ${event.title} : 'New event'">New event</h1>
+  <form class="card" method="post" th:object="${form}"
+        th:action="${event} ? @{/admin/events/{id}(id=${event.id})} : @{/admin/events}">
+    <div class="field">
+      <label for="title">Title</label>
+      <input id="title" th:field="*{title}" required maxlength="160">
+      <div class="field-error" th:errors="*{title}"></div>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <textarea id="description" th:field="*{description}" maxlength="10000"></textarea>
+      <div class="field-error" th:errors="*{description}"></div>
+    </div>
+    <div class="field">
+      <label for="venueName">Venue</label>
+      <input id="venueName" th:field="*{venueName}" required maxlength="160">
+      <div class="field-error" th:errors="*{venueName}"></div>
+    </div>
+    <div class="field">
+      <label for="venueAddress">Address</label>
+      <input id="venueAddress" th:field="*{venueAddress}" maxlength="255">
+    </div>
+    <div class="field">
+      <label for="startsAt">Starts</label>
+      <input id="startsAt" type="datetime-local" th:field="*{startsAt}" required>
+      <div class="field-error" th:errors="*{startsAt}"></div>
+    </div>
+    <div class="field">
+      <label for="endsAt">Ends</label>
+      <input id="endsAt" type="datetime-local" th:field="*{endsAt}">
+      <div class="field-error" th:errors="*{endAfterStart}"></div>
+    </div>
+    <div class="field">
+      <label for="timeZone">Time zone</label>
+      <select id="timeZone" th:field="*{timeZone}">
+        <option th:each="zone : ${timeZones}" th:value="${zone}" th:text="${zone}">Europe/Bucharest</option>
+      </select>
+      <div class="field-error" th:errors="*{timeZoneValid}"></div>
+    </div>
+    <div class="field">
+      <label for="currency">Currency</label>
+      <input id="currency" th:field="*{currency}" maxlength="3" required>
+      <div class="field-error" th:errors="*{currency}"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+</main>
+</body>
+</html>

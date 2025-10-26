@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Events')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <h1>Events</h1>
+  <p><a class="btn btn-primary" th:href="@{/admin/events/new}">New event</a></p>
+  <div th:if="${#lists.isEmpty(events)}" class="card empty">No events yet. Create your first one.</div>
+  <table th:unless="${#lists.isEmpty(events)}">
+    <thead>
+    <tr><th>Event</th><th>Starts</th><th>Venue</th><th>Status</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="event : ${events}">
+      <td><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="${event.title}">Title</a></td>
+      <td th:text="${#temporals.format(event.startsAt, 'EEE d MMM yyyy, HH:mm')}">date</td>
+      <td th:text="${event.venueName}">venue</td>
+      <td><span class="badge" th:text="${event.status}">DRAFT</span></td>
+    </tr>
+    </tbody>
+  </table>
+</main>
+</body>
+</html>
