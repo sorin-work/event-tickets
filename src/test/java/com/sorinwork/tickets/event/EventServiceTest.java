@@ -6,7 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.support.IntegrationTest;
-import java.time.LocalDateTime;
+import com.sorinwork.tickets.support.TestData;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -14,19 +14,9 @@ class EventServiceTest extends IntegrationTest {
 
   @Autowired EventService service;
 
-  static EventForm form(String title) {
-    EventForm form = new EventForm();
-    form.setTitle(title);
-    form.setVenueName("The Attic");
-    form.setStartsAt(LocalDateTime.of(2030, 3, 14, 19, 30));
-    form.setTimeZone("Europe/Bucharest");
-    form.setCurrency("EUR");
-    return form;
-  }
-
   @Test
   void createsDraftEventWithSlug() {
-    Event event = service.create(form("Summer Jazz Night"));
+    Event event = service.create(TestData.eventForm("Summer Jazz Night"));
 
     assertThat(event.getId()).isNotNull();
     assertThat(event.getSlug()).isEqualTo("summer-jazz-night");
@@ -35,17 +25,17 @@ class EventServiceTest extends IntegrationTest {
 
   @Test
   void addsSuffixWhenSlugIsTaken() {
-    service.create(form("Board Games"));
-    service.create(form("Board Games"));
-    Event third = service.create(form("Board games!"));
+    service.create(TestData.eventForm("Board Games"));
+    service.create(TestData.eventForm("Board Games"));
+    Event third = service.create(TestData.eventForm("Board games!"));
 
     assertThat(third.getSlug()).isEqualTo("board-games-3");
   }
 
   @Test
   void updateKeepsTheSlug() {
-    Event event = service.create(form("Board Games"));
-    EventForm changed = form("Board Games Marathon");
+    Event event = service.create(TestData.eventForm("Board Games"));
+    EventForm changed = TestData.eventForm("Board Games Marathon");
     changed.setDescription("   ");
 
     Event updated = service.update(event.getId(), changed);
@@ -62,7 +52,7 @@ class EventServiceTest extends IntegrationTest {
 
   @Test
   void publishesAndUnpublishes() {
-    Event event = service.create(form("Open Mic"));
+    Event event = service.create(TestData.eventForm("Open Mic"));
 
     assertThat(service.publish(event.getId()).getStatus()).isEqualTo(EventStatus.PUBLISHED);
     assertThat(service.unpublish(event.getId()).getStatus()).isEqualTo(EventStatus.DRAFT);
@@ -70,7 +60,7 @@ class EventServiceTest extends IntegrationTest {
 
   @Test
   void cannotPublishCancelledEvent() {
-    Event event = service.create(form("Open Mic"));
+    Event event = service.create(TestData.eventForm("Open Mic"));
     service.cancel(event.getId());
 
     assertThatThrownBy(() -> service.publish(event.getId())).isInstanceOf(BusinessException.class);
@@ -78,7 +68,7 @@ class EventServiceTest extends IntegrationTest {
 
   @Test
   void cannotUnpublishDraft() {
-    Event event = service.create(form("Open Mic"));
+    Event event = service.create(TestData.eventForm("Open Mic"));
 
     assertThatThrownBy(() -> service.unpublish(event.getId()))
         .isInstanceOf(BusinessException.class);

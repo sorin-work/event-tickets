@@ -12,10 +12,11 @@ import org.springframework.test.web.servlet.MockMvc;
 @SpringBootTest
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
-@Import(DatabaseCleaner.class)
+@Import({DatabaseCleaner.class, TestData.class})
 public abstract class IntegrationTest {
 
   @Autowired protected MockMvc mvc;
+  @Autowired protected TestData data;
   @Autowired private DatabaseCleaner databaseCleaner;
 
   @BeforeEach

@@ -4,6 +4,7 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.event.TierService;
 import jakarta.validation.Valid;
 import java.time.ZoneId;
 import java.util.List;
@@ -28,9 +29,11 @@ public class AdminEventController {
           .toList();
 
   private final EventService events;
+  private final TierService tiers;
 
-  public AdminEventController(EventService events) {
+  public AdminEventController(EventService events, TierService tiers) {
     this.events = events;
+    this.tiers = tiers;
   }
 
   @ModelAttribute("timeZones")
@@ -67,6 +70,7 @@ public class AdminEventController {
   public String editForm(@PathVariable long id, Model model) {
     Event event = events.get(id);
     model.addAttribute("event", event);
+    model.addAttribute("tiers", tiers.forEvent(id));
     model.addAttribute("form", EventForm.from(event));
     return "admin/events/form";
   }
@@ -80,6 +84,7 @@ public class AdminEventController {
       RedirectAttributes redirect) {
     if (binding.hasErrors()) {
       model.addAttribute("event", events.get(id));
+      model.addAttribute("tiers", tiers.forEvent(id));
       return "admin/events/form";
     }
     events.update(id, form);

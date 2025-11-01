@@ -20,6 +20,26 @@
       <button class="btn btn-danger" type="submit">Cancel event</button>
     </form>
   </div>
+  <section th:if="${event}" class="card">
+    <h2>Ticket tiers</h2>
+    <div th:if="${#lists.isEmpty(tiers)}" class="empty">No ticket tiers yet. Add one before publishing.</div>
+    <table th:unless="${#lists.isEmpty(tiers)}">
+      <thead><tr><th>Tier</th><th class="num">Price</th><th class="num">Quantity</th><th>Sales window</th></tr></thead>
+      <tbody>
+      <tr th:each="tier : ${tiers}">
+        <td><a th:href="@{/admin/events/{e}/tiers/{t}/edit(e=${event.id},t=${tier.id})}" th:text="${tier.name}">GA</a></td>
+        <td class="num" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</td>
+        <td class="num" th:text="${tier.quantity}">100</td>
+        <td class="muted">
+          <span th:text="${tier.salesStart} ? ${#temporals.format(tier.salesStart, 'd MMM HH:mm')} : 'now'">now</span>
+          &ndash;
+          <span th:text="${tier.salesEnd} ? ${#temporals.format(tier.salesEnd, 'd MMM HH:mm')} : 'event start'">start</span>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+    <p><a class="btn" th:href="@{/admin/events/{id}/tiers/new(id=${event.id})}">Add ticket tier</a></p>
+  </section>
   <form class="card" method="post" th:object="${form}"
         th:action="${event} ? @{/admin/events/{id}(id=${event.id})} : @{/admin/events}">
     <div class="field">

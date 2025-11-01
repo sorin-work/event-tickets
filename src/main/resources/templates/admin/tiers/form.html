@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${tier} ? 'Edit ticket tier' : 'New ticket tier')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1 th:text="${tier} ? 'Edit ' + ${tier.name} : 'New ticket tier'">New ticket tier</h1>
+  <form class="card" method="post" th:object="${form}"
+        th:action="${tier} ? @{/admin/events/{e}/tiers/{t}(e=${event.id},t=${tier.id})} : @{/admin/events/{e}/tiers(e=${event.id})}">
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" th:field="*{name}" required maxlength="80" placeholder="General admission">
+      <div class="field-error" th:errors="*{name}"></div>
+    </div>
+    <div class="field">
+      <label for="description">Description</label>
+      <input id="description" th:field="*{description}" maxlength="500">
+    </div>
+    <div class="field">
+      <label for="price" th:text="'Price (' + ${event.currency} + ')'">Price</label>
+      <input id="price" th:field="*{price}" inputmode="decimal" required>
+      <div class="field-error" th:errors="*{price}"></div>
+      <div class="field-error" th:errors="*{priceValid}"></div>
+    </div>
+    <div class="field">
+      <label for="quantity">Tickets available</label>
+      <input id="quantity" type="number" min="0" th:field="*{quantity}" required>
+      <div class="field-error" th:errors="*{quantity}"></div>
+    </div>
+    <div class="field">
+      <label for="maxPerOrder">Max per order</label>
+      <input id="maxPerOrder" type="number" min="1" max="50" th:field="*{maxPerOrder}" required>
+      <div class="field-error" th:errors="*{maxPerOrder}"></div>
+    </div>
+    <div class="field">
+      <label for="salesStart">Sales start <span class="muted" th:text="'(' + ${event.timeZone} + ')'"></span></label>
+      <input id="salesStart" type="datetime-local" th:field="*{salesStart}">
+    </div>
+    <div class="field">
+      <label for="salesEnd">Sales end</label>
+      <input id="salesEnd" type="datetime-local" th:field="*{salesEnd}">
+      <div class="field-error" th:errors="*{salesWindowValid}"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Save</button>
+  </form>
+  <form th:if="${tier}" method="post" th:action="@{/admin/events/{e}/tiers/{t}/delete(e=${event.id},t=${tier.id})}"
+        onsubmit="return confirm('Remove this ticket tier?')">
+    <button class="btn btn-danger" type="submit">Remove tier</button>
+  </form>
+</main>
+</body>
+</html>
