@@ -5,7 +5,14 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container">
   <h1>Upcoming events</h1>
-  <div class="card empty">No events on sale yet. Check back soon.</div>
+  <div th:if="${#lists.isEmpty(events)}" class="card empty">No events on sale yet. Check back soon.</div>
+  <div class="event-list">
+    <a class="card event-card" th:each="event : ${events}" th:href="@{/events/{slug}(slug=${event.slug})}">
+      <div class="event-date" th:text="${@fmt.when(event)}">Fri 14 Mar 2030, 19:30</div>
+      <h2 th:text="${event.title}">Summer Jazz Night</h2>
+      <div class="muted" th:text="${event.venueName}">The Attic</div>
+    </a>
+  </div>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>
 </body>

@@ -255,3 +255,31 @@ th {
 .status-bar form {
   margin: 0;
 }
+
+.event-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.event-card {
+  display: block;
+  color: inherit;
+  text-decoration: none;
+  margin: 0;
+}
+
+.event-card:hover {
+  border-color: var(--accent);
+}
+
+.event-card h2 {
+  margin: 4px 0;
+  font-size: 1.2rem;
+}
+
+.event-date {
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.875rem;
+}
