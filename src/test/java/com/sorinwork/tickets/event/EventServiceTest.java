@@ -53,6 +53,7 @@ class EventServiceTest extends IntegrationTest {
   @Test
   void publishesAndUnpublishes() {
     Event event = service.create(TestData.eventForm("Open Mic"));
+    data.tier(event, "Entry", "5", 50);
 
     assertThat(service.publish(event.getId()).getStatus()).isEqualTo(EventStatus.PUBLISHED);
     assertThat(service.unpublish(event.getId()).getStatus()).isEqualTo(EventStatus.DRAFT);
@@ -72,5 +73,14 @@ class EventServiceTest extends IntegrationTest {
 
     assertThatThrownBy(() -> service.unpublish(event.getId()))
         .isInstanceOf(BusinessException.class);
+  }
+
+  @Test
+  void cannotPublishWithoutTiers() {
+    Event event = service.create(TestData.eventForm("Open Mic"));
+
+    assertThatThrownBy(() -> service.publish(event.getId()))
+        .isInstanceOf(BusinessException.class)
+        .hasMessageContaining("ticket tier");
   }
 }

@@ -14,10 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class EventService {
 
   private final EventRepository events;
+  private final TicketTierRepository tiers;
   private final Clock clock;
 
-  public EventService(EventRepository events, Clock clock) {
+  public EventService(EventRepository events, TicketTierRepository tiers, Clock clock) {
     this.events = events;
+    this.tiers = tiers;
     this.clock = clock;
   }
 
@@ -55,6 +57,9 @@ public class EventService {
     Event event = get(id);
     if (event.getStatus() == EventStatus.CANCELLED) {
       throw new BusinessException("A cancelled event cannot be published again.");
+    }
+    if (tiers.countByEventId(id) == 0) {
+      throw new BusinessException("Add at least one ticket tier before publishing.");
     }
     return changeStatus(event, EventStatus.PUBLISHED);
   }
