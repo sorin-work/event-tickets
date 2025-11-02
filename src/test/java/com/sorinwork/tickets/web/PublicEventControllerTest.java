@@ -1,0 +1,48 @@
+package com.sorinwork.tickets.web;
+
+import static org.hamcrest.Matchers.containsString;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+
+import com.sorinwork.tickets.event.Event;
+import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.support.IntegrationTest;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+
+class PublicEventControllerTest extends IntegrationTest {
+
+  @Autowired EventService events;
+
+  @Test
+  void showsPublishedEventWithTiers() throws Exception {
+    Event event = data.event("Poetry Slam");
+    data.tier(event, "Standing", "8.50", 30);
+    data.tier(event, "Members", "0", 10);
+    events.publish(event.getId());
+
+    mvc.perform(get("/events/poetry-slam"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Standing")))
+        .andExpect(content().string(containsString("€8.50")))
+        .andExpect(content().string(containsString("Free")));
+  }
+
+  @Test
+  void draftsAreNotFound() throws Exception {
+    data.event("Poetry Slam");
+
+    mvc.perform(get("/events/poetry-slam")).andExpect(status().isNotFound());
+  }
+
+  @Test
+  void cancelledEventsShowANotice() throws Exception {
+    Event event = data.event("Poetry Slam");
+    events.cancel(event.getId());
+
+    mvc.perform(get("/events/poetry-slam"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("has been cancelled")));
+  }
+}

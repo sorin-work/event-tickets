@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${event.title})}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+  <div th:if="${event.status.name() == 'CANCELLED'}" class="alert alert-danger">
+    This event has been cancelled.
+  </div>
+  <div class="event-date" th:text="${@fmt.when(event)}">Fri 14 Mar 2030, 19:30</div>
+  <h1 th:text="${event.title}">Summer Jazz Night</h1>
+  <p>
+    <strong th:text="${event.venueName}">The Attic</strong>
+    <span class="muted" th:if="${event.venueAddress}" th:text="' · ' + ${event.venueAddress}">address</span>
+  </p>
+  <p class="muted">Times are in <span th:text="${event.timeZone}">Europe/Bucharest</span>.</p>
+  <div class="card description" th:if="${event.description}" th:text="${event.description}">Description</div>
+
+  <section class="card">
+    <h2>Tickets</h2>
+    <div th:if="${#lists.isEmpty(tiers)}" class="empty">Tickets are not on sale yet.</div>
+    <div class="tier" th:each="tier : ${tiers}">
+      <div>
+        <strong th:text="${tier.name}">General admission</strong>
+        <div class="muted" th:if="${tier.description}" th:text="${tier.description}">desc</div>
+      </div>
+      <div class="tier-price" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</div>
+    </div>
+  </section>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

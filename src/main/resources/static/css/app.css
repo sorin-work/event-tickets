@@ -283,3 +283,25 @@ th {
   font-weight: 600;
   font-size: 0.875rem;
 }
+
+.description {
+  white-space: pre-line;
+}
+
+.tier {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.tier:last-child {
+  border-bottom: 0;
+}
+
+.tier-price {
+  font-weight: 700;
+  white-space: nowrap;
+}

@@ -28,6 +28,15 @@ public class EventService {
     return events.findById(id).orElseThrow(() -> new NotFoundException("Event " + id));
   }
 
+  /** Published or cancelled events by slug; drafts are not visible to the public. */
+  @Transactional(readOnly = true)
+  public Event getPublic(String slug) {
+    return events
+        .findBySlug(slug)
+        .filter(e -> e.getStatus() != EventStatus.DRAFT)
+        .orElseThrow(() -> new NotFoundException("Event " + slug));
+  }
+
   @Transactional(readOnly = true)
   public List<Event> listAll() {
     return events.findAllByOrderByStartsAtDesc();
