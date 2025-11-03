@@ -33,7 +33,7 @@ class PublicEventControllerTest extends IntegrationTest {
   void draftsAreNotFound() throws Exception {
     data.event("Poetry Slam");
 
-    mvc.perform(get("/events/poetry-slam")).andExpect(status().isNotFound());
+    mvc.perform(get("/events/poetry-slam").accept("text/html")).andExpect(status().isNotFound());
   }
 
   @Test

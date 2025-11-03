@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Something went wrong')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+  <h1>Something went wrong</h1>
+  <p class="muted">We could not complete that request. Please try again in a moment.</p>
+  <p class="muted" th:if="${status}" th:text="'Error ' + ${status}">Error 500</p>
+  <p><a class="btn" th:href="@{/}">Back to events</a></p>
+</main>
+</body>
+</html>
