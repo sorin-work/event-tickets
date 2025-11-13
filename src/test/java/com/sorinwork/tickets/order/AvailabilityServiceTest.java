@@ -19,7 +19,7 @@ class AvailabilityServiceTest extends IntegrationTest {
 
   private void order(Event event, TicketTier tier, int qty, OrderStatus status, Instant expires) {
     Order order =
-        new Order(event, Tokens.orderReference(), Tokens.accessToken(), Instant.now(), expires);
+        new Order(event, Tokens.orderReference(), Tokens.accessToken(), clock.instant(), expires);
     order.setStatus(status);
     order.addItem(new OrderItem(order, tier, qty));
     orders.save(order);
@@ -30,8 +30,8 @@ class AvailabilityServiceTest extends IntegrationTest {
     Event event = data.event("Jazz");
     TicketTier standing = data.tier(event, "Standing", "10", 50);
     TicketTier seated = data.tier(event, "Seated", "20", 20);
-    Instant later = Instant.now().plus(Duration.ofMinutes(5));
-    Instant earlier = Instant.now().minus(Duration.ofMinutes(5));
+    Instant later = clock.instant().plus(Duration.ofMinutes(5));
+    Instant earlier = clock.instant().minus(Duration.ofMinutes(5));
 
     order(event, standing, 3, OrderStatus.PAID, earlier);
     order(event, standing, 2, OrderStatus.PENDING, later);

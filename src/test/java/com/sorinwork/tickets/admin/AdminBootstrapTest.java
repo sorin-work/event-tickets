@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.sorinwork.tickets.config.AppProperties;
 import com.sorinwork.tickets.support.IntegrationTest;
-import java.time.Clock;
 import java.time.Instant;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,13 +13,14 @@ class AdminBootstrapTest extends IntegrationTest {
 
   @Autowired AdminUserRepository users;
   @Autowired PasswordEncoder passwordEncoder;
-  @Autowired Clock clock;
 
   private AdminBootstrap bootstrap(String email, String password) {
     return new AdminBootstrap(
         users,
         passwordEncoder,
-        new AppProperties(new AppProperties.Admin(email, password, "Owner")),
+        new AppProperties(
+            new AppProperties.Admin(email, password, "Owner"),
+            new AppProperties.Checkout(java.time.Duration.ofMinutes(10))),
         clock);
   }
 
