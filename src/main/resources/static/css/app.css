@@ -305,3 +305,13 @@ th {
   font-weight: 700;
   white-space: nowrap;
 }
+
+.tier-buy {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.tier-buy select {
+  width: auto;
+}

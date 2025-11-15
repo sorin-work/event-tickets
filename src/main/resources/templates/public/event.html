@@ -7,6 +7,7 @@
   <div th:if="${event.status.name() == 'CANCELLED'}" class="alert alert-danger">
     This event has been cancelled.
   </div>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
   <div class="event-date" th:text="${@fmt.when(event)}">Fri 14 Mar 2030, 19:30</div>
   <h1 th:text="${event.title}">Summer Jazz Night</h1>
   <p>
@@ -19,13 +20,27 @@
   <section class="card">
     <h2>Tickets</h2>
     <div th:if="${#lists.isEmpty(tiers)}" class="empty">Tickets are not on sale yet.</div>
-    <div class="tier" th:each="tier : ${tiers}">
-      <div>
-        <strong th:text="${tier.name}">General admission</strong>
-        <div class="muted" th:if="${tier.description}" th:text="${tier.description}">desc</div>
+    <form th:unless="${#lists.isEmpty(tiers)}" method="post" th:action="@{/events/{slug}/checkout(slug=${event.slug})}">
+      <div class="tier" th:each="tier : ${tiers}" th:with="left=${availability[tier.id]}">
+        <div>
+          <strong th:text="${tier.name}">General admission</strong>
+          <div class="muted" th:if="${tier.description}" th:text="${tier.description}">desc</div>
+          <div class="muted" th:if="${left.soldOut}">Sold out</div>
+          <div class="muted" th:if="${!left.soldOut and left.remaining() <= 10}" th:text="${left.remaining()} + ' left'">3 left</div>
+        </div>
+        <div class="tier-buy">
+          <span class="tier-price" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</span>
+          <select th:unless="${left.soldOut or event.status.name() != 'PUBLISHED'}" th:name="'qty_' + ${tier.id}"
+                  th:aria-label="'Number of ' + ${tier.name} + ' tickets'">
+            <option th:each="n : ${#numbers.sequence(0, T(java.lang.Math).min(tier.maxPerOrder, left.remaining()))}"
+                    th:value="${n}" th:text="${n}">0</option>
+          </select>
+        </div>
       </div>
-      <div class="tier-price" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</div>
-    </div>
+      <p th:if="${event.status.name() == 'PUBLISHED'}">
+        <button class="btn btn-primary" type="submit">Continue</button>
+      </p>
+    </form>
   </section>
 </main>
 <footer th:replace="~{fragments/layout :: footer}"></footer>

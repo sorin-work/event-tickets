@@ -92,6 +92,13 @@ public class CheckoutService {
     return orders.save(order);
   }
 
+  @Transactional(readOnly = true)
+  public Order getByToken(String token) {
+    return orders
+        .findWithItemsByAccessToken(token)
+        .orElseThrow(() -> new NotFoundException("Order"));
+  }
+
   private void checkOnSale(TicketTier tier) {
     LocalDateTime now = LocalDateTime.now(clock);
     if (tier.getSalesStart() != null && now.isBefore(tier.getSalesStart())) {

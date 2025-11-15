@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Checkout')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+  <p><a th:href="@{/events/{slug}(slug=${event.slug})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1>Checkout</h1>
+  <div th:unless="${holdActive}" class="alert alert-warn">
+    Your reservation has expired. <a th:href="@{/events/{slug}(slug=${event.slug})}">Choose tickets again</a>.
+  </div>
+  <section class="card">
+    <h2 th:text="${event.title}">Event</h2>
+    <p class="muted" th:text="${@fmt.when(event)}">date</p>
+    <table>
+      <tr th:each="item : ${order.items}">
+        <td th:text="${item.quantity} + ' × ' + ${item.tier.name}">2 × Standing</td>
+        <td class="num" th:text="${@fmt.money(item.lineTotalCents(), event.currency)}">€30.00</td>
+      </tr>
+      <tr>
+        <th>Total</th>
+        <th class="num" th:text="${@fmt.money(order.totalCents, event.currency)}">€30.00</th>
+      </tr>
+    </table>
+  </section>
+</main>
+</body>
+</html>
