@@ -88,4 +88,43 @@ class CheckoutControllerTest extends IntegrationTest {
         .andExpect(
             content().string(org.hamcrest.Matchers.not(containsString("qty_" + tiny.getId()))));
   }
+
+  @Test
+  void completesCheckoutAndShowsTickets() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "2"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(
+            post("/checkout/" + token)
+                .with(csrf())
+                .param("name", "Ioana Rus")
+                .param("email", "ioana@example.com"))
+        .andExpect(redirectedUrl("/orders/" + token));
+
+    mvc.perform(get("/orders/" + token))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("Your order is confirmed")))
+        .andExpect(content().string(containsString("Ioana Rus")));
+    mvc.perform(get("/checkout/" + token)).andExpect(redirectedUrl("/orders/" + token));
+  }
+
+  @Test
+  void validatesBuyerDetails() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(post("/checkout/" + token).with(csrf()).param("name", "").param("email", "nope"))
+        .andExpect(status().isOk())
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                .attributeHasFieldErrors("form", "name", "email"));
+  }
+
+  @Test
+  void unpaidOrderPageGoesBackToCheckout() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(get("/orders/" + token)).andExpect(redirectedUrl("/checkout/" + token));
+  }
 }

@@ -8,9 +8,13 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventRepository;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
+import com.sorinwork.tickets.ticket.Ticket;
+import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +27,7 @@ public class CheckoutService {
   private final EventRepository events;
   private final TicketTierRepository tiers;
   private final OrderRepository orders;
+  private final TicketRepository tickets;
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final Clock clock;
@@ -31,12 +36,14 @@ public class CheckoutService {
       EventRepository events,
       TicketTierRepository tiers,
       OrderRepository orders,
+      TicketRepository tickets,
       AvailabilityService availability,
       AppProperties properties,
       Clock clock) {
     this.events = events;
     this.tiers = tiers;
     this.orders = orders;
+    this.tickets = tickets;
     this.availability = availability;
     this.properties = properties;
     this.clock = clock;
@@ -90,6 +97,45 @@ public class CheckoutService {
       throw new BusinessException("Choose at least one ticket.");
     }
     return orders.save(order);
+  }
+
+  /**
+   * Completes checkout with the buyer's details. Payment is simulated: the order is marked paid and
+   * its tickets are issued straight away.
+   */
+  public Order complete(String token, CheckoutForm form) {
+    Order order = getByToken(token);
+    Instant now = clock.instant();
+    if (!order.getHoldExpiresAt().isAfter(now)) {
+      throw new BusinessException(
+          "Your reservation has expired. Please choose your tickets again.");
+    }
+    order.setBuyerName(form.getName().trim());
+    order.setBuyerEmail(form.getEmail().trim().toLowerCase(Locale.ROOT));
+    order.setStatus(OrderStatus.PAID);
+    order.setPaidAt(now);
+    issueTickets(order, now);
+    return order;
+  }
+
+  @Transactional(readOnly = true)
+  public List<Ticket> ticketsOf(Order order) {
+    return tickets.findByOrderIdOrderById(order.getId());
+  }
+
+  private void issueTickets(Order order, Instant now) {
+    for (OrderItem item : order.getItems()) {
+      for (int i = 0; i < item.getQuantity(); i++) {
+        tickets.save(
+            new Ticket(
+                order,
+                item.getTier(),
+                Tokens.ticketCode(),
+                order.getBuyerName(),
+                order.getBuyerEmail(),
+                now));
+      }
+    }
   }
 
   @Transactional(readOnly = true)

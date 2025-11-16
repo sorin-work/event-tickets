@@ -315,3 +315,16 @@ th {
 .tier-buy select {
   width: auto;
 }
+
+.ticket {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+}
+
+.ticket-code {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}

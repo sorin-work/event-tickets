@@ -3,14 +3,19 @@ package com.sorinwork.tickets.web;
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.order.CheckoutForm;
 import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
+import com.sorinwork.tickets.order.OrderStatus;
+import jakarta.validation.Valid;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -49,6 +54,45 @@ public class CheckoutController {
   @GetMapping("/checkout/{token}")
   public String show(@PathVariable String token, Model model) {
     Order order = checkout.getByToken(token);
+    if (order.getStatus() == OrderStatus.PAID) {
+      return "redirect:/orders/" + token;
+    }
+    model.addAttribute("form", new CheckoutForm());
+    return render(order, model);
+  }
+
+  @PostMapping("/checkout/{token}")
+  public String complete(
+      @PathVariable String token,
+      @Valid @ModelAttribute("form") CheckoutForm form,
+      BindingResult binding,
+      Model model) {
+    Order order = checkout.getByToken(token);
+    if (binding.hasErrors()) {
+      return render(order, model);
+    }
+    try {
+      checkout.complete(token, form);
+    } catch (BusinessException e) {
+      model.addAttribute("error", e.getMessage());
+      return render(order, model);
+    }
+    return "redirect:/orders/" + token;
+  }
+
+  @GetMapping("/orders/{token}")
+  public String confirmation(@PathVariable String token, Model model) {
+    Order order = checkout.getByToken(token);
+    if (order.getStatus() != OrderStatus.PAID) {
+      return "redirect:/checkout/" + token;
+    }
+    model.addAttribute("order", order);
+    model.addAttribute("event", order.getEvent());
+    model.addAttribute("tickets", checkout.ticketsOf(order));
+    return "public/order";
+  }
+
+  private String render(Order order, Model model) {
     model.addAttribute("order", order);
     model.addAttribute("event", order.getEvent());
     model.addAttribute("holdActive", order.isHoldActive(clock.instant()));

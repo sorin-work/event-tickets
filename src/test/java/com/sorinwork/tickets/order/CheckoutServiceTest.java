@@ -9,9 +9,12 @@ import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
 import com.sorinwork.tickets.support.IntegrationTest;
+import com.sorinwork.tickets.ticket.Ticket;
+import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +25,7 @@ class CheckoutServiceTest extends IntegrationTest {
   @Autowired CheckoutService checkout;
   @Autowired EventService events;
   @Autowired TicketTierRepository tiers;
+  @Autowired TicketRepository tickets;
 
   Event event;
   TicketTier standing;
@@ -129,5 +133,42 @@ class CheckoutServiceTest extends IntegrationTest {
         .hasMessage("Standing is not on sale yet.");
     assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 1)))
         .hasMessage("Sales for VIP have ended.");
+  }
+
+  @Test
+  void completingCheckoutIssuesOneTicketPerSeat() {
+    Order order = checkout.start(event.getId(), select(standing, 2, vip, 1));
+
+    Order paid =
+        checkout.complete(order.getAccessToken(), new CheckoutForm(" Ana Pop ", "Ana@Example.com"));
+
+    assertThat(paid.getStatus()).isEqualTo(OrderStatus.PAID);
+    assertThat(paid.getPaidAt()).isEqualTo(clock.instant());
+    assertThat(paid.getBuyerEmail()).isEqualTo("ana@example.com");
+    List<Ticket> issued = tickets.findByOrderIdOrderById(order.getId());
+    assertThat(issued)
+        .hasSize(3)
+        .allSatisfy(t -> assertThat(t.getAttendeeName()).isEqualTo("Ana Pop"));
+    assertThat(issued).extracting(Ticket::getCode).doesNotHaveDuplicates();
+  }
+
+  @Test
+  void paidSeatsStayTakenAfterTheHoldTime() {
+    Order order = checkout.start(event.getId(), select(vip, 2));
+    checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "ana@example.com"));
+    clock.advance(Duration.ofHours(1));
+
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 1)))
+        .hasMessage("VIP is sold out.");
+  }
+
+  @Test
+  void cannotCompleteAfterTheHoldRanOut() {
+    Order order = checkout.start(event.getId(), select(vip, 1));
+    clock.advance(Duration.ofMinutes(10));
+
+    assertThatThrownBy(
+            () -> checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "a@b.co")))
+        .hasMessageContaining("expired");
   }
 }

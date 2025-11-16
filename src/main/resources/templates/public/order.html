@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Your tickets')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+  <div class="alert alert-ok">Thank you! Your order is confirmed.</div>
+  <h1>Your tickets</h1>
+  <p>
+    Order <strong th:text="${order.reference}">ET-7K3F9Q</strong> for
+    <a th:href="@{/events/{slug}(slug=${event.slug})}" th:text="${event.title}">Event</a>,
+    <span th:text="${@fmt.when(event)}">date</span>.
+  </p>
+  <p class="muted">Bookmark this page: it is your link to your tickets.</p>
+  <div class="card ticket" th:each="ticket : ${tickets}">
+    <div>
+      <strong th:text="${ticket.tier.name}">Standing</strong>
+      <div th:text="${ticket.attendeeName}">Ana Pop</div>
+      <div class="ticket-code" th:text="${ticket.code}">ABCD2345EFGH</div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

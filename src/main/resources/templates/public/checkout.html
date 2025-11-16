@@ -23,6 +23,27 @@
       </tr>
     </table>
   </section>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
+  <form th:if="${holdActive}" class="card" method="post" th:action="@{/checkout/{t}(t=${order.accessToken})}" th:object="${form}">
+    <h2>Your details</h2>
+    <p class="muted">
+      Tickets are held for you until
+      <strong th:text="${#temporals.format(order.holdExpiresAt.atZone(event.zone()), 'HH:mm')}">19:40</strong>.
+    </p>
+    <div class="field">
+      <label for="name">Full name</label>
+      <input id="name" th:field="*{name}" required maxlength="120" autocomplete="name">
+      <div class="field-error" th:errors="*{name}"></div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" th:field="*{email}" required maxlength="255" autocomplete="email">
+      <div class="field-error" th:errors="*{email}"></div>
+    </div>
+    <p class="muted">Payment is simulated in this demo: placing the order marks it as paid.</p>
+    <button class="btn btn-primary" type="submit"
+            th:text="${order.totalCents == 0} ? 'Get tickets' : 'Pay ' + ${@fmt.money(order.totalCents, event.currency)}">Pay</button>
+  </form>
 </main>
 </body>
 </html>
