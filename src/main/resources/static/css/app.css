@@ -328,3 +328,8 @@ th {
   letter-spacing: 0.1em;
   color: var(--muted);
 }
+
+.qr {
+  image-rendering: pixelated;
+  border-radius: 4px;
+}
