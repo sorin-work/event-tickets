@@ -333,3 +333,14 @@ th {
   image-rendering: pixelated;
   border-radius: 4px;
 }
+
+.hold-timer {
+  background: var(--warn-bg);
+  color: var(--warn);
+  border-radius: var(--radius);
+  padding: 8px 12px;
+}
+
+.hold-timer strong {
+  font-variant-numeric: tabular-nums;
+}

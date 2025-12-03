@@ -26,10 +26,15 @@
   <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
   <form th:if="${holdActive}" class="card" method="post" th:action="@{/checkout/{t}(t=${order.accessToken})}" th:object="${form}">
     <h2>Your details</h2>
-    <p class="muted">
-      Tickets are held for you until
-      <strong th:text="${#temporals.format(order.holdExpiresAt.atZone(event.zone()), 'HH:mm')}">19:40</strong>.
+    <p class="hold-timer">
+      Tickets are held for you for
+      <strong data-countdown th:attr="data-countdown=${order.holdExpiresAt}">10:00</strong>
+      (until <span th:text="${#temporals.format(order.holdExpiresAt.atZone(event.zone()), 'HH:mm')}">19:40</span>).
     </p>
+    <div class="alert alert-warn" data-countdown-expired hidden>
+      Time is up and the tickets have been released.
+      <a th:href="@{/events/{slug}(slug=${event.slug})}">Choose tickets again</a>.
+    </div>
     <div class="field">
       <label for="name">Full name</label>
       <input id="name" th:field="*{name}" required maxlength="120" autocomplete="name">
@@ -45,5 +50,6 @@
             th:text="${order.totalCents == 0} ? 'Get tickets' : 'Pay ' + ${@fmt.money(order.totalCents, event.currency)}">Pay</button>
   </form>
 </main>
+<script th:src="@{/js/countdown.js}" defer></script>
 </body>
 </html>
