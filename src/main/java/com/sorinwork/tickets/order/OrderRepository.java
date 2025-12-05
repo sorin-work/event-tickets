@@ -1,5 +1,7 @@
 package com.sorinwork.tickets.order;
 
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -21,4 +23,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       where o.accessToken = :token
       """)
   Optional<Order> findWithItemsByAccessToken(@Param("token") String token);
+
+  List<Order> findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus status, Instant now);
 }

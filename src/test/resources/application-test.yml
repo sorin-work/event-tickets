@@ -8,3 +8,5 @@ app:
   admin:
     email: ""
     password: ""
+  scheduling:
+    enabled: false
