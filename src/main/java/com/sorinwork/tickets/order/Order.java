@@ -1,6 +1,7 @@
 package com.sorinwork.tickets.order;
 
 import com.sorinwork.tickets.event.Event;
+import com.sorinwork.tickets.promo.PromoCode;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -48,6 +49,10 @@ public class Order {
 
   @Column(name = "buyer_email")
   private String buyerEmail;
+
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "promo_code_id")
+  private PromoCode promoCode;
 
   @Column(name = "subtotal_cents", nullable = false)
   private long subtotalCents;
@@ -138,6 +143,14 @@ public class Order {
 
   public void setBuyerEmail(String buyerEmail) {
     this.buyerEmail = buyerEmail;
+  }
+
+  public PromoCode getPromoCode() {
+    return promoCode;
+  }
+
+  public void setPromoCode(PromoCode promoCode) {
+    this.promoCode = promoCode;
   }
 
   public long getSubtotalCents() {
