@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Promo codes')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1>Promo codes</h1>
+  <div th:if="${#lists.isEmpty(promos)}" class="card empty">No promo codes for this event yet.</div>
+  <table th:unless="${#lists.isEmpty(promos)}" class="card">
+    <thead><tr><th>Code</th><th>Discount</th><th class="num">Used</th><th>Valid until</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="promo : ${promos}" th:classappend="${!promo.active} ? 'muted'">
+      <td><code th:text="${promo.code}">SPRING10</code></td>
+      <td th:text="${promo.discountType.name() == 'PERCENT'} ? ${promo.amount} + '%' : ${@fmt.money(promo.amount, event.currency)}">10%</td>
+      <td class="num" th:text="${promo.maxUses} ? ${promo.usedCount} + ' / ' + ${promo.maxUses} : ${promo.usedCount}">0</td>
+      <td th:text="${promo.validUntil} ? ${@fmt.dateTime(promo.validUntil)} : '—'">—</td>
+      <td>
+        <form method="post" th:action="@{/admin/events/{e}/promo-codes/{p}/active(e=${event.id},p=${promo.id})}">
+          <input type="hidden" name="active" th:value="${!promo.active}">
+          <button class="btn" type="submit" th:text="${promo.active} ? 'Disable' : 'Enable'">Disable</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+
+  <form class="card" method="post" th:action="@{/admin/events/{id}/promo-codes(id=${event.id})}" th:object="${form}">
+    <h2>New promo code</h2>
+    <div class="field">
+      <label for="code">Code</label>
+      <input id="code" th:field="*{code}" required maxlength="32" placeholder="EARLYBIRD">
+      <div class="field-error" th:errors="*{code}"></div>
+    </div>
+    <div class="field">
+      <label for="discountType">Type</label>
+      <select id="discountType" th:field="*{discountType}">
+        <option value="PERCENT">Percentage</option>
+        <option value="FIXED">Fixed amount</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="amount">Amount</label>
+      <input id="amount" th:field="*{amount}" required placeholder="10 or 5.00">
+      <div class="field-error" th:errors="*{amount}"></div>
+      <div class="field-error" th:errors="*{amountValid}"></div>
+    </div>
+    <div class="field">
+      <label for="maxUses">Max uses <span class="muted">(optional)</span></label>
+      <input id="maxUses" type="number" min="1" th:field="*{maxUses}">
+      <div class="field-error" th:errors="*{maxUses}"></div>
+    </div>
+    <div class="field">
+      <label for="validUntil">Valid until <span class="muted">(optional)</span></label>
+      <input id="validUntil" type="datetime-local" th:field="*{validUntil}">
+    </div>
+    <button class="btn btn-primary" type="submit">Create</button>
+  </form>
+</main>
+</body>
+</html>
