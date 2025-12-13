@@ -18,6 +18,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       """
       select distinct o from Order o
       join fetch o.event
+      left join fetch o.promoCode
       left join fetch o.items i
       left join fetch i.tier
       where o.accessToken = :token

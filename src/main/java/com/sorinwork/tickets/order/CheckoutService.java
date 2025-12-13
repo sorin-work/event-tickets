@@ -8,6 +8,9 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventRepository;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
+import com.sorinwork.tickets.promo.DiscountCalculator;
+import com.sorinwork.tickets.promo.PromoCode;
+import com.sorinwork.tickets.promo.PromoCodeRepository;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
@@ -28,6 +31,7 @@ public class CheckoutService {
   private final TicketTierRepository tiers;
   private final OrderRepository orders;
   private final TicketRepository tickets;
+  private final PromoCodeRepository promoCodes;
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final Clock clock;
@@ -37,6 +41,7 @@ public class CheckoutService {
       TicketTierRepository tiers,
       OrderRepository orders,
       TicketRepository tickets,
+      PromoCodeRepository promoCodes,
       AvailabilityService availability,
       AppProperties properties,
       Clock clock) {
@@ -44,6 +49,7 @@ public class CheckoutService {
     this.tiers = tiers;
     this.orders = orders;
     this.tickets = tickets;
+    this.promoCodes = promoCodes;
     this.availability = availability;
     this.properties = properties;
     this.clock = clock;
@@ -97,6 +103,59 @@ public class CheckoutService {
       throw new BusinessException("Choose at least one ticket.");
     }
     return orders.save(order);
+  }
+
+  /** Applies a promo code to an open checkout, replacing any code applied before. */
+  public Order applyPromoCode(String token, String rawCode) {
+    Order order = getOpenOrder(token);
+    String code = PromoCode.normalize(rawCode);
+    if (code == null || code.isEmpty()) {
+      throw new BusinessException("Enter a promo code.");
+    }
+    PromoCode promo =
+        promoCodes
+            .findByEventIdAndCode(order.getEvent().getId(), code)
+            .filter(PromoCode::isActive)
+            .orElseThrow(() -> new BusinessException("That promo code is not valid."));
+    LocalDateTime eventNow = LocalDateTime.now(clock.withZone(order.getEvent().zone()));
+    if (promo.getValidUntil() != null && eventNow.isAfter(promo.getValidUntil())) {
+      throw new BusinessException("That promo code has expired.");
+    }
+    if (promo.getId().equals(order.getPromoCode() == null ? null : order.getPromoCode().getId())) {
+      return order;
+    }
+    if (promo.isUsedUp()) {
+      throw new BusinessException("That promo code has been used up.");
+    }
+    releasePromoCode(order);
+    promo.setUsedCount(promo.getUsedCount() + 1);
+    order.setPromoCode(promo);
+    order.setDiscountCents(DiscountCalculator.discount(promo, order.getSubtotalCents()));
+    return order;
+  }
+
+  public Order removePromoCode(String token) {
+    Order order = getOpenOrder(token);
+    releasePromoCode(order);
+    return order;
+  }
+
+  private void releasePromoCode(Order order) {
+    PromoCode current = order.getPromoCode();
+    if (current != null) {
+      current.setUsedCount(Math.max(0, current.getUsedCount() - 1));
+      order.setPromoCode(null);
+      order.setDiscountCents(0);
+    }
+  }
+
+  private Order getOpenOrder(String token) {
+    Order order = getByToken(token);
+    if (!order.isHoldActive(clock.instant())) {
+      throw new BusinessException(
+          "Your reservation has expired. Please choose your tickets again.");
+    }
+    return order;
   }
 
   /**
