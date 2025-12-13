@@ -9,7 +9,7 @@
   <div th:unless="${holdActive}" class="alert alert-warn">
     Your reservation has expired. <a th:href="@{/events/{slug}(slug=${event.slug})}">Choose tickets again</a>.
   </div>
-  <section class="card">
+  <section class="card" id="order-summary" th:fragment="summary">
     <h2 th:text="${event.title}">Event</h2>
     <p class="muted" th:text="${@fmt.when(event)}">date</p>
     <table>
@@ -17,11 +17,28 @@
         <td th:text="${item.quantity} + ' × ' + ${item.tier.name}">2 × Standing</td>
         <td class="num" th:text="${@fmt.money(item.lineTotalCents(), event.currency)}">€30.00</td>
       </tr>
+      <tr th:if="${order.promoCode}">
+        <td>
+          Promo <code th:text="${order.promoCode.code}">FRIENDS</code>
+          <button th:if="${holdActive}" class="btn-link" type="button"
+                  th:attr="hx-post=@{/checkout/{t}/promo/remove(t=${order.accessToken})}"
+                  hx-target="#order-summary" hx-swap="outerHTML">remove</button>
+        </td>
+        <td class="num" th:text="'-' + ${@fmt.money(order.discountCents, event.currency)}">-€5.00</td>
+      </tr>
       <tr>
         <th>Total</th>
         <th class="num" th:text="${@fmt.money(order.totalCents, event.currency)}">€30.00</th>
       </tr>
     </table>
+    <form th:if="${holdActive and order.promoCode == null}" class="promo-form" method="post"
+          th:action="@{/checkout/{t}/promo(t=${order.accessToken})}"
+          th:attr="hx-post=@{/checkout/{t}/promo(t=${order.accessToken})}"
+          hx-target="#order-summary" hx-swap="outerHTML">
+      <input name="code" placeholder="Promo code" aria-label="Promo code" maxlength="32">
+      <button class="btn" type="submit">Apply</button>
+    </form>
+    <div th:if="${promoError}" class="field-error" th:text="${promoError}">Invalid code</div>
   </section>
   <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
   <form th:if="${holdActive}" class="card" method="post" th:action="@{/checkout/{t}(t=${order.accessToken})}" th:object="${form}">

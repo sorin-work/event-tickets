@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
@@ -78,6 +79,49 @@ public class CheckoutController {
       return render(order, model);
     }
     return "redirect:/orders/" + token;
+  }
+
+  @PostMapping("/checkout/{token}/promo")
+  public String applyPromo(
+      @PathVariable String token,
+      @RequestParam(defaultValue = "") String code,
+      @RequestHeader(value = "HX-Request", required = false) String htmx,
+      Model model,
+      RedirectAttributes redirect) {
+    try {
+      checkout.applyPromoCode(token, code);
+    } catch (BusinessException e) {
+      if (htmx == null) {
+        redirect.addFlashAttribute("promoError", e.getMessage());
+      }
+      model.addAttribute("promoError", e.getMessage());
+    }
+    return summary(token, htmx, model);
+  }
+
+  @PostMapping("/checkout/{token}/promo/remove")
+  public String removePromo(
+      @PathVariable String token,
+      @RequestHeader(value = "HX-Request", required = false) String htmx,
+      Model model) {
+    try {
+      checkout.removePromoCode(token);
+    } catch (BusinessException e) {
+      model.addAttribute("promoError", e.getMessage());
+    }
+    return summary(token, htmx, model);
+  }
+
+  /** htmx requests get the refreshed order summary; plain form posts go back to the page. */
+  private String summary(String token, String htmx, Model model) {
+    if (htmx == null) {
+      return "redirect:/checkout/" + token;
+    }
+    Order order = checkout.getByToken(token);
+    model.addAttribute("order", order);
+    model.addAttribute("event", order.getEvent());
+    model.addAttribute("holdActive", order.isHoldActive(clock.instant()));
+    return "public/checkout :: summary";
   }
 
   @GetMapping("/orders/{token}")

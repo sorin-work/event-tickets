@@ -344,3 +344,19 @@ th {
 .hold-timer strong {
   font-variant-numeric: tabular-nums;
 }
+
+.promo-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.btn-link {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--accent);
+  cursor: pointer;
+  font: inherit;
+  text-decoration: underline;
+}
