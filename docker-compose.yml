@@ -1,0 +1,29 @@
+name: event-tickets
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: tickets
+      POSTGRES_PASSWORD: tickets
+      POSTGRES_DB: tickets
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    ports:
+      - '${DB_PORT:-5432}:5432'
+
+  app:
+    build: .
+    environment:
+      DATABASE_URL: jdbc:postgresql://db:5432/tickets
+      DATABASE_USER: tickets
+      DATABASE_PASSWORD: tickets
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-demo-password}
+    depends_on:
+      - db
+    ports:
+      - '${WEB_PORT:-4411}:8080'
+
+volumes:
+  db-data:
