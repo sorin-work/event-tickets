@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head(${order.reference})}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <p><a th:href="@{/admin/events/{id}/orders(id=${event.id})}">&larr; Orders</a></p>
+  <h1>Order <span th:text="${order.reference}">ET-ABC234</span></h1>
+  <section class="card">
+    <p th:insert="~{fragments/admin :: orderStatus(${order.status})}"></p>
+    <p>
+      <strong th:text="${order.buyerName} ?: 'Checkout in progress'">Ana Pop</strong>
+      <span class="muted" th:if="${order.buyerEmail}" th:text="${order.buyerEmail}">ana@example.com</span>
+    </p>
+    <p class="muted">
+      Placed <span th:text="${@fmt.instant(order.createdAt, event)}">date</span>
+      <span th:if="${order.paidAt}"> · paid <span th:text="${@fmt.instant(order.paidAt, event)}">date</span></span>
+    </p>
+    <table>
+      <tr th:each="item : ${order.items}">
+        <td th:text="${item.quantity} + ' × ' + ${item.tier.name}">2 × Standing</td>
+        <td class="num" th:text="${@fmt.money(item.lineTotalCents(), event.currency)}">€30.00</td>
+      </tr>
+      <tr th:if="${order.promoCode}">
+        <td>Promo <code th:text="${order.promoCode.code}">FRIENDS</code></td>
+        <td class="num" th:text="'-' + ${@fmt.money(order.discountCents, event.currency)}">-€5.00</td>
+      </tr>
+      <tr><th>Total</th><th class="num" th:text="${@fmt.money(order.totalCents, event.currency)}">€25.00</th></tr>
+    </table>
+  </section>
+  <section class="card" th:unless="${#lists.isEmpty(tickets)}">
+    <h2>Tickets</h2>
+    <table>
+      <thead><tr><th>Code</th><th>Tier</th><th>Attendee</th><th>Checked in</th></tr></thead>
+      <tbody>
+      <tr th:each="ticket : ${tickets}">
+        <td><code th:text="${ticket.code}">ABCD</code></td>
+        <td th:text="${ticket.tier.name}">Standing</td>
+        <td th:text="${ticket.attendeeName}">Ana</td>
+        <td th:text="${ticket.checkedIn} ? ${@fmt.instant(ticket.checkedInAt, event)} : '—'">—</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+</main>
+</body>
+</html>

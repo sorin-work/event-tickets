@@ -26,4 +26,24 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   Optional<Order> findWithItemsByAccessToken(@Param("token") String token);
 
   List<Order> findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus status, Instant now);
+
+  @Query(
+      """
+      select o from Order o
+      where o.event.id = :eventId and o.status in :statuses
+      order by o.createdAt desc, o.id desc
+      """)
+  List<Order> findForEvent(
+      @Param("eventId") long eventId, @Param("statuses") List<OrderStatus> statuses);
+
+  @Query(
+      """
+      select distinct o from Order o
+      join fetch o.event
+      left join fetch o.promoCode
+      left join fetch o.items i
+      left join fetch i.tier
+      where o.id = :id
+      """)
+  Optional<Order> findWithItemsById(@Param("id") long id);
 }

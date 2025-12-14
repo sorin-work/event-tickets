@@ -20,5 +20,9 @@
   <div th:if="${flash}" class="alert alert-ok" th:text="${flash}">Saved.</div>
   <div th:if="${error}" class="alert alert-danger" th:text="${error}">Something went wrong.</div>
 </div>
+
+<span th:fragment="orderStatus(status)" class="badge"
+      th:classappend="${status.name() == 'PAID'} ? 'badge-ok' : (${status.name() == 'CANCELLED'} ? 'badge-danger' : 'badge-warn')"
+      th:text="${#strings.capitalize(#strings.toLowerCase(status.name()))}">Paid</span>
 </body>
 </html>
