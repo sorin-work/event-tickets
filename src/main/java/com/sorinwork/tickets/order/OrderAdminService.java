@@ -1,8 +1,10 @@
 package com.sorinwork.tickets.order;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
+import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -17,10 +19,12 @@ public class OrderAdminService {
 
   private final OrderRepository orders;
   private final TicketRepository tickets;
+  private final Clock clock;
 
-  public OrderAdminService(OrderRepository orders, TicketRepository tickets) {
+  public OrderAdminService(OrderRepository orders, TicketRepository tickets, Clock clock) {
     this.orders = orders;
     this.tickets = tickets;
+    this.clock = clock;
   }
 
   /** Orders of an event, newest first; expired checkouts are left out. */
@@ -39,5 +43,22 @@ public class OrderAdminService {
   @Transactional(readOnly = true)
   public List<Ticket> tickets(long orderId) {
     return tickets.findByOrderIdOrderById(orderId);
+  }
+
+  /**
+   * Cancels an order, e.g. after a refund outside the app. Its tickets stop working at the door and
+   * the seats go back on sale.
+   */
+  public Order cancel(long orderId) {
+    Order order = get(orderId);
+    if (order.getStatus() == OrderStatus.CANCELLED) {
+      throw new BusinessException("This order is already cancelled.");
+    }
+    if (order.getStatus() == OrderStatus.EXPIRED) {
+      throw new BusinessException("Expired checkouts cannot be cancelled.");
+    }
+    order.setStatus(OrderStatus.CANCELLED);
+    order.setCancelledAt(clock.instant());
+    return order;
   }
 }

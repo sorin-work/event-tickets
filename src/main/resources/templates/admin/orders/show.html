@@ -29,6 +29,11 @@
       <tr><th>Total</th><th class="num" th:text="${@fmt.money(order.totalCents, event.currency)}">€25.00</th></tr>
     </table>
   </section>
+  <form th:if="${order.status.name() == 'PAID' or order.status.name() == 'PENDING'}" method="post"
+        th:action="@{/admin/orders/{id}/cancel(id=${order.id})}"
+        onsubmit="return confirm('Cancel this order? Its tickets stop working and the seats go back on sale.')">
+    <button class="btn btn-danger" type="submit">Cancel order</button>
+  </form>
   <section class="card" th:unless="${#lists.isEmpty(tickets)}">
     <h2>Tickets</h2>
     <table>
