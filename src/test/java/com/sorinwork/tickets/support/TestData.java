@@ -4,6 +4,7 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TicketTier;
+import com.sorinwork.tickets.event.TicketTierRepository;
 import com.sorinwork.tickets.event.TierForm;
 import com.sorinwork.tickets.event.TierService;
 import java.time.LocalDateTime;
@@ -15,10 +16,12 @@ public class TestData {
 
   private final EventService events;
   private final TierService tiers;
+  private final TicketTierRepository tierRepository;
 
-  public TestData(EventService events, TierService tiers) {
+  public TestData(EventService events, TierService tiers, TicketTierRepository tierRepository) {
     this.events = events;
     this.tiers = tiers;
+    this.tierRepository = tierRepository;
   }
 
   public static EventForm eventForm(String title) {
@@ -46,5 +49,9 @@ public class TestData {
 
   public TicketTier tier(Event event, String name, String price, int quantity) {
     return tiers.create(event.getId(), tierForm(name, price, quantity));
+  }
+
+  public TicketTier saveTier(TicketTier tier) {
+    return tierRepository.save(tier);
   }
 }

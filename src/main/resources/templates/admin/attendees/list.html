@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Attendees')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container">
+  <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1>Attendees</h1>
+  <div th:if="${attendees.isEmpty()}" class="card empty">No tickets sold yet.</div>
+  <th:block th:unless="${attendees.isEmpty()}">
+    <p class="muted" th:text="'Showing ' + ${attendees.firstItem()} + '–' + ${attendees.lastItem()} + ' of ' + ${attendees.total}">Showing 1–25 of 80</p>
+    <table>
+      <thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Ticket</th><th>Order</th><th>Checked in</th></tr></thead>
+      <tbody>
+      <tr th:each="ticket : ${attendees.items}">
+        <td th:text="${ticket.attendeeName}">Ana Pop</td>
+        <td th:text="${ticket.attendeeEmail}">ana@example.com</td>
+        <td th:text="${ticket.tier.name}">Standing</td>
+        <td><code th:text="${ticket.code}">ABCD</code></td>
+        <td><a th:href="@{/admin/orders/{id}(id=${ticket.order.id})}" th:text="${ticket.order.reference}">ET-1</a></td>
+        <td th:text="${ticket.checkedIn} ? ${@fmt.instant(ticket.checkedInAt, event)} : '—'">—</td>
+      </tr>
+      </tbody>
+    </table>
+    <nav class="pager" th:if="${attendees.totalPages() > 1}">
+      <a th:if="${attendees.hasPrevious()}" class="btn" th:href="@{''(page=${attendees.page - 1})}">&larr; Previous</a>
+      <span class="muted" th:text="'Page ' + ${attendees.page} + ' of ' + ${attendees.totalPages()}">Page 1 of 3</span>
+      <a th:if="${attendees.hasNext()}" class="btn" th:href="@{''(page=${attendees.page + 1})}">Next &rarr;</a>
+    </nav>
+  </th:block>
+</main>
+</body>
+</html>
