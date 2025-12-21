@@ -74,4 +74,29 @@ class AdminAttendeeControllerTest extends IntegrationTest {
   void emptyState() throws Exception {
     mvc.perform(get(url)).andExpect(content().string(containsString("No tickets sold yet.")));
   }
+
+  @Test
+  void searchesByNameEmailCodeAndReference() throws Exception {
+    Order ana = purchases.buy(tier, 1, "Ana Popescu", "ana@example.com");
+    purchases.buy(tier, 1, "Bogdan Stan", "bogdan@mail.test");
+    String code = orders.tickets(ana.getId()).get(0).getCode();
+
+    mvc.perform(get(url).param("q", "popes"))
+        .andExpect(content().string(containsString("Ana Popescu")))
+        .andExpect(content().string(not(containsString("Bogdan Stan"))));
+    mvc.perform(get(url).param("q", "MAIL.TEST"))
+        .andExpect(content().string(containsString("Bogdan Stan")));
+    mvc.perform(get(url).param("q", code.toLowerCase()))
+        .andExpect(content().string(containsString("Ana Popescu")));
+    mvc.perform(get(url).param("q", ana.getReference()))
+        .andExpect(content().string(containsString("Ana Popescu")));
+  }
+
+  @Test
+  void wildcardsInTheQueryAreLiteral() throws Exception {
+    purchases.buy(tier, 1, "Ana Popescu", "ana@example.com");
+
+    mvc.perform(get(url).param("q", "%"))
+        .andExpect(content().string(containsString("Nobody matches")));
+  }
 }

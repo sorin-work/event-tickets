@@ -368,3 +368,9 @@ th {
   gap: 12px;
   margin-top: 16px;
 }
+
+.search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
