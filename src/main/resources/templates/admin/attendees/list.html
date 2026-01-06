@@ -9,6 +9,7 @@
   <form class="search" method="get">
     <input type="search" name="q" th:value="${q}" placeholder="Name, email, ticket code or order" aria-label="Search attendees">
     <button class="btn" type="submit">Search</button>
+    <a class="btn" th:href="@{/admin/events/{id}/attendees.csv(id=${event.id})}">Export CSV</a>
   </form>
   <div th:if="${attendees.isEmpty() and #strings.isEmpty(q)}" class="card empty">No tickets sold yet.</div>
   <div th:if="${attendees.isEmpty() and !#strings.isEmpty(q)}" class="card empty">

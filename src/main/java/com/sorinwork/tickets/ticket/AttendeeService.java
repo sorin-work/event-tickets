@@ -1,7 +1,11 @@
 package com.sorinwork.tickets.ticket;
 
+import com.sorinwork.tickets.common.Csv;
 import com.sorinwork.tickets.common.PageView;
 import com.sorinwork.tickets.order.OrderStatus;
+import java.io.Writer;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -28,6 +32,22 @@ public class AttendeeService {
     String pattern = "%" + escapeLike(q.toLowerCase(Locale.ROOT)) + "%";
     PageRequest request = PageRequest.of(Math.max(page, 1) - 1, PAGE_SIZE);
     return PageView.of(tickets.findAttendees(eventId, OrderStatus.PAID, q, pattern, request));
+  }
+
+  /** Writes every valid ticket of the event as CSV, for door lists and mail merges. */
+  public void exportCsv(long eventId, ZoneId zone, Writer out) {
+    DateTimeFormatter time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(zone);
+    Csv csv = new Csv(out);
+    csv.row("Name", "Email", "Tier", "Ticket code", "Order", "Checked in");
+    for (Ticket ticket : tickets.findByEventIdAndOrderStatusOrderById(eventId, OrderStatus.PAID)) {
+      csv.row(
+          ticket.getAttendeeName(),
+          ticket.getAttendeeEmail(),
+          ticket.getTier().getName(),
+          ticket.getCode(),
+          ticket.getOrder().getReference(),
+          ticket.isCheckedIn() ? time.format(ticket.getCheckedInAt()) : "");
+    }
   }
 
   private static String escapeLike(String text) {

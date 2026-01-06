@@ -43,4 +43,6 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       @Param("query") String query,
       @Param("pattern") String pattern,
       Pageable pageable);
+
+  List<Ticket> findByEventIdAndOrderStatusOrderById(Long eventId, OrderStatus status);
 }
