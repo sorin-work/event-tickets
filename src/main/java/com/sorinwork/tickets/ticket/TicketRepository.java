@@ -45,4 +45,13 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       Pageable pageable);
 
   List<Ticket> findByEventIdAndOrderStatusOrderById(Long eventId, OrderStatus status);
+
+  @Query(
+      """
+      select t from Ticket t join fetch t.tier join fetch t.order join fetch t.event
+      where t.code = :code
+      """)
+  Optional<Ticket> findWithDetailsByCode(@Param("code") String code);
+
+  long countByEventIdAndCheckedInAtIsNotNull(Long eventId);
 }
