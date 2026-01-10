@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Check-in')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('events')}"></header>
+<main class="container narrow">
+  <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1>Check-in</h1>
+  <p class="muted" th:text="${event.title}">Event</p>
+  <form class="card" method="post" th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
+        th:attr="hx-post=@{/admin/events/{id}/check-in(id=${event.id})}"
+        hx-target="#check-in-result" hx-swap="outerHTML"
+        hx-on::after-request="if (event.detail.successful) { this.reset(); this.code.focus(); }">
+    <div class="field">
+      <label for="code">Ticket code</label>
+      <input id="code" name="code" autocomplete="off" autocapitalize="characters" autofocus required
+             placeholder="Scan or type the code">
+    </div>
+    <button class="btn btn-primary" type="submit">Check in</button>
+  </form>
+
+  <div id="check-in-result" th:fragment="result">
+    <div th:if="${result}" class="check-in-result"
+         th:classappend="${result.admitted()} ? 'alert alert-ok' : 'alert alert-danger'">
+      <div class="check-in-status" th:text="${result.admitted()} ? 'Welcome in' : 'Not admitted'">Welcome in</div>
+      <div th:utext="${message}">Ana Pop · Standing</div>
+    </div>
+  </div>
+</main>
+</body>
+</html>

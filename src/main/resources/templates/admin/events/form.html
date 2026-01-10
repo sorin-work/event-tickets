@@ -43,6 +43,7 @@
       <a class="btn" th:href="@{/admin/events/{id}/promo-codes(id=${event.id})}">Promo codes</a>
       <a class="btn" th:href="@{/admin/events/{id}/orders(id=${event.id})}">Orders</a>
       <a class="btn" th:href="@{/admin/events/{id}/attendees(id=${event.id})}">Attendees</a>
+      <a class="btn" th:href="@{/admin/events/{id}/check-in(id=${event.id})}">Check-in</a>
     </p>
   </section>
   <form class="card" method="post" th:object="${form}"

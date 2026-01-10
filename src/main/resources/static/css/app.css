@@ -374,3 +374,12 @@ th {
   gap: 8px;
   margin-bottom: 16px;
 }
+
+.check-in-result {
+  font-size: 1.1rem;
+}
+
+.check-in-status {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
