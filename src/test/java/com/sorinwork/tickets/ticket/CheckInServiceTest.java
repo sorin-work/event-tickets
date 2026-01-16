@@ -89,4 +89,14 @@ class CheckInServiceTest extends IntegrationTest {
         .isEqualTo(CheckInResult.Status.CANCELLED);
     assertThat(tickets.findByCode(code).orElseThrow().isCheckedIn()).isFalse();
   }
+
+  @Test
+  void undoLetsTheTicketBeScannedAgain() {
+    Ticket ticket = checkIn.checkIn(event.getId(), code, "door").ticket();
+
+    checkIn.undo(ticket.getId());
+
+    assertThat(checkIn.checkedInCount(event.getId())).isZero();
+    assertThat(checkIn.checkIn(event.getId(), code, "door").admitted()).isTrue();
+  }
 }

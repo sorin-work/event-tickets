@@ -4,6 +4,8 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderAdminService;
+import com.sorinwork.tickets.ticket.CheckInService;
+import com.sorinwork.tickets.ticket.Ticket;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -16,10 +18,13 @@ public class AdminOrderController {
 
   private final EventService events;
   private final OrderAdminService orders;
+  private final CheckInService checkIn;
 
-  public AdminOrderController(EventService events, OrderAdminService orders) {
+  public AdminOrderController(
+      EventService events, OrderAdminService orders, CheckInService checkIn) {
     this.events = events;
     this.orders = orders;
+    this.checkIn = checkIn;
   }
 
   @GetMapping("/admin/events/{eventId}/orders")
@@ -47,5 +52,12 @@ public class AdminOrderController {
       redirect.addFlashAttribute("error", e.getMessage());
     }
     return "redirect:/admin/orders/" + orderId;
+  }
+
+  @PostMapping("/admin/tickets/{ticketId}/undo-check-in")
+  public String undoCheckIn(@PathVariable long ticketId, RedirectAttributes redirect) {
+    Ticket ticket = checkIn.undo(ticketId);
+    redirect.addFlashAttribute("flash", "Check-in undone for " + ticket.getCode() + ".");
+    return "redirect:/admin/orders/" + ticket.getOrder().getId();
   }
 }

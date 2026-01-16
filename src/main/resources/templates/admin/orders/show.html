@@ -43,7 +43,13 @@
         <td><code th:text="${ticket.code}">ABCD</code></td>
         <td th:text="${ticket.tier.name}">Standing</td>
         <td th:text="${ticket.attendeeName}">Ana</td>
-        <td th:text="${ticket.checkedIn} ? ${@fmt.instant(ticket.checkedInAt, event)} : '—'">—</td>
+        <td>
+          <span th:text="${ticket.checkedIn} ? ${@fmt.instant(ticket.checkedInAt, event)} : '—'">—</span>
+          <form th:if="${ticket.checkedIn}" method="post" style="display:inline"
+                th:action="@{/admin/tickets/{id}/undo-check-in(id=${ticket.id})}">
+            <button class="btn-link" type="submit">undo</button>
+          </form>
+        </td>
       </tr>
       </tbody>
     </table>

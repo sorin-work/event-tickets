@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.ticket;
 
+import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.order.OrderStatus;
 import java.time.Clock;
 import java.util.Locale;
@@ -40,6 +41,13 @@ public class CheckInService {
     }
     ticket.checkIn(clock.instant(), staff);
     return CheckInResult.of(CheckInResult.Status.CHECKED_IN, ticket);
+  }
+
+  /** Reverts a check-in made by mistake, e.g. a scan of the wrong person's phone. */
+  public Ticket undo(long ticketId) {
+    Ticket ticket = tickets.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket"));
+    ticket.undoCheckIn();
+    return ticket;
   }
 
   @Transactional(readOnly = true)
