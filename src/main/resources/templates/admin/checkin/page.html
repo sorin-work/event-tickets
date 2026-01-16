@@ -7,7 +7,7 @@
   <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
   <h1>Check-in</h1>
   <p class="muted" th:text="${event.title}">Event</p>
-  <form class="card" method="post" th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
+  <form class="card" method="post" data-scan-form th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
         th:attr="hx-post=@{/admin/events/{id}/check-in(id=${event.id})}"
         hx-target="#check-in-result" hx-swap="outerHTML"
         hx-on::after-request="if (event.detail.successful) { this.reset(); this.code.focus(); }">
@@ -17,6 +17,8 @@
              placeholder="Scan or type the code">
     </div>
     <button class="btn btn-primary" type="submit">Check in</button>
+    <button class="btn" type="button" data-scan-camera hidden>Scan with camera</button>
+    <video class="scan-video" data-scan-video playsinline muted hidden></video>
   </form>
 
   <div id="check-in-result" th:fragment="result">
@@ -27,5 +29,6 @@
     </div>
   </div>
 </main>
+<script th:src="@{/js/checkin.js}" defer></script>
 </body>
 </html>

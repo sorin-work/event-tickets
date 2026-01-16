@@ -383,3 +383,11 @@ th {
   font-size: 1.6rem;
   font-weight: 700;
 }
+
+.scan-video {
+  display: block;
+  width: 100%;
+  margin-top: 12px;
+  border-radius: var(--radius);
+  background: #000;
+}
