@@ -5,7 +5,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.bind.DefaultValue;
 
 @ConfigurationProperties(prefix = "app")
-public record AppProperties(@DefaultValue Admin admin, @DefaultValue Checkout checkout) {
+public record AppProperties(
+    @DefaultValue("http://localhost:8080") String baseUrl,
+    @DefaultValue Admin admin,
+    @DefaultValue Checkout checkout) {
+
+  /** Absolute link to a path of the app, for emails. */
+  public String url(String path) {
+    String base = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+    return base + path;
+  }
 
   /** Credentials for the first admin account, created on startup when no admin exists. */
   public record Admin(String email, String password, @DefaultValue("Admin") String name) {}

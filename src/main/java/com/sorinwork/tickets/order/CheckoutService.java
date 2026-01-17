@@ -8,6 +8,7 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventRepository;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
+import com.sorinwork.tickets.notify.Emails;
 import com.sorinwork.tickets.promo.DiscountCalculator;
 import com.sorinwork.tickets.promo.PromoCode;
 import com.sorinwork.tickets.promo.PromoCodeRepository;
@@ -34,6 +35,7 @@ public class CheckoutService {
   private final PromoCodeRepository promoCodes;
   private final AvailabilityService availability;
   private final AppProperties properties;
+  private final Emails emails;
   private final Clock clock;
 
   public CheckoutService(
@@ -44,6 +46,7 @@ public class CheckoutService {
       PromoCodeRepository promoCodes,
       AvailabilityService availability,
       AppProperties properties,
+      Emails emails,
       Clock clock) {
     this.events = events;
     this.tiers = tiers;
@@ -52,6 +55,7 @@ public class CheckoutService {
     this.promoCodes = promoCodes;
     this.availability = availability;
     this.properties = properties;
+    this.emails = emails;
     this.clock = clock;
   }
 
@@ -174,6 +178,7 @@ public class CheckoutService {
     order.setStatus(OrderStatus.PAID);
     order.setPaidAt(now);
     issueTickets(order, now);
+    emails.orderConfirmation(order);
     return order;
   }
 
