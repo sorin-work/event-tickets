@@ -391,3 +391,16 @@ th {
   border-radius: var(--radius);
   background: #000;
 }
+
+.progress {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  margin-top: 8px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: var(--ok);
+}

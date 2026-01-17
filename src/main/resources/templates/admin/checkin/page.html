@@ -7,6 +7,12 @@
   <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
   <h1>Check-in</h1>
   <p class="muted" th:text="${event.title}">Event</p>
+  <div id="check-in-progress" class="card check-in-progress" th:fragment="progress"
+       th:attr="hx-get=@{/admin/events/{id}/check-in/progress(id=${event.id})},hx-swap-oob=${oob} ? 'true' : null"
+       hx-trigger="every 15s" hx-swap="outerHTML">
+    <strong th:text="${progress.checkedIn} + ' / ' + ${progress.total}">12 / 80</strong> checked in
+    <div class="progress"><div class="progress-bar" th:style="'width:' + ${progress.percent()} + '%'"></div></div>
+  </div>
   <form class="card" method="post" data-scan-form th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
         th:attr="hx-post=@{/admin/events/{id}/check-in(id=${event.id})}"
         hx-target="#check-in-result" hx-swap="outerHTML"
@@ -21,6 +27,7 @@
     <video class="scan-video" data-scan-video playsinline muted hidden></video>
   </form>
 
+  <th:block th:fragment="result-and-progress">
   <div id="check-in-result" th:fragment="result">
     <div th:if="${result}" class="check-in-result"
          th:classappend="${result.admitted()} ? 'alert alert-ok' : 'alert alert-danger'">
@@ -28,6 +35,8 @@
       <div th:utext="${message}">Ana Pop · Standing</div>
     </div>
   </div>
+  <th:block th:if="${oob}"><div th:replace="~{:: progress}"></div></th:block>
+  </th:block>
 </main>
 <script th:src="@{/js/checkin.js}" defer></script>
 </body>

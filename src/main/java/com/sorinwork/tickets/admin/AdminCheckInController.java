@@ -33,7 +33,15 @@ public class AdminCheckInController {
   @GetMapping
   public String page(@PathVariable long eventId, Model model) {
     model.addAttribute("event", events.get(eventId));
+    model.addAttribute("progress", checkIn.progress(eventId));
     return "admin/checkin/page";
+  }
+
+  @GetMapping("/progress")
+  public String progress(@PathVariable long eventId, Model model) {
+    model.addAttribute("event", events.get(eventId));
+    model.addAttribute("progress", checkIn.progress(eventId));
+    return "admin/checkin/page :: progress";
   }
 
   @PostMapping
@@ -48,7 +56,9 @@ public class AdminCheckInController {
     model.addAttribute("event", event);
     model.addAttribute("result", result);
     model.addAttribute("message", message(result, event));
-    return htmx != null ? "admin/checkin/page :: result" : "admin/checkin/page";
+    model.addAttribute("progress", checkIn.progress(eventId));
+    model.addAttribute("oob", htmx != null);
+    return htmx != null ? "admin/checkin/page :: result-and-progress" : "admin/checkin/page";
   }
 
   private String message(CheckInResult result, Event event) {

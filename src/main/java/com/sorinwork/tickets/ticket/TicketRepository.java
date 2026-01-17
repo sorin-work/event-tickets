@@ -53,5 +53,7 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       """)
   Optional<Ticket> findWithDetailsByCode(@Param("code") String code);
 
-  long countByEventIdAndCheckedInAtIsNotNull(Long eventId);
+  long countByEventIdAndCheckedInAtIsNotNullAndOrderStatus(Long eventId, OrderStatus status);
+
+  long countByEventIdAndOrderStatus(Long eventId, OrderStatus status);
 }

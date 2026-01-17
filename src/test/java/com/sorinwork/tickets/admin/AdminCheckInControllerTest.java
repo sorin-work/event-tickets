@@ -68,4 +68,17 @@ class AdminCheckInControllerTest extends IntegrationTest {
     mvc.perform(post(url).with(csrf()).param("code", "XXXX"))
         .andExpect(content().string(containsString("No ticket with this code")));
   }
+
+  @Test
+  void showsProgressAndUpdatesItAfterAScan() throws Exception {
+    mvc.perform(get(url)).andExpect(content().string(containsString("0 / 1")));
+
+    mvc.perform(post(url).with(csrf()).header("HX-Request", "true").param("code", code))
+        .andExpect(content().string(containsString("hx-swap-oob=\"true\"")))
+        .andExpect(content().string(containsString("1 / 1")));
+
+    mvc.perform(get(url + "/progress"))
+        .andExpect(content().string(containsString("1 / 1")))
+        .andExpect(content().string(containsString("width:100%")));
+  }
 }

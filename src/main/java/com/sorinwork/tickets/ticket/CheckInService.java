@@ -52,7 +52,21 @@ public class CheckInService {
 
   @Transactional(readOnly = true)
   public long checkedInCount(long eventId) {
-    return tickets.countByEventIdAndCheckedInAtIsNotNull(eventId);
+    return tickets.countByEventIdAndCheckedInAtIsNotNullAndOrderStatus(eventId, OrderStatus.PAID);
+  }
+
+  /** Checked-in and total valid tickets, for the counter at the door. */
+  @Transactional(readOnly = true)
+  public Progress progress(long eventId) {
+    return new Progress(
+        checkedInCount(eventId), tickets.countByEventIdAndOrderStatus(eventId, OrderStatus.PAID));
+  }
+
+  public record Progress(long checkedIn, long total) {
+
+    public int percent() {
+      return total == 0 ? 0 : (int) (checkedIn * 100 / total);
+    }
   }
 
   static String normalize(String code) {
