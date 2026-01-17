@@ -404,3 +404,16 @@ th {
   height: 100%;
   background: var(--ok);
 }
+
+.outbox-message summary {
+  cursor: pointer;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.outbox-message pre {
+  white-space: pre-wrap;
+  font-family: inherit;
+  margin: 12px 0 0;
+}

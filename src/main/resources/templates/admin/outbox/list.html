@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Outbox')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('outbox')}"></header>
+<main class="container">
+  <h1>Outbox</h1>
+  <p class="muted" th:text="'Emails the app has sent, newest first (last ' + ${limit} + ').'">Emails</p>
+  <div th:if="${#lists.isEmpty(messages)}" class="card empty">No emails sent yet.</div>
+  <details class="card outbox-message" th:each="message : ${messages}">
+    <summary>
+      <strong th:text="${message.subject}">Your tickets</strong>
+      <span class="muted" th:text="'to ' + ${message.recipient}">to ana@example.com</span>
+      <span class="muted" th:text="${#temporals.format(message.createdAt, 'd MMM yyyy HH:mm')} + ' UTC'">date</span>
+    </summary>
+    <pre th:text="${message.body}">Body</pre>
+  </details>
+</main>
+</body>
+</html>
