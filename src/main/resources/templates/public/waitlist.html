@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Join the waitlist')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+  <p><a th:href="@{/events/{slug}(slug=${event.slug})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
+  <h1>Join the waitlist</h1>
+  <p th:if="${tier}">
+    <strong th:text="${tier.name}">Standing</strong> is sold out. If tickets are released we offer
+    them to the waitlist in the order people joined, and email you a link to buy them.
+  </p>
+  <div th:if="${error}" class="alert alert-danger" th:text="${error}">Error</div>
+  <form class="card" method="post" th:action="@{/events/{slug}/waitlist(slug=${event.slug})}" th:object="${form}">
+    <input type="hidden" th:field="*{tierId}">
+    <div class="field">
+      <label for="name">Full name</label>
+      <input id="name" th:field="*{name}" required maxlength="120" autocomplete="name">
+      <div class="field-error" th:errors="*{name}"></div>
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" type="email" th:field="*{email}" required maxlength="255" autocomplete="email">
+      <div class="field-error" th:errors="*{email}"></div>
+    </div>
+    <div class="field">
+      <label for="quantity">Tickets wanted</label>
+      <input id="quantity" type="number" min="1" th:max="${tier} ? ${tier.maxPerOrder} : 10" th:field="*{quantity}" required>
+      <div class="field-error" th:errors="*{quantity}"></div>
+    </div>
+    <button class="btn btn-primary" type="submit">Join the waitlist</button>
+  </form>
+</main>
+</body>
+</html>
