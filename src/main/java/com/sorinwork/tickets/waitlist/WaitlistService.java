@@ -11,12 +11,14 @@ import com.sorinwork.tickets.notify.Notifier;
 import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
+import com.sorinwork.tickets.order.OrderEvents;
 import com.sorinwork.tickets.order.TierAvailability;
 import java.time.Clock;
 import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -114,6 +116,19 @@ public class WaitlistService {
       }
     }
     return offered;
+  }
+
+  @EventListener
+  public void onHoldExpired(OrderEvents.HoldExpired expired) {
+    entries
+        .findByOfferOrderId(expired.orderId())
+        .filter(entry -> entry.getStatus() == WaitlistStatus.OFFERED)
+        .ifPresent(entry -> entry.setStatus(WaitlistStatus.EXPIRED));
+  }
+
+  @EventListener
+  public void onTicketsReleased(OrderEvents.TicketsReleased released) {
+    offerReleasedTickets(released.eventId());
   }
 
   private void sendOffer(WaitlistEntry entry, Order hold) {

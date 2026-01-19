@@ -2,9 +2,12 @@ package com.sorinwork.tickets.order;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -19,10 +22,13 @@ public class HoldExpiryService {
   private static final Logger log = LoggerFactory.getLogger(HoldExpiryService.class);
 
   private final OrderRepository orders;
+  private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
-  public HoldExpiryService(OrderRepository orders, Clock clock) {
+  public HoldExpiryService(
+      OrderRepository orders, ApplicationEventPublisher publisher, Clock clock) {
     this.orders = orders;
+    this.publisher = publisher;
     this.clock = clock;
   }
 
@@ -38,8 +44,17 @@ public class HoldExpiryService {
   public int expireHolds() {
     Instant now = clock.instant();
     List<Order> stale = orders.findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus.PENDING, now);
+    Set<Long> events = new LinkedHashSet<>();
     for (Order order : stale) {
       order.setStatus(OrderStatus.EXPIRED);
+      events.add(order.getEvent().getId());
+    }
+    orders.flush();
+    for (Order order : stale) {
+      publisher.publishEvent(new OrderEvents.HoldExpired(order.getId()));
+    }
+    for (Long eventId : events) {
+      publisher.publishEvent(new OrderEvents.TicketsReleased(eventId));
     }
     return stale.size();
   }
