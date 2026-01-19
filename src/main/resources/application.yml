@@ -36,3 +36,5 @@ app:
     password: ${ADMIN_PASSWORD:}
   checkout:
     hold-duration: ${CHECKOUT_HOLD_DURATION:10m}
+  waitlist:
+    offer-duration: ${WAITLIST_OFFER_DURATION:24h}

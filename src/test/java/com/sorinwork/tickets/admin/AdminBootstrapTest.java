@@ -21,7 +21,8 @@ class AdminBootstrapTest extends IntegrationTest {
         new AppProperties(
             "http://localhost:8080",
             new AppProperties.Admin(email, password, "Owner"),
-            new AppProperties.Checkout(java.time.Duration.ofMinutes(10))),
+            new AppProperties.Checkout(java.time.Duration.ofMinutes(10)),
+            new AppProperties.Waitlist(java.time.Duration.ofHours(24))),
         clock);
   }
 

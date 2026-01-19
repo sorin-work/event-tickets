@@ -8,7 +8,8 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 public record AppProperties(
     @DefaultValue("http://localhost:8080") String baseUrl,
     @DefaultValue Admin admin,
-    @DefaultValue Checkout checkout) {
+    @DefaultValue Checkout checkout,
+    @DefaultValue Waitlist waitlist) {
 
   /** Absolute link to a path of the app, for emails. */
   public String url(String path) {
@@ -21,4 +22,7 @@ public record AppProperties(
 
   /** How long seats stay reserved while a buyer fills in the checkout form. */
   public record Checkout(@DefaultValue("10m") Duration holdDuration) {}
+
+  /** How long released tickets stay reserved for the person they were offered to. */
+  public record Waitlist(@DefaultValue("24h") Duration offerDuration) {}
 }

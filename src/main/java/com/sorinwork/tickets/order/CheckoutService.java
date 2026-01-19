@@ -202,6 +202,20 @@ public class CheckoutService {
     }
   }
 
+  /**
+   * Reserves tickets for someone from the waitlist. Unlike {@link #start} the caller has already
+   * locked the event and checked availability, and the hold lasts as long as the offer.
+   */
+  public Order holdForWaitlist(
+      Event event, TicketTier tier, int quantity, String name, String email, Instant until) {
+    Instant now = clock.instant();
+    Order order = new Order(event, Tokens.orderReference(), Tokens.accessToken(), now, until);
+    order.setBuyerName(name);
+    order.setBuyerEmail(email);
+    order.addItem(new OrderItem(order, tier, quantity));
+    return orders.save(order);
+  }
+
   @Transactional(readOnly = true)
   public Order getByToken(String token) {
     return orders
