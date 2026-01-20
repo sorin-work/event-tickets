@@ -6,6 +6,7 @@ import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,11 +20,17 @@ public class OrderAdminService {
 
   private final OrderRepository orders;
   private final TicketRepository tickets;
+  private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
-  public OrderAdminService(OrderRepository orders, TicketRepository tickets, Clock clock) {
+  public OrderAdminService(
+      OrderRepository orders,
+      TicketRepository tickets,
+      ApplicationEventPublisher publisher,
+      Clock clock) {
     this.orders = orders;
     this.tickets = tickets;
+    this.publisher = publisher;
     this.clock = clock;
   }
 
@@ -59,6 +66,8 @@ public class OrderAdminService {
     }
     order.setStatus(OrderStatus.CANCELLED);
     order.setCancelledAt(clock.instant());
+    orders.flush();
+    publisher.publishEvent(new OrderEvents.TicketsReleased(order.getEvent().getId()));
     return order;
   }
 }

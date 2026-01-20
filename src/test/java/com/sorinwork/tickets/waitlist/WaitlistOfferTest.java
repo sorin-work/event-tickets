@@ -55,8 +55,6 @@ class WaitlistOfferTest extends IntegrationTest {
     WaitlistEntry entry = join("Ana", 1);
     orders.cancel(first.getId());
 
-    assertThat(waitlist.offerReleasedTickets(event.getId())).isEqualTo(1);
-
     WaitlistEntry offered = entries.findById(entry.getId()).orElseThrow();
     assertThat(offered.getStatus()).isEqualTo(WaitlistStatus.OFFERED);
     assertThat(offered.getOfferedAt()).isEqualTo(clock.instant());
@@ -70,7 +68,6 @@ class WaitlistOfferTest extends IntegrationTest {
   void heldTicketsAreNotSoldToTheNextVisitor() {
     join("Ana", 1);
     orders.cancel(first.getId());
-    waitlist.offerReleasedTickets(event.getId());
 
     assertThatThrownBy(() -> checkout.start(event.getId(), Map.of(tier.getId(), 1)))
         .hasMessage("Floor is sold out.");
@@ -81,7 +78,6 @@ class WaitlistOfferTest extends IntegrationTest {
     WaitlistEntry entry = join("Ana", 2);
     orders.cancel(first.getId());
 
-    assertThat(waitlist.offerReleasedTickets(event.getId())).isZero();
     assertThat(entries.findById(entry.getId()).orElseThrow().getStatus())
         .isEqualTo(WaitlistStatus.WAITING);
   }
@@ -93,7 +89,6 @@ class WaitlistOfferTest extends IntegrationTest {
     orders.cancel(first.getId());
     orders.cancel(second.getId());
 
-    assertThat(waitlist.offerReleasedTickets(event.getId())).isEqualTo(2);
     assertThat(waitlist.waitingCount(tier.getId())).isZero();
   }
 
@@ -101,7 +96,6 @@ class WaitlistOfferTest extends IntegrationTest {
   void offerEmailLinksToCheckout() {
     WaitlistEntry entry = join("Ana", 1);
     orders.cancel(first.getId());
-    waitlist.offerReleasedTickets(event.getId());
 
     String token = offerToken(entry);
     assertThat(outbox.findByRecipientOrderByIdAsc("ana@example.com"))
@@ -111,6 +105,16 @@ class WaitlistOfferTest extends IntegrationTest {
               assertThat(m.getSubject()).isEqualTo("Tickets available: Small Gig");
               assertThat(m.getBody()).contains("/checkout/" + token).contains("1 × Floor");
             });
+  }
+
+  @Test
+  void cancellingAnOrderOffersItsSeatsRightAway() {
+    join("Ana", 1);
+
+    orders.cancel(first.getId());
+
+    assertThat(waitlist.waitingCount(tier.getId())).isZero();
+    assertThat(waitlist.offerReleasedTickets(event.getId())).isZero();
   }
 
   @Test
