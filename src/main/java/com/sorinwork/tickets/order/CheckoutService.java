@@ -20,6 +20,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +37,7 @@ public class CheckoutService {
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final Emails emails;
+  private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
   public CheckoutService(
@@ -47,6 +49,7 @@ public class CheckoutService {
       AvailabilityService availability,
       AppProperties properties,
       Emails emails,
+      ApplicationEventPublisher publisher,
       Clock clock) {
     this.events = events;
     this.tiers = tiers;
@@ -56,6 +59,7 @@ public class CheckoutService {
     this.availability = availability;
     this.properties = properties;
     this.emails = emails;
+    this.publisher = publisher;
     this.clock = clock;
   }
 
@@ -179,6 +183,7 @@ public class CheckoutService {
     order.setPaidAt(now);
     issueTickets(order, now);
     emails.orderConfirmation(order);
+    publisher.publishEvent(new OrderEvents.OrderPaid(order.getId()));
     return order;
   }
 

@@ -5,6 +5,9 @@ public final class OrderEvents {
 
   private OrderEvents() {}
 
+  /** An order was paid and its tickets issued. */
+  public record OrderPaid(long orderId) {}
+
   /** A checkout hold ran out without payment. */
   public record HoldExpired(long orderId) {}
 

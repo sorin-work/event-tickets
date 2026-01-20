@@ -119,6 +119,13 @@ public class WaitlistService {
   }
 
   @EventListener
+  public void onOrderPaid(OrderEvents.OrderPaid paid) {
+    entries
+        .findByOfferOrderId(paid.orderId())
+        .ifPresent(entry -> entry.setStatus(WaitlistStatus.CLAIMED));
+  }
+
+  @EventListener
   public void onHoldExpired(OrderEvents.HoldExpired expired) {
     entries
         .findByOfferOrderId(expired.orderId())
