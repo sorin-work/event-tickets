@@ -160,6 +160,20 @@ public class WaitlistService {
     notifier.send(entry.getEmail(), "Tickets available: " + event.getTitle(), body, event.getId());
   }
 
+  /** Takes someone off the waitlist. Only people still waiting can be removed. */
+  public WaitlistEntry remove(long eventId, long entryId) {
+    WaitlistEntry entry =
+        entries
+            .findById(entryId)
+            .filter(e -> e.getEvent().getId().equals(eventId))
+            .orElseThrow(() -> new NotFoundException("Waitlist entry " + entryId));
+    if (entry.getStatus() != WaitlistStatus.WAITING) {
+      throw new BusinessException("Only people who are still waiting can be removed.");
+    }
+    entry.setStatus(WaitlistStatus.REMOVED);
+    return entry;
+  }
+
   /** Everyone who joined the waitlist of the event, in the order they joined. */
   @Transactional(readOnly = true)
   public List<WaitlistEntry> forEvent(long eventId) {
