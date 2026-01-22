@@ -18,4 +18,7 @@ public interface WaitlistRepository extends JpaRepository<WaitlistEntry, Long> {
 
   @EntityGraph(attributePaths = "offerOrder")
   Optional<WaitlistEntry> findWithOfferById(Long id);
+
+  @EntityGraph(attributePaths = {"tier", "offerOrder"})
+  List<WaitlistEntry> findByEventIdOrderByCreatedAtAscIdAsc(Long eventId);
 }

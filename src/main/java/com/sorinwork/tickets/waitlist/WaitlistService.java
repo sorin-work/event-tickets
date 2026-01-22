@@ -160,6 +160,12 @@ public class WaitlistService {
     notifier.send(entry.getEmail(), "Tickets available: " + event.getTitle(), body, event.getId());
   }
 
+  /** Everyone who joined the waitlist of the event, in the order they joined. */
+  @Transactional(readOnly = true)
+  public List<WaitlistEntry> forEvent(long eventId) {
+    return entries.findByEventIdOrderByCreatedAtAscIdAsc(eventId);
+  }
+
   @Transactional(readOnly = true)
   public long waitingCount(long tierId) {
     return entries.countByTierIdAndStatus(tierId, WaitlistStatus.WAITING);
