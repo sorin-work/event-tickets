@@ -46,4 +46,24 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       where o.id = :id
       """)
   Optional<Order> findWithItemsById(@Param("id") long id);
+
+  interface Totals {
+    Long getOrders();
+
+    Long getSubtotal();
+
+    Long getDiscount();
+
+    Long getTotal();
+  }
+
+  @Query(
+      """
+      select count(o) as orders, coalesce(sum(o.subtotalCents), 0) as subtotal,
+             coalesce(sum(o.discountCents), 0) as discount, coalesce(sum(o.totalCents), 0) as total
+      from Order o where o.event.id = :eventId and o.status = :status
+      """)
+  Totals totalsForEvent(@Param("eventId") long eventId, @Param("status") OrderStatus status);
+
+  long countByEventIdAndStatus(Long eventId, OrderStatus status);
 }
