@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.report;
 
+import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
 import com.sorinwork.tickets.order.AvailabilityService;
@@ -8,10 +9,12 @@ import com.sorinwork.tickets.order.OrderRepository;
 import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.order.TierAvailability;
 import com.sorinwork.tickets.ticket.CheckInService;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,5 +70,19 @@ public class SalesReportService {
         totals.getTotal(),
         checkIn.checkedInCount(eventId),
         orders.countByEventIdAndStatus(eventId, OrderStatus.CANCELLED));
+  }
+
+  /** Sales grouped by the day they were paid, oldest first. Days without sales are left out. */
+  public List<DailySales> dailySales(Event event) {
+    Map<LocalDate, long[]> days = new TreeMap<>();
+    for (var row : orders.paidOrderRows(event.getId(), OrderStatus.PAID)) {
+      LocalDate day = row.getPaidAt().atZone(event.zone()).toLocalDate();
+      long[] totals = days.computeIfAbsent(day, d -> new long[2]);
+      totals[0] += row.getTickets();
+      totals[1] += row.getTotal();
+    }
+    List<DailySales> result = new ArrayList<>();
+    days.forEach((day, totals) -> result.add(new DailySales(day, totals[0], totals[1])));
+    return result;
   }
 }

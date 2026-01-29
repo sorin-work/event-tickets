@@ -51,6 +51,21 @@
     <p class="muted" th:if="${report.cancelledOrders > 0}"
        th:text="${report.cancelledOrders} + ' cancelled order(s) are not counted.'">1 cancelled</p>
   </section>
+
+  <section class="card">
+    <h2>Sales by day</h2>
+    <div th:if="${#lists.isEmpty(days)}" class="empty">No sales yet.</div>
+    <table th:unless="${#lists.isEmpty(days)}" class="day-chart">
+      <tr th:each="day : ${days}">
+        <td th:text="${#temporals.format(day.date, 'EEE d MMM')}">Mon 3 Feb</td>
+        <td class="bar-cell">
+          <div class="bar" th:style="'width:' + ${day.tickets * 100 / maxDay} + '%'"></div>
+        </td>
+        <td class="num" th:text="${day.tickets}">4</td>
+        <td class="num" th:text="${@fmt.money(day.netCents, event.currency)}">€80.00</td>
+      </tr>
+    </table>
+  </section>
 </main>
 </body>
 </html>

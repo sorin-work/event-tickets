@@ -66,4 +66,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   Totals totalsForEvent(@Param("eventId") long eventId, @Param("status") OrderStatus status);
 
   long countByEventIdAndStatus(Long eventId, OrderStatus status);
+
+  interface PaidOrderRow {
+    Instant getPaidAt();
+
+    Long getTotal();
+
+    Long getTickets();
+  }
+
+  @Query(
+      """
+      select o.paidAt as paidAt, o.totalCents as total, sum(i.quantity) as tickets
+      from Order o join o.items i
+      where o.event.id = :eventId and o.status = :status
+      group by o.id, o.paidAt, o.totalCents
+      order by o.paidAt
+      """)
+  List<PaidOrderRow> paidOrderRows(
+      @Param("eventId") long eventId, @Param("status") OrderStatus status);
 }

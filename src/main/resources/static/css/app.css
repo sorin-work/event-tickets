@@ -438,3 +438,14 @@ th {
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+.day-chart .bar-cell {
+  width: 60%;
+}
+
+.day-chart .bar {
+  height: 14px;
+  min-width: 2px;
+  border-radius: 3px;
+  background: var(--accent);
+}

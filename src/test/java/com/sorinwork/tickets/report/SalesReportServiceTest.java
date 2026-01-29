@@ -15,6 +15,8 @@ import com.sorinwork.tickets.promo.PromoCodeRepository;
 import com.sorinwork.tickets.support.IntegrationTest;
 import com.sorinwork.tickets.ticket.CheckInService;
 import com.sorinwork.tickets.ticket.TicketRepository;
+import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -79,5 +81,21 @@ class SalesReportServiceTest extends IntegrationTest {
     assertThat(report.ticketsSold()).isZero();
     assertThat(report.netCents()).isZero();
     assertThat(report.percentCheckedIn()).isZero();
+  }
+
+  @Test
+  void groupsSalesByDayInTheEventTimeZone() {
+    // 23:30 UTC is already the next day in Bucharest (UTC+2 in January)
+    clock.set(Instant.parse("2030-01-15T21:30:00Z"));
+    purchases.buy(standing, 2, "Ana", "ana@example.com");
+    clock.set(Instant.parse("2030-01-15T23:30:00Z"));
+    purchases.buy(standing, 1, "Bogdan", "bogdan@example.com");
+    clock.set(Instant.parse("2030-01-16T09:00:00Z"));
+    purchases.buy(vip, 1, "Cara", "cara@example.com");
+
+    assertThat(reports.dailySales(event))
+        .containsExactly(
+            new DailySales(LocalDate.of(2030, 1, 15), 2, 4000),
+            new DailySales(LocalDate.of(2030, 1, 16), 2, 7000));
   }
 }

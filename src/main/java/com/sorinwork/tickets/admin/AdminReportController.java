@@ -1,7 +1,10 @@
 package com.sorinwork.tickets.admin;
 
+import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.report.DailySales;
 import com.sorinwork.tickets.report.SalesReportService;
+import java.util.List;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -20,8 +23,12 @@ public class AdminReportController {
 
   @GetMapping("/admin/events/{eventId}/report")
   public String report(@PathVariable long eventId, Model model) {
-    model.addAttribute("event", events.get(eventId));
+    Event event = events.get(eventId);
+    List<DailySales> days = reports.dailySales(event);
+    model.addAttribute("event", event);
     model.addAttribute("report", reports.forEvent(eventId));
+    model.addAttribute("days", days);
+    model.addAttribute("maxDay", days.stream().mapToLong(DailySales::tickets).max().orElse(1));
     return "admin/report/show";
   }
 }
