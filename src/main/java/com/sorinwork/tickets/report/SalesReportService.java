@@ -85,4 +85,13 @@ public class SalesReportService {
     days.forEach((day, totals) -> result.add(new DailySales(day, totals[0], totals[1])));
     return result;
   }
+
+  /** Paid orders and total discount per promo code, most used first. */
+  public List<PromoUsage> promoUsage(long eventId) {
+    return orders.promoUsage(eventId, OrderStatus.PAID).stream()
+        .map(row -> new PromoUsage(row.getCode(), row.getOrders(), row.getDiscount()))
+        .toList();
+  }
+
+  public record PromoUsage(String code, long orders, long discountCents) {}
 }

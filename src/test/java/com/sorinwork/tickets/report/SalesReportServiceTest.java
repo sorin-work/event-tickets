@@ -98,4 +98,22 @@ class SalesReportServiceTest extends IntegrationTest {
             new DailySales(LocalDate.of(2030, 1, 15), 2, 4000),
             new DailySales(LocalDate.of(2030, 1, 16), 2, 7000));
   }
+
+  @Test
+  void countsPromoCodeUseOnPaidOrders() {
+    promos.save(new PromoCode(event, "TEN", DiscountType.FIXED, 1000, clock.instant()));
+    promos.save(new PromoCode(event, "HALF", DiscountType.PERCENT, 50, clock.instant()));
+    for (String code : new String[] {"TEN", "TEN", "HALF"}) {
+      Order order = checkout.start(event.getId(), Map.of(standing.getId(), 1));
+      checkout.applyPromoCode(order.getAccessToken(), code);
+      checkout.complete(order.getAccessToken(), new CheckoutForm("X", "x@example.com"));
+    }
+    Order unpaid = checkout.start(event.getId(), Map.of(standing.getId(), 1));
+    checkout.applyPromoCode(unpaid.getAccessToken(), "HALF");
+
+    assertThat(reports.promoUsage(event.getId()))
+        .containsExactly(
+            new SalesReportService.PromoUsage("TEN", 2, 2000),
+            new SalesReportService.PromoUsage("HALF", 1, 1000));
+  }
 }

@@ -52,6 +52,20 @@
        th:text="${report.cancelledOrders} + ' cancelled order(s) are not counted.'">1 cancelled</p>
   </section>
 
+  <section class="card" th:unless="${#lists.isEmpty(promos)}">
+    <h2>Promo codes</h2>
+    <table>
+      <thead><tr><th>Code</th><th class="num">Orders</th><th class="num">Discount given</th></tr></thead>
+      <tbody>
+      <tr th:each="promo : ${promos}">
+        <td><code th:text="${promo.code}">FRIENDS</code></td>
+        <td class="num" th:text="${promo.orders}">3</td>
+        <td class="num" th:text="${@fmt.money(promo.discountCents, event.currency)}">€15.00</td>
+      </tr>
+      </tbody>
+    </table>
+  </section>
+
   <section class="card">
     <h2>Sales by day</h2>
     <div th:if="${#lists.isEmpty(days)}" class="empty">No sales yet.</div>

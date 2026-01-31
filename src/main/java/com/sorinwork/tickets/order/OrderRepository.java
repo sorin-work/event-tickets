@@ -85,4 +85,23 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       """)
   List<PaidOrderRow> paidOrderRows(
       @Param("eventId") long eventId, @Param("status") OrderStatus status);
+
+  interface PromoUsageRow {
+    String getCode();
+
+    Long getOrders();
+
+    Long getDiscount();
+  }
+
+  @Query(
+      """
+      select p.code as code, count(o) as orders, sum(o.discountCents) as discount
+      from Order o join o.promoCode p
+      where o.event.id = :eventId and o.status = :status
+      group by p.code
+      order by count(o) desc, p.code
+      """)
+  List<PromoUsageRow> promoUsage(
+      @Param("eventId") long eventId, @Param("status") OrderStatus status);
 }
