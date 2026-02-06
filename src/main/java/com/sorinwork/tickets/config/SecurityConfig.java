@@ -26,8 +26,9 @@ public class SecurityConfig {
                     .defaultSuccessUrl("/admin", false)
                     .failureUrl("/admin/login?error")
                     .permitAll())
-        .logout(
-            logout -> logout.logoutUrl("/admin/logout").logoutSuccessUrl("/admin/login?logout"));
+        .logout(logout -> logout.logoutUrl("/admin/logout").logoutSuccessUrl("/admin/login?logout"))
+        // JSON clients do not have a CSRF token.
+        .csrf(csrf -> csrf.ignoringRequestMatchers("/api/**"));
     return http.build();
   }
 
