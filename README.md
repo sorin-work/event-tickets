@@ -7,7 +7,13 @@ tickets, and let people in at the door.
 - **Checkout** that holds the chosen seats for 10 minutes while the buyer fills
   in their details (payment is simulated)
 - **Promo codes** with percentage or fixed discounts, usage limits and expiry
-- **Tickets** with QR codes on the buyer's confirmation page
+- **Tickets** with QR codes on the buyer's confirmation page, emailed as a link
+- **Waitlist** for sold-out tiers: released tickets are offered in the order
+  people joined
+- **Door check-in** by scanning QR codes with a phone camera or USB scanner
+- **Attendee list** with search and CSV export
+- **Sales report** per event: tiers, revenue, promo codes and sales by day
+- **JSON API** for event listings and door scanner apps, see [docs/api.md](docs/api.md)
 
 ## Stack
 
@@ -25,8 +31,17 @@ docker compose up --build
 ```
 
 Open http://localhost:4411. The admin area is at http://localhost:4411/admin;
-the first admin account is created from `ADMIN_EMAIL` and `ADMIN_PASSWORD`
-(defaults in `docker-compose.yml`).
+sign in with the demo account:
+
+- **Email:** `admin@example.com`
+- **Password:** `demo-password`
+
+On first start the app creates a few demo events with orders, promo codes
+(`FRIENDS10`, `BAND`), a sold-out film night with a waitlist and a past event
+with check-ins. Set `SEED_DEMO=false` to start with an empty database.
+
+There is no mail server: emails the app would send (tickets, waitlist offers)
+can be read under **Outbox** in the admin area.
 
 ## Local development
 
