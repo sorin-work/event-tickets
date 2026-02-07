@@ -31,6 +31,8 @@ management:
 
 app:
   base-url: ${BASE_URL:http://localhost:8080}
+  # Creates sample events, orders and a waitlist in an empty database.
+  seed-demo: ${SEED_DEMO:false}
   admin:
     email: ${ADMIN_EMAIL:}
     password: ${ADMIN_PASSWORD:}
