@@ -20,6 +20,9 @@ services:
       DATABASE_PASSWORD: tickets
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
       ADMIN_PASSWORD: ${ADMIN_PASSWORD:-demo-password}
+      # Sample events, orders and a waitlist on first start.
+      SEED_DEMO: ${SEED_DEMO:-true}
+      BASE_URL: ${BASE_URL:-http://localhost:4411}
     depends_on:
       - db
     ports:
