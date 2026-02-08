@@ -16,6 +16,7 @@ import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.OrderBy;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,9 @@ public class Order {
 
   @Column(name = "cancelled_at")
   private Instant cancelledAt;
+
+  /** Guards against two requests completing the same checkout at once. */
+  @Version private long version;
 
   @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
   @OrderBy("id")

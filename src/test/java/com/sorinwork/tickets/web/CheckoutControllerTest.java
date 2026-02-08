@@ -16,6 +16,7 @@ import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderRepository;
 import com.sorinwork.tickets.support.IntegrationTest;
+import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +26,7 @@ class CheckoutControllerTest extends IntegrationTest {
 
   @Autowired EventService events;
   @Autowired OrderRepository orders;
+  @Autowired TicketRepository tickets;
 
   Event event;
   TicketTier tier;
@@ -126,5 +128,23 @@ class CheckoutControllerTest extends IntegrationTest {
     String token = orders.findAll().get(0).getAccessToken();
 
     mvc.perform(get("/orders/" + token)).andExpect(redirectedUrl("/checkout/" + token));
+  }
+
+  @Test
+  void submittingThePaymentFormTwiceKeepsOneSetOfTickets() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "2"));
+    Order order = orders.findAll().get(0);
+    String token = order.getAccessToken();
+
+    for (int i = 0; i < 2; i++) {
+      mvc.perform(
+              post("/checkout/" + token)
+                  .with(csrf())
+                  .param("name", "Ioana Rus")
+                  .param("email", "ioana@example.com"))
+          .andExpect(redirectedUrl("/orders/" + token));
+    }
+
+    assertThat(tickets.findByOrderIdOrderById(order.getId())).hasSize(2);
   }
 }

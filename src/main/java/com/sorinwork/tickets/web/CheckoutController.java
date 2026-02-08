@@ -11,6 +11,7 @@ import jakarta.validation.Valid;
 import java.time.Clock;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -69,11 +70,17 @@ public class CheckoutController {
       BindingResult binding,
       Model model) {
     Order order = checkout.getByToken(token);
+    if (order.getStatus() == OrderStatus.PAID) {
+      // A double click or a resubmitted form: the order is done, show the tickets.
+      return "redirect:/orders/" + token;
+    }
     if (binding.hasErrors()) {
       return render(order, model);
     }
     try {
       checkout.complete(token, form);
+    } catch (ObjectOptimisticLockingFailureException e) {
+      return "redirect:/orders/" + token;
     } catch (BusinessException e) {
       model.addAttribute("error", e.getMessage());
       return render(order, model);

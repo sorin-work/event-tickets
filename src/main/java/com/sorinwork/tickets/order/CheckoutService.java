@@ -173,7 +173,10 @@ public class CheckoutService {
   public Order complete(String token, CheckoutForm form) {
     Order order = getByToken(token);
     Instant now = clock.instant();
-    if (!order.getHoldExpiresAt().isAfter(now)) {
+    if (order.getStatus() == OrderStatus.PAID) {
+      throw new BusinessException("This order has already been paid.");
+    }
+    if (!order.isHoldActive(now)) {
       throw new BusinessException(
           "Your reservation has expired. Please choose your tickets again.");
     }

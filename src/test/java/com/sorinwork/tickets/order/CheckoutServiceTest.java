@@ -26,6 +26,7 @@ class CheckoutServiceTest extends IntegrationTest {
   @Autowired EventService events;
   @Autowired TicketTierRepository tiers;
   @Autowired TicketRepository tickets;
+  @Autowired OrderRepository orders;
 
   Event event;
   TicketTier standing;
@@ -166,6 +167,32 @@ class CheckoutServiceTest extends IntegrationTest {
   void cannotCompleteAfterTheHoldRanOut() {
     Order order = checkout.start(event.getId(), select(vip, 1));
     clock.advance(Duration.ofMinutes(10));
+
+    assertThatThrownBy(
+            () -> checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "a@b.co")))
+        .hasMessageContaining("expired");
+  }
+
+  @Test
+  void completingTwiceDoesNotIssueMoreTickets() {
+    Order order = checkout.start(event.getId(), select(standing, 2));
+    checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "ana@example.com"));
+
+    assertThatThrownBy(
+            () ->
+                checkout.complete(
+                    order.getAccessToken(), new CheckoutForm("Ana", "ana@example.com")))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("This order has already been paid.");
+    assertThat(tickets.findByOrderIdOrderById(order.getId())).hasSize(2);
+  }
+
+  @Test
+  void cannotCompleteACancelledCheckout() {
+    Order order = checkout.start(event.getId(), select(vip, 1));
+    Order stored = checkout.getByToken(order.getAccessToken());
+    stored.setStatus(OrderStatus.CANCELLED);
+    orders.save(stored);
 
     assertThatThrownBy(
             () -> checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "a@b.co")))
