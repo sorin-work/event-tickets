@@ -76,13 +76,7 @@ public class CheckoutService {
     }
     Instant now = clock.instant();
     Map<Long, TierAvailability> available = availability.forEvent(eventId);
-    Order order =
-        new Order(
-            event,
-            Tokens.orderReference(),
-            Tokens.accessToken(),
-            now,
-            now.plus(properties.checkout().holdDuration()));
+    Order order = newOrder(event, now, now.plus(properties.checkout().holdDuration()));
 
     for (var entry : quantities.entrySet()) {
       int quantity = entry.getValue() == null ? 0 : entry.getValue();
@@ -216,12 +210,15 @@ public class CheckoutService {
    */
   public Order holdForWaitlist(
       Event event, TicketTier tier, int quantity, String name, String email, Instant until) {
-    Instant now = clock.instant();
-    Order order = new Order(event, Tokens.orderReference(), Tokens.accessToken(), now, until);
+    Order order = newOrder(event, clock.instant(), until);
     order.setBuyerName(name);
     order.setBuyerEmail(email);
     order.addItem(new OrderItem(order, tier, quantity));
     return orders.save(order);
+  }
+
+  private static Order newOrder(Event event, Instant now, Instant holdUntil) {
+    return new Order(event, Tokens.orderReference(), Tokens.accessToken(), now, holdUntil);
   }
 
   @Transactional(readOnly = true)
