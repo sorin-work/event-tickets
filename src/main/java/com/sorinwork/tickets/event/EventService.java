@@ -48,6 +48,13 @@ public class EventService {
         List.of(EventStatus.PUBLISHED), LocalDateTime.now(clock).minusHours(6));
   }
 
+  /** Drafts and published events that have not started yet, soonest first. */
+  @Transactional(readOnly = true)
+  public List<Event> upcomingForAdmin() {
+    return events.findByStatusInAndStartsAtAfterOrderByStartsAt(
+        List.of(EventStatus.DRAFT, EventStatus.PUBLISHED), LocalDateTime.now(clock));
+  }
+
   public Event create(EventForm form) {
     Event event = new Event(uniqueSlug(form.getTitle()), form.getTitle().trim(), clock.instant());
     apply(event, form);

@@ -3,6 +3,7 @@ package com.sorinwork.tickets.order;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -66,6 +67,16 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   Totals totalsForEvent(@Param("eventId") long eventId, @Param("status") OrderStatus status);
 
   long countByEventIdAndStatus(Long eventId, OrderStatus status);
+
+  @Query(
+      """
+      select o from Order o join fetch o.event
+      where o.status = :status
+      order by o.paidAt desc, o.id desc
+      """)
+  List<Order> findRecent(@Param("status") OrderStatus status, Pageable pageable);
+
+  long countByStatusAndPaidAtAfter(OrderStatus status, Instant after);
 
   interface PaidOrderRow {
     Instant getPaidAt();

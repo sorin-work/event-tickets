@@ -7,6 +7,7 @@ import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +39,17 @@ public class OrderAdminService {
   @Transactional(readOnly = true)
   public List<Order> forEvent(long eventId) {
     return orders.findForEvent(eventId, VISIBLE);
+  }
+
+  /** The latest paid orders across all events, for the dashboard. */
+  @Transactional(readOnly = true)
+  public List<Order> recentPaid(int limit) {
+    return orders.findRecent(OrderStatus.PAID, PageRequest.of(0, limit));
+  }
+
+  @Transactional(readOnly = true)
+  public long paidSince(java.time.Duration period) {
+    return orders.countByStatusAndPaidAtAfter(OrderStatus.PAID, clock.instant().minus(period));
   }
 
   @Transactional(readOnly = true)

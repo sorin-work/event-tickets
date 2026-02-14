@@ -5,7 +5,45 @@
 <header th:replace="~{fragments/admin :: header('dashboard')}"></header>
 <main class="container">
   <h1>Dashboard</h1>
-  <div class="card empty">Nothing here yet.</div>
+  <div class="stats">
+    <div class="card stat">
+      <div class="stat-label">Upcoming events</div>
+      <div class="stat-value" th:text="${#lists.size(upcoming)}">3</div>
+    </div>
+    <div class="card stat">
+      <div class="stat-label">Orders in the last 7 days</div>
+      <div class="stat-value" th:text="${ordersThisWeek}">12</div>
+    </div>
+  </div>
+
+  <section class="card">
+    <h2>Upcoming events</h2>
+    <div th:if="${#lists.isEmpty(upcoming)}" class="empty">
+      No upcoming events. <a th:href="@{/admin/events/new}">Create one</a>.
+    </div>
+    <table th:unless="${#lists.isEmpty(upcoming)}">
+      <tr th:each="event : ${upcoming}">
+        <td><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="${event.title}">Event</a></td>
+        <td th:text="${@fmt.when(event)}">date</td>
+        <td><span class="badge" th:text="${event.status}">PUBLISHED</span></td>
+        <td><a th:href="@{/admin/events/{id}/check-in(id=${event.id})}">Check-in</a></td>
+      </tr>
+    </table>
+  </section>
+
+  <section class="card">
+    <h2>Recent orders</h2>
+    <div th:if="${#lists.isEmpty(recentOrders)}" class="empty">No orders yet.</div>
+    <table th:unless="${#lists.isEmpty(recentOrders)}">
+      <tr th:each="order : ${recentOrders}">
+        <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.reference}">ET-1</a></td>
+        <td th:text="${order.buyerName}">Ana</td>
+        <td th:text="${order.event.title}">Event</td>
+        <td class="num" th:text="${@fmt.money(order.totalCents, order.event.currency)}">€10.00</td>
+        <td class="muted" th:text="${@fmt.instant(order.paidAt, order.event)}">date</td>
+      </tr>
+    </table>
+  </section>
 </main>
 </body>
 </html>
