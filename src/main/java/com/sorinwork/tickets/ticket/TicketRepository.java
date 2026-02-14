@@ -56,4 +56,19 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
   long countByEventIdAndCheckedInAtIsNotNullAndOrderStatus(Long eventId, OrderStatus status);
 
   long countByEventIdAndOrderStatus(Long eventId, OrderStatus status);
+
+  interface EventCount {
+    Long getEventId();
+
+    Long getTickets();
+  }
+
+  @Query(
+      """
+      select t.event.id as eventId, count(t) as tickets
+      from Ticket t join t.order o
+      where o.status = :status
+      group by t.event.id
+      """)
+  List<EventCount> countPerEvent(@Param("status") OrderStatus status);
 }

@@ -10,13 +10,14 @@
   <div th:if="${#lists.isEmpty(events)}" class="card empty">No events yet. Create your first one.</div>
   <table th:unless="${#lists.isEmpty(events)}">
     <thead>
-    <tr><th>Event</th><th>Starts</th><th>Venue</th><th>Status</th></tr>
+    <tr><th>Event</th><th>Starts</th><th>Venue</th><th class="num">Sold</th><th>Status</th></tr>
     </thead>
     <tbody>
     <tr th:each="event : ${events}">
       <td><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="${event.title}">Title</a></td>
       <td th:text="${#temporals.format(event.startsAt, 'EEE d MMM yyyy, HH:mm')}">date</td>
       <td th:text="${event.venueName}">venue</td>
+      <td class="num" th:text="${sold[event.id]} ?: 0">12</td>
       <td><span class="badge" th:text="${event.status}">DRAFT</span></td>
     </tr>
     </tbody>

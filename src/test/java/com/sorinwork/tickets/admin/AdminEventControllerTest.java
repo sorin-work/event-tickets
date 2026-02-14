@@ -22,6 +22,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 class AdminEventControllerTest extends IntegrationTest {
 
   @Autowired EventRepository events;
+  @Autowired com.sorinwork.tickets.event.EventService eventService;
 
   @Test
   void showsEmptyState() throws Exception {
@@ -103,6 +104,17 @@ class AdminEventControllerTest extends IntegrationTest {
 
     assertThat(events.findById(event.getId()).orElseThrow().getVenueName())
         .isEqualTo("The Owl, upstairs");
+  }
+
+  @Test
+  void listShowsTicketsSold() throws Exception {
+    Event event = data.event("Lantern Walk");
+    var tier = data.tier(event, "Walker", "0", 30);
+    eventService.publish(event.getId());
+    purchases.buy(tier, 3, "Ana", "ana@example.com");
+
+    mvc.perform(get("/admin/events"))
+        .andExpect(content().string(containsString("<td class=\"num\">3</td>")));
   }
 
   @Test

@@ -6,7 +6,9 @@ import com.sorinwork.tickets.order.OrderStatus;
 import java.io.Writer;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +50,15 @@ public class AttendeeService {
           ticket.getOrder().getReference(),
           ticket.isCheckedIn() ? time.format(ticket.getCheckedInAt()) : "");
     }
+  }
+
+  /** Valid tickets per event id, for the admin event list. */
+  public Map<Long, Long> soldPerEvent() {
+    Map<Long, Long> result = new HashMap<>();
+    for (var row : tickets.countPerEvent(OrderStatus.PAID)) {
+      result.put(row.getEventId(), row.getTickets());
+    }
+    return result;
   }
 
   private static String escapeLike(String text) {

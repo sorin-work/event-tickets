@@ -5,6 +5,7 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
+import com.sorinwork.tickets.ticket.AttendeeService;
 import jakarta.validation.Valid;
 import java.time.ZoneId;
 import java.util.List;
@@ -30,10 +31,12 @@ public class AdminEventController {
 
   private final EventService events;
   private final TierService tiers;
+  private final AttendeeService attendees;
 
-  public AdminEventController(EventService events, TierService tiers) {
+  public AdminEventController(EventService events, TierService tiers, AttendeeService attendees) {
     this.events = events;
     this.tiers = tiers;
+    this.attendees = attendees;
   }
 
   @ModelAttribute("timeZones")
@@ -44,6 +47,7 @@ public class AdminEventController {
   @GetMapping
   public String list(Model model) {
     model.addAttribute("events", events.listAll());
+    model.addAttribute("sold", attendees.soldPerEvent());
     return "admin/events/list";
   }
 
