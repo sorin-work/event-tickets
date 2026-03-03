@@ -14,6 +14,8 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
   Optional<Ticket> findByCode(String code);
 
+  Optional<Ticket> findByIdAndOrderAccessToken(Long id, String accessToken);
+
   @EntityGraph(attributePaths = "tier")
   List<Ticket> findByOrderIdOrderById(Long orderId);
 

@@ -23,9 +23,16 @@ public class TicketController {
     this.qrCodes = qrCodes;
   }
 
-  @GetMapping(value = "/tickets/{id}/qr.png", produces = MediaType.IMAGE_PNG_VALUE)
-  public ResponseEntity<byte[]> qrCode(@PathVariable long id) {
-    Ticket ticket = tickets.findById(id).orElseThrow(() -> new NotFoundException("Ticket"));
+  /**
+   * The QR code is as good as the ticket itself, so it is only served under the buyer's secret
+   * order link, never by ticket id alone.
+   */
+  @GetMapping(value = "/orders/{token}/tickets/{id}/qr.png", produces = MediaType.IMAGE_PNG_VALUE)
+  public ResponseEntity<byte[]> qrCode(@PathVariable String token, @PathVariable long id) {
+    Ticket ticket =
+        tickets
+            .findByIdAndOrderAccessToken(id, token)
+            .orElseThrow(() -> new NotFoundException("Ticket"));
     return ResponseEntity.ok()
         .cacheControl(CacheControl.maxAge(Duration.ofDays(1)).cachePrivate())
         .body(qrCodes.png(ticket.getCode(), 240));

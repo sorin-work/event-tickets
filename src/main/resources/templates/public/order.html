@@ -18,7 +18,7 @@
       <div th:text="${ticket.attendeeName}">Ana Pop</div>
       <div class="ticket-code" th:text="${ticket.code}">ABCD2345EFGH</div>
     </div>
-    <img class="qr" th:src="@{/tickets/{id}/qr.png(id=${ticket.id})}" width="160" height="160"
+    <img class="qr" th:src="@{/orders/{token}/tickets/{id}/qr.png(token=${order.accessToken},id=${ticket.id})}" width="160" height="160"
          th:alt="'QR code for ticket ' + ${ticket.code}">
   </div>
 </main>
