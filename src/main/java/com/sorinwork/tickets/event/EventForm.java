@@ -1,6 +1,8 @@
 package com.sorinwork.tickets.event;
 
 import jakarta.validation.constraints.AssertTrue;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -33,6 +35,10 @@ public class EventForm {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime endsAt;
 
+  @Min(1)
+  @Max(100000)
+  private Integer capacity;
+
   @NotBlank private String timeZone = "Europe/Bucharest";
 
   @NotBlank
@@ -49,6 +55,7 @@ public class EventForm {
     form.endsAt = event.getEndsAt();
     form.timeZone = event.getTimeZone();
     form.currency = event.getCurrency();
+    form.capacity = event.getCapacity();
     return form;
   }
 
@@ -116,6 +123,14 @@ public class EventForm {
 
   public void setEndsAt(LocalDateTime endsAt) {
     this.endsAt = endsAt;
+  }
+
+  public Integer getCapacity() {
+    return capacity;
+  }
+
+  public void setCapacity(Integer capacity) {
+    this.capacity = capacity;
   }
 
   public String getTimeZone() {

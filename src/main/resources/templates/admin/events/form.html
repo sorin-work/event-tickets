@@ -80,6 +80,11 @@
       <div class="field-error" th:errors="*{endAfterStart}"></div>
     </div>
     <div class="field">
+      <label for="capacity">Venue capacity <span class="muted">(optional, across all tiers)</span></label>
+      <input id="capacity" type="number" min="1" th:field="*{capacity}">
+      <div class="field-error" th:errors="*{capacity}"></div>
+    </div>
+    <div class="field">
       <label for="timeZone">Time zone</label>
       <select id="timeZone" th:field="*{timeZone}">
         <option th:each="zone : ${timeZones}" th:value="${zone}" th:text="${zone}">Europe/Bucharest</option>

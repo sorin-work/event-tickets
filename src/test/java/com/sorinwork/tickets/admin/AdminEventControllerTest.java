@@ -40,13 +40,15 @@ class AdminEventControllerTest extends IntegrationTest {
                 .param("venueName", "Hub Space")
                 .param("startsAt", "2030-05-02T19:00")
                 .param("timeZone", "Europe/Bucharest")
-                .param("currency", "RON"))
+                .param("currency", "RON")
+                .param("capacity", "150"))
         .andExpect(status().is3xxRedirection())
         .andExpect(redirectedUrlPattern("/admin/events/*/edit"));
 
     Event event = events.findBySlug("rust-meetup-4").orElseThrow();
     assertThat(event.getStartsAt()).isEqualTo(LocalDateTime.of(2030, 5, 2, 19, 0));
     assertThat(event.getCurrency()).isEqualTo("RON");
+    assertThat(event.getCapacity()).isEqualTo(150);
   }
 
   @Test

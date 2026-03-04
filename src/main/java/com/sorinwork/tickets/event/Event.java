@@ -50,6 +50,9 @@ public class Event {
   @Column(nullable = false)
   private String currency;
 
+  /** Most tickets that can be sold across all tiers, or {@code null} for no overall limit. */
+  private Integer capacity;
+
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private EventStatus status = EventStatus.DRAFT;
@@ -155,6 +158,14 @@ public class Event {
 
   public void setCurrency(String currency) {
     this.currency = currency;
+  }
+
+  public Integer getCapacity() {
+    return capacity;
+  }
+
+  public void setCapacity(Integer capacity) {
+    this.capacity = capacity;
   }
 
   public EventStatus getStatus() {

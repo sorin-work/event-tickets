@@ -106,6 +106,7 @@ public class EventService {
     event.setEndsAt(form.getEndsAt());
     event.setTimeZone(form.getTimeZone());
     event.setCurrency(form.getCurrency());
+    event.setCapacity(form.getCapacity());
   }
 
   String uniqueSlug(String title) {
