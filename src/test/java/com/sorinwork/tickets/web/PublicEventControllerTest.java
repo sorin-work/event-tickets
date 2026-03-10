@@ -30,6 +30,20 @@ class PublicEventControllerTest extends IntegrationTest {
   }
 
   @Test
+  void offersACalendarFile() throws Exception {
+    Event event = data.event("Poetry Slam");
+    data.tier(event, "Standing", "8.50", 30);
+    events.publish(event.getId());
+
+    mvc.perform(get("/events/poetry-slam/calendar.ics"))
+        .andExpect(status().isOk())
+        .andExpect(content().contentTypeCompatibleWith("text/calendar"))
+        .andExpect(content().string(containsString("SUMMARY:Poetry Slam")))
+        .andExpect(
+            content().string(containsString("URL:http://localhost:8080/events/poetry-slam")));
+  }
+
+  @Test
   void draftsAreNotFound() throws Exception {
     data.event("Poetry Slam");
 

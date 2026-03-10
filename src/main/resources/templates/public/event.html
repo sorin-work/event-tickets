@@ -15,7 +15,10 @@
     <strong th:text="${event.venueName}">The Attic</strong>
     <span class="muted" th:if="${event.venueAddress}" th:text="' · ' + ${event.venueAddress}">address</span>
   </p>
-  <p class="muted">Times are in <span th:text="${event.timeZone}">Europe/Bucharest</span>.</p>
+  <p class="muted">
+    Times are in <span th:text="${event.timeZone}">Europe/Bucharest</span> ·
+    <a th:href="@{/events/{slug}/calendar.ics(slug=${event.slug})}">Add to calendar</a>
+  </p>
   <div class="card description" th:if="${event.description}" th:text="${event.description}">Description</div>
 
   <section class="card">
