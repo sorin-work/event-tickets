@@ -15,6 +15,12 @@
     <form th:if="${event.status.name() == 'PUBLISHED'}" method="post" th:action="@{/admin/events/{id}/unpublish(id=${event.id})}">
       <button class="btn" type="submit">Back to draft</button>
     </form>
+    <form method="post" th:action="@{/admin/events/{id}/duplicate(id=${event.id})}">
+      <button class="btn" type="submit">Duplicate</button>
+    </form>
+    <form method="post" th:action="@{/admin/events/{id}/duplicate(id=${event.id})}">
+      <button class="btn" type="submit">Duplicate</button>
+    </form>
     <form th:if="${event.status.name() != 'CANCELLED'}" method="post" th:action="@{/admin/events/{id}/cancel(id=${event.id})}"
           onsubmit="return confirm('Cancel this event? Ticket sales stop immediately.')">
       <button class="btn btn-danger" type="submit">Cancel event</button>

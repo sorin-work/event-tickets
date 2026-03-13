@@ -2,6 +2,7 @@ package com.sorinwork.tickets.admin;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
+import com.sorinwork.tickets.event.EventCopier;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
@@ -32,11 +33,14 @@ public class AdminEventController {
   private final EventService events;
   private final TierService tiers;
   private final AttendeeService attendees;
+  private final EventCopier copier;
 
-  public AdminEventController(EventService events, TierService tiers, AttendeeService attendees) {
+  public AdminEventController(
+      EventService events, TierService tiers, AttendeeService attendees, EventCopier copier) {
     this.events = events;
     this.tiers = tiers;
     this.attendees = attendees;
+    this.copier = copier;
   }
 
   @ModelAttribute("timeZones")
@@ -94,6 +98,13 @@ public class AdminEventController {
     events.update(id, form);
     redirect.addFlashAttribute("flash", "Event saved.");
     return "redirect:/admin/events/" + id + "/edit";
+  }
+
+  @PostMapping("/{id}/duplicate")
+  public String duplicate(@PathVariable long id, RedirectAttributes redirect) {
+    Event copy = copier.duplicate(id);
+    redirect.addFlashAttribute("flash", "Event copied. Set the new date and publish when ready.");
+    return "redirect:/admin/events/" + copy.getId() + "/edit";
   }
 
   @PostMapping("/{id}/publish")
