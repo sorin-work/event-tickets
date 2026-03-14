@@ -52,6 +52,18 @@ class PromoCheckoutTest extends IntegrationTest {
   }
 
   @Test
+  void percentageTotalsMatchWhatPeopleWorkOutByHand() {
+    TicketTier odd = data.tier(event, "Odd price", "19.99", 30);
+    promo("FIFTEEN", DiscountType.PERCENT, 15);
+    Order order = checkout.start(event.getId(), Map.of(odd.getId(), 3));
+
+    Order discounted = checkout.applyPromoCode(order.getAccessToken(), "FIFTEEN");
+
+    assertThat(discounted.getDiscountCents()).isEqualTo(900);
+    assertThat(discounted.getTotalCents()).isEqualTo(5097);
+  }
+
+  @Test
   void appliesFixedDiscount() {
     promo("TENOFF", DiscountType.FIXED, 1000);
 
