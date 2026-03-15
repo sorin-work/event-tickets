@@ -71,6 +71,17 @@ class AdminAttendeeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void lastAttendeesOnAPartPageAreReachable() throws Exception {
+    purchases.buy(tier, 26, "Group Buyer", "group@example.com");
+
+    mvc.perform(get(url))
+        .andExpect(content().string(containsString("Page 1 of 2")))
+        .andExpect(content().string(containsString("Next")));
+    mvc.perform(get(url).param("page", "2"))
+        .andExpect(content().string(containsString("Showing 26–26 of 26")));
+  }
+
+  @Test
   void emptyState() throws Exception {
     mvc.perform(get(url)).andExpect(content().string(containsString("No tickets sold yet.")));
   }

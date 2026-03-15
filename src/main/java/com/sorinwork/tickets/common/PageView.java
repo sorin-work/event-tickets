@@ -12,7 +12,7 @@ public record PageView<T>(List<T> items, int page, int size, long total) {
   }
 
   public int totalPages() {
-    return Math.max(1, (int) (total / size));
+    return Math.max(1, (int) ((total + size - 1) / size));
   }
 
   public boolean hasPrevious() {

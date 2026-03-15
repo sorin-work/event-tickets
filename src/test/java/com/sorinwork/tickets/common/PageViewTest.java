@@ -33,6 +33,14 @@ class PageViewTest {
   }
 
   @Test
+  void aPartlyFilledLastPageCounts() {
+    assertThat(page(1, 20, 21, 20).totalPages()).isEqualTo(2);
+    assertThat(page(1, 20, 21, 20).hasNext()).isTrue();
+    assertThat(page(2, 20, 45, 20).totalPages()).isEqualTo(3);
+    assertThat(page(1, 25, 24, 24).totalPages()).isEqualTo(1);
+  }
+
+  @Test
   void emptyResultStillHasOnePage() {
     PageView<Integer> view = new PageView<>(List.of(), 1, 20, 0);
 
