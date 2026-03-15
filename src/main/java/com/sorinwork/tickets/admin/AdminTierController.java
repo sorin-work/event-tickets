@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -72,6 +73,13 @@ public class AdminTierController {
     }
     tiers.update(eventId, tierId, form);
     redirect.addFlashAttribute("flash", "Ticket tier saved.");
+    return "redirect:/admin/events/" + eventId + "/edit";
+  }
+
+  @PostMapping("/{tierId}/move")
+  public String move(
+      @PathVariable long eventId, @PathVariable long tierId, @RequestParam int direction) {
+    tiers.move(eventId, tierId, direction);
     return "redirect:/admin/events/" + eventId + "/edit";
   }
 

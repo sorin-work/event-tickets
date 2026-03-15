@@ -51,6 +51,28 @@ class AdminTierControllerTest extends IntegrationTest {
   }
 
   @Test
+  void movesTiersUpAndDown() throws Exception {
+    TicketTier first = data.tier(event, "First", "10", 10);
+    TicketTier second = data.tier(event, "Second", "10", 10);
+    TicketTier third = data.tier(event, "Third", "10", 10);
+
+    mvc.perform(
+            post("/admin/events/" + event.getId() + "/tiers/" + third.getId() + "/move")
+                .with(csrf())
+                .param("direction", "-1"))
+        .andExpect(status().is3xxRedirection());
+    mvc.perform(
+        post("/admin/events/" + event.getId() + "/tiers/" + first.getId() + "/move")
+            .with(csrf())
+            .param("direction", "-1"));
+
+    assertThat(tiers.findByEventIdOrderByPositionAscIdAsc(event.getId()))
+        .extracting(TicketTier::getName)
+        .containsExactly("First", "Third", "Second");
+    assertThat(second.getId()).isNotNull();
+  }
+
+  @Test
   void rejectsInvalidPrice() throws Exception {
     mvc.perform(
             post("/admin/events/" + event.getId() + "/tiers")

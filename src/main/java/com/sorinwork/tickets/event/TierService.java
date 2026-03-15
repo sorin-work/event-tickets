@@ -2,6 +2,8 @@ package com.sorinwork.tickets.event;
 
 import com.sorinwork.tickets.common.NotFoundException;
 import java.time.Clock;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,6 +55,27 @@ public class TierService {
 
   public void delete(long eventId, long tierId) {
     tiers.delete(get(eventId, tierId));
+  }
+
+  /** Moves a tier one place up ({@code -1}) or down ({@code +1}) on the event page. */
+  public void move(long eventId, long tierId, int direction) {
+    List<TicketTier> ordered = new ArrayList<>(forEvent(eventId));
+    int index = -1;
+    for (int i = 0; i < ordered.size(); i++) {
+      if (ordered.get(i).getId() == tierId) {
+        index = i;
+      }
+    }
+    if (index < 0) {
+      throw new NotFoundException("Tier " + tierId);
+    }
+    int target = index + Integer.signum(direction);
+    if (target >= 0 && target < ordered.size()) {
+      Collections.swap(ordered, index, target);
+    }
+    for (int i = 0; i < ordered.size(); i++) {
+      ordered.get(i).setPosition(i);
+    }
   }
 
   private void apply(TicketTier tier, TierForm form) {

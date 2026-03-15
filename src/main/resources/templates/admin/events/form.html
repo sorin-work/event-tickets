@@ -33,7 +33,13 @@
       <thead><tr><th>Tier</th><th class="num">Price</th><th class="num">Quantity</th><th>Sales window</th></tr></thead>
       <tbody>
       <tr th:each="tier : ${tiers}">
-        <td><a th:href="@{/admin/events/{e}/tiers/{t}/edit(e=${event.id},t=${tier.id})}" th:text="${tier.name}">GA</a></td>
+        <td>
+          <form class="inline" method="post" th:action="@{/admin/events/{e}/tiers/{t}/move(e=${event.id},t=${tier.id})}">
+            <button class="btn-link" name="direction" value="-1" th:disabled="${tierStat.first}" aria-label="Move up">&uarr;</button>
+            <button class="btn-link" name="direction" value="1" th:disabled="${tierStat.last}" aria-label="Move down">&darr;</button>
+          </form>
+          <a th:href="@{/admin/events/{e}/tiers/{t}/edit(e=${event.id},t=${tier.id})}" th:text="${tier.name}">GA</a>
+        </td>
         <td class="num" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</td>
         <td class="num" th:text="${tier.quantity}">100</td>
         <td class="muted">

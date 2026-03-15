@@ -449,3 +449,13 @@ th {
   border-radius: 3px;
   background: var(--accent);
 }
+
+form.inline {
+  display: inline;
+  margin: 0;
+}
+
+.btn-link:disabled {
+  color: var(--border);
+  cursor: default;
+}
