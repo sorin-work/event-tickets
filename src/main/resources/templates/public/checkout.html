@@ -62,6 +62,15 @@
       <input id="email" type="email" th:field="*{email}" required maxlength="255" autocomplete="email">
       <div class="field-error" th:errors="*{email}"></div>
     </div>
+    <details th:if="${#lists.size(seats) > 1}" class="field">
+      <summary>Put a different name on each ticket <span class="muted">(optional)</span></summary>
+      <div class="field" th:each="seat, s : ${seats}">
+        <label th:for="'attendee-' + ${s.index}" th:text="${seat}">Standing 1</label>
+        <input th:id="'attendee-' + ${s.index}" th:name="'attendeeNames[' + ${s.index} + ']'"
+               th:value="${s.index < #lists.size(form.attendeeNames)} ? ${form.attendeeNames[s.index]} : ''"
+               maxlength="120" placeholder="Same as above">
+      </div>
+    </details>
     <p class="muted">Payment is simulated in this demo: placing the order marks it as paid.</p>
     <button class="btn btn-primary" type="submit"
             th:text="${order.totalCents == 0} ? 'Get tickets' : 'Pay ' + ${@fmt.money(order.totalCents, event.currency)}">Pay</button>

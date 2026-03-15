@@ -178,7 +178,7 @@ public class CheckoutService {
     order.setBuyerEmail(form.getEmail().trim().toLowerCase(Locale.ROOT));
     order.setStatus(OrderStatus.PAID);
     order.setPaidAt(now);
-    issueTickets(order, now);
+    issueTickets(order, form.getAttendeeNames(), now);
     emails.orderConfirmation(order);
     publisher.publishEvent(new OrderEvents.OrderPaid(order.getId()));
     return order;
@@ -189,15 +189,21 @@ public class CheckoutService {
     return tickets.findByOrderIdOrderById(order.getId());
   }
 
-  private void issueTickets(Order order, Instant now) {
+  /**
+   * One ticket per seat. {@code names} are optional attendee names in seat order; seats without a
+   * name are issued to the buyer.
+   */
+  private void issueTickets(Order order, List<String> names, Instant now) {
+    int seat = 0;
     for (OrderItem item : order.getItems()) {
-      for (int i = 0; i < item.getQuantity(); i++) {
+      for (int i = 0; i < item.getQuantity(); i++, seat++) {
+        String name = seat < names.size() ? names.get(seat) : null;
         tickets.save(
             new Ticket(
                 order,
                 item.getTier(),
                 Tokens.ticketCode(),
-                order.getBuyerName(),
+                name == null || name.isBlank() ? order.getBuyerName() : name.trim(),
                 order.getBuyerEmail(),
                 now));
       }

@@ -6,10 +6,13 @@ import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.CheckoutForm;
 import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
+import com.sorinwork.tickets.order.OrderItem;
 import com.sorinwork.tickets.order.OrderStatus;
 import jakarta.validation.Valid;
 import java.time.Clock;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
@@ -144,10 +147,23 @@ public class CheckoutController {
   }
 
   private String render(Order order, Model model) {
+    model.addAttribute("seats", seatLabels(order));
     model.addAttribute("order", order);
     model.addAttribute("event", order.getEvent());
     model.addAttribute("holdActive", order.isHoldActive(clock.instant()));
     return "public/checkout";
+  }
+
+  /** "Standing 1", "Standing 2", "VIP" ... in the order tickets are issued. */
+  static List<String> seatLabels(Order order) {
+    List<String> labels = new ArrayList<>();
+    for (OrderItem item : order.getItems()) {
+      for (int i = 1; i <= item.getQuantity(); i++) {
+        String name = item.getTier().getName();
+        labels.add(item.getQuantity() > 1 ? name + " " + i : name);
+      }
+    }
+    return labels;
   }
 
   static Map<Long, Integer> quantities(Map<String, String> params) {

@@ -111,6 +111,27 @@ class CheckoutControllerTest extends IntegrationTest {
   }
 
   @Test
+  void eachTicketCanCarryItsOwnName() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "3"));
+    Order order = orders.findAll().get(0);
+    String token = order.getAccessToken();
+    mvc.perform(get("/checkout/" + token)).andExpect(content().string(containsString("Seat 3")));
+
+    mvc.perform(
+        post("/checkout/" + token)
+            .with(csrf())
+            .param("name", "Ioana Rus")
+            .param("email", "ioana@example.com")
+            .param("attendeeNames[0]", "")
+            .param("attendeeNames[1]", " Matei Rus ")
+            .param("attendeeNames[2]", "Sara Rus"));
+
+    assertThat(tickets.findByOrderIdOrderById(order.getId()))
+        .extracting(com.sorinwork.tickets.ticket.Ticket::getAttendeeName)
+        .containsExactly("Ioana Rus", "Matei Rus", "Sara Rus");
+  }
+
+  @Test
   void validatesBuyerDetails() throws Exception {
     mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
     String token = orders.findAll().get(0).getAccessToken();
