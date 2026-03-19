@@ -459,3 +459,31 @@ form.inline {
   color: var(--border);
   cursor: default;
 }
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  .site-header,
+  .site-footer,
+  .alert,
+  .no-print {
+    display: none;
+  }
+
+  .print-only {
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  body {
+    background: #fff;
+  }
+
+  .ticket {
+    break-inside: avoid;
+    box-shadow: none;
+    border: 1px dashed #999;
+  }
+}

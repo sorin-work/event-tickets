@@ -11,9 +11,20 @@
     <a th:href="@{/events/{slug}(slug=${event.slug})}" th:text="${event.title}">Event</a>,
     <span th:text="${@fmt.when(event)}">date</span>.
   </p>
-  <p class="muted">Bookmark this page: it is your link to your tickets.</p>
+  <p class="muted no-print">
+    Bookmark this page: it is your link to your tickets. We also emailed it to
+    <strong th:text="${order.buyerEmail}">you</strong>.
+  </p>
+  <p class="no-print">
+    <button class="btn" type="button" onclick="window.print()">Print tickets</button>
+    <a class="btn" th:href="@{/events/{slug}/calendar.ics(slug=${event.slug})}">Add to calendar</a>
+  </p>
   <div class="card ticket" th:each="ticket : ${tickets}">
     <div>
+      <div class="print-only">
+        <strong th:text="${event.title}">Event</strong>
+        <div th:text="${@fmt.when(event)} + ' · ' + ${event.venueName}">date</div>
+      </div>
       <strong th:text="${ticket.tier.name}">Standing</strong>
       <div th:text="${ticket.attendeeName}">Ana Pop</div>
       <div class="ticket-code" th:text="${ticket.code}">ABCD2345EFGH</div>
