@@ -43,6 +43,17 @@ public class AdminOrderController {
     return "admin/orders/show";
   }
 
+  @PostMapping("/admin/orders/{orderId}/resend")
+  public String resend(@PathVariable long orderId, RedirectAttributes redirect) {
+    try {
+      Order order = orders.resendConfirmation(orderId);
+      redirect.addFlashAttribute("flash", "Tickets sent again to " + order.getBuyerEmail() + ".");
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/admin/orders/" + orderId;
+  }
+
   @PostMapping("/admin/orders/{orderId}/cancel")
   public String cancel(@PathVariable long orderId, RedirectAttributes redirect) {
     try {

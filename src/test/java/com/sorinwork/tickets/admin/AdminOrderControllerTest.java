@@ -27,6 +27,7 @@ class AdminOrderControllerTest extends IntegrationTest {
   @Autowired EventService events;
   @Autowired CheckoutService checkout;
   @Autowired HoldExpiryService expiry;
+  @Autowired com.sorinwork.tickets.notify.OutboxRepository outbox;
 
   Event event;
   TicketTier tier;
@@ -66,6 +67,22 @@ class AdminOrderControllerTest extends IntegrationTest {
         .andExpect(content().string(containsString("2 × Seat")))
         .andExpect(content().string(containsString("€70.00")))
         .andExpect(content().string(containsString("Paid")));
+  }
+
+  @Test
+  void resendsTheTicketEmail() throws Exception {
+    Order paid = paidOrder("Maria Ionescu");
+
+    mvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    "/admin/orders/" + paid.getId() + "/resend")
+                .with(
+                    org.springframework.security.test.web.servlet.request
+                        .SecurityMockMvcRequestPostProcessors.csrf()))
+        .andExpect(status().is3xxRedirection());
+
+    org.assertj.core.api.Assertions.assertThat(outbox.findByRecipientOrderByIdAsc("x@example.com"))
+        .hasSize(2);
   }
 
   @Test

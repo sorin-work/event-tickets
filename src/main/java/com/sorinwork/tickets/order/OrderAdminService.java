@@ -2,6 +2,7 @@ package com.sorinwork.tickets.order;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
+import com.sorinwork.tickets.notify.Emails;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
@@ -22,17 +23,30 @@ public class OrderAdminService {
   private final OrderRepository orders;
   private final TicketRepository tickets;
   private final ApplicationEventPublisher publisher;
+  private final Emails emails;
   private final Clock clock;
 
   public OrderAdminService(
       OrderRepository orders,
       TicketRepository tickets,
       ApplicationEventPublisher publisher,
+      Emails emails,
       Clock clock) {
     this.orders = orders;
     this.tickets = tickets;
     this.publisher = publisher;
+    this.emails = emails;
     this.clock = clock;
+  }
+
+  /** Sends the buyer their ticket link again, e.g. when the first email went to spam. */
+  public Order resendConfirmation(long orderId) {
+    Order order = get(orderId);
+    if (order.getStatus() != OrderStatus.PAID) {
+      throw new BusinessException("Only paid orders have tickets to send.");
+    }
+    emails.orderConfirmation(order);
+    return order;
   }
 
   /** Orders of an event, newest first; expired checkouts are left out. */
