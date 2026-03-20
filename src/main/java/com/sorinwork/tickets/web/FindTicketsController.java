@@ -1,8 +1,6 @@
 package com.sorinwork.tickets.web;
 
 import com.sorinwork.tickets.order.TicketLookupService;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -24,7 +22,7 @@ public class FindTicketsController {
   }
 
   @PostMapping("/tickets/find")
-  public String send(@RequestParam(defaultValue = "") @NotBlank @Email String email, Model model) {
+  public String send(@RequestParam(defaultValue = "") String email, Model model) {
     if (email.isBlank() || !email.contains("@")) {
       model.addAttribute("error", "Enter the email address you used to buy the tickets.");
       return "public/find-tickets";
