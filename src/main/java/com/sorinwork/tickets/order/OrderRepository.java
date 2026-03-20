@@ -70,6 +70,17 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   @Query(
       """
+      select o from Order o join fetch o.event e
+      where o.buyerEmail = :email and o.status = :status and e.startsAt > :after
+      order by e.startsAt
+      """)
+  List<Order> findUpcomingForBuyer(
+      @Param("email") String email,
+      @Param("status") OrderStatus status,
+      @Param("after") java.time.LocalDateTime after);
+
+  @Query(
+      """
       select o from Order o join fetch o.event
       where o.status = :status
       order by o.paidAt desc, o.id desc

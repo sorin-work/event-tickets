@@ -22,6 +22,18 @@ public class Emails {
     this.fmt = fmt;
   }
 
+  /** One email listing the ticket links of all upcoming orders of a buyer. */
+  public void ticketLinks(String email, java.util.List<Order> orders) {
+    StringBuilder body = new StringBuilder("Hi,\n\nHere are your tickets for upcoming events:\n\n");
+    for (Order order : orders) {
+      Event event = order.getEvent();
+      body.append(event.getTitle()).append(" – ").append(fmt.when(event)).append('\n');
+      body.append(properties.url("/orders/" + order.getAccessToken())).append("\n\n");
+    }
+    body.append("If you did not ask for this email you can ignore it.\n");
+    notifier.send(email, "Your tickets", body.toString(), null);
+  }
+
   public void orderConfirmation(Order order) {
     Event event = order.getEvent();
     StringBuilder body = new StringBuilder();
