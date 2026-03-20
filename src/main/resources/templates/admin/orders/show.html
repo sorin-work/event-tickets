@@ -46,7 +46,12 @@
       <tr th:each="ticket : ${tickets}">
         <td><code th:text="${ticket.code}">ABCD</code></td>
         <td th:text="${ticket.tier.name}">Standing</td>
-        <td th:text="${ticket.attendeeName}">Ana</td>
+        <td>
+          <form class="rename-form" method="post" th:action="@{/admin/tickets/{id}/name(id=${ticket.id})}">
+            <input name="name" th:value="${ticket.attendeeName}" maxlength="120" required aria-label="Attendee name">
+            <button class="btn-link" type="submit">save</button>
+          </form>
+        </td>
         <td>
           <span th:text="${ticket.checkedIn} ? ${@fmt.instant(ticket.checkedInAt, event)} : '—'">—</span>
           <form th:if="${ticket.checkedIn}" method="post" style="display:inline"

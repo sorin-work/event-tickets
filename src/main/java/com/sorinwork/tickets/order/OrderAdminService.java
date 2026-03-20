@@ -78,6 +78,26 @@ public class OrderAdminService {
     return tickets.findByOrderIdOrderById(orderId);
   }
 
+  @Transactional(readOnly = true)
+  public long ticketOrderId(long ticketId) {
+    return tickets
+        .findById(ticketId)
+        .map(t -> t.getOrder().getId())
+        .orElseThrow(() -> new NotFoundException("Ticket " + ticketId));
+  }
+
+  /** Changes the name on a ticket, e.g. when a buyer gives theirs to a friend. */
+  public Ticket renameTicket(long ticketId, String name) {
+    String trimmed = name == null ? "" : name.trim();
+    if (trimmed.isEmpty() || trimmed.length() > 120) {
+      throw new BusinessException("Enter a name of up to 120 characters.");
+    }
+    Ticket ticket =
+        tickets.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket " + ticketId));
+    ticket.setAttendeeName(trimmed);
+    return ticket;
+  }
+
   /**
    * Cancels an order, e.g. after a refund outside the app. Its tickets stop working at the door and
    * the seats go back on sale.

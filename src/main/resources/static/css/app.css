@@ -487,3 +487,14 @@ form.inline {
     border: 1px dashed #999;
   }
 }
+
+.rename-form {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 0;
+}
+
+.rename-form input {
+  padding: 4px 8px;
+}

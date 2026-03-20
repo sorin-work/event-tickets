@@ -43,6 +43,22 @@ public class AdminOrderController {
     return "admin/orders/show";
   }
 
+  @PostMapping("/admin/tickets/{ticketId}/name")
+  public String rename(
+      @PathVariable long ticketId,
+      @org.springframework.web.bind.annotation.RequestParam String name,
+      RedirectAttributes redirect) {
+    try {
+      Ticket ticket = orders.renameTicket(ticketId, name);
+      redirect.addFlashAttribute(
+          "flash", "Ticket " + ticket.getCode() + " is now for " + ticket.getAttendeeName() + ".");
+      return "redirect:/admin/orders/" + ticket.getOrder().getId();
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+      return "redirect:/admin/orders/" + orders.ticketOrderId(ticketId);
+    }
+  }
+
   @PostMapping("/admin/orders/{orderId}/resend")
   public String resend(@PathVariable long orderId, RedirectAttributes redirect) {
     try {
