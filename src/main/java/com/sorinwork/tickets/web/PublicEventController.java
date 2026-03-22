@@ -56,6 +56,7 @@ public class PublicEventController {
   public String show(@PathVariable String slug, Model model) {
     Event event = events.getPublic(slug);
     model.addAttribute("event", event);
+    model.addAttribute("onSale", event.isOnSale(clock.instant()));
     model.addAttribute("tiers", tiers.forEvent(event.getId()));
     model.addAttribute("availability", availability.forEvent(event.getId()));
     return "public/event";

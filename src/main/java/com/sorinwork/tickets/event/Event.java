@@ -80,6 +80,11 @@ public class Event {
     return startsAt.atZone(zone()).toInstant();
   }
 
+  /** Published and not started yet, so tickets can still be bought. */
+  public boolean isOnSale(Instant now) {
+    return isPublished() && startsAtInstant().isAfter(now);
+  }
+
   public boolean isPublished() {
     return status == EventStatus.PUBLISHED;
   }

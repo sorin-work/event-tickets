@@ -185,12 +185,17 @@ public class DemoDataSeeder implements ApplicationRunner {
             "Autumn Poetry Slam",
             "The Attic",
             "Str. Lipscani 12, Bucharest",
-            today.minusDays(12).atTime(19, 30),
+            today.plusDays(1).atTime(19, 30),
             "RON",
             "Open mic poetry with a jury of three. Sign up at the door to perform.");
     TicketTier entry = tier(past, "Entry", "25", 80, 4);
     events.publish(past.getId());
     List<Ticket> pastTickets = sell(entry, 64, 30);
+    // Sales close once an event starts, so sell first and then move it into the past.
+    EventForm pastForm = EventForm.from(events.get(past.getId()));
+    pastForm.setStartsAt(today.minusDays(12).atTime(19, 30));
+    pastForm.setEndsAt(today.minusDays(12).atTime(22, 30));
+    events.update(past.getId(), pastForm);
     for (Ticket ticket : pastTickets.subList(0, 52)) {
       checkIn.checkIn(past.getId(), ticket.getCode(), "door@example.com");
     }

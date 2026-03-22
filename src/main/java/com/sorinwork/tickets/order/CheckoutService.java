@@ -75,6 +75,9 @@ public class CheckoutService {
       throw new BusinessException("Tickets for this event are not on sale.");
     }
     Instant now = clock.instant();
+    if (!event.startsAtInstant().isAfter(now)) {
+      throw new BusinessException("Ticket sales have closed: the event has started.");
+    }
     Map<Long, TierAvailability> available = availability.forEvent(eventId);
     Order order = newOrder(event, now, now.plus(properties.checkout().holdDuration()));
 

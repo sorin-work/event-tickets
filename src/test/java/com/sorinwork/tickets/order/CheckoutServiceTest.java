@@ -115,6 +115,15 @@ class CheckoutServiceTest extends IntegrationTest {
   }
 
   @Test
+  void salesCloseWhenTheEventStarts() {
+    // 2030-03-14 19:30 in Bucharest is 17:30 UTC
+    clock.set(java.time.Instant.parse("2030-03-14T17:30:00Z"));
+
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(standing, 1)))
+        .hasMessageContaining("sales have closed");
+  }
+
+  @Test
   void rejectsDraftEvents() {
     Event draft = data.event("Draft");
     TicketTier tier = data.tier(draft, "Entry", "5", 10);
