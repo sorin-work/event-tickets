@@ -15,8 +15,7 @@
   </div>
   <form class="card" method="post" data-scan-form th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
         th:attr="hx-post=@{/admin/events/{id}/check-in(id=${event.id})}"
-        hx-target="#check-in-result" hx-swap="outerHTML"
-        hx-on::after-request="if (event.detail.successful) { this.reset(); this.code.focus(); }">
+        hx-target="#check-in-result" hx-swap="outerHTML">
     <div class="field">
       <label for="code">Ticket code</label>
       <input id="code" name="code" autocomplete="off" autocapitalize="characters" autofocus required

@@ -2,6 +2,21 @@
 // BarcodeDetector (Chrome, Edge, Android); elsewhere the button stays hidden
 // and staff type codes or use a USB scanner, which behaves like a keyboard.
 (function () {
+  // Clear the field after every scan so the next code can be typed or
+  // scanned straight away. (Done here rather than with hx-on, which the
+  // content security policy does not allow.)
+  var scanForm = document.querySelector("[data-scan-form]");
+  if (scanForm) {
+    scanForm.addEventListener("htmx:afterRequest", function (event) {
+      if (event.detail.successful) {
+        scanForm.reset();
+        scanForm.code.focus();
+      }
+    });
+  }
+})();
+
+(function () {
   var button = document.querySelector("[data-scan-camera]");
   var video = document.querySelector("[data-scan-video]");
   var form = document.querySelector("[data-scan-form]");
