@@ -68,6 +68,15 @@ class CheckoutServiceTest extends IntegrationTest {
   }
 
   @Test
+  void rejectsNegativeQuantities() {
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 2, standing, -3)))
+        .isInstanceOf(BusinessException.class)
+        .hasMessage("Ticket quantities cannot be negative.");
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(standing, -1)))
+        .hasMessage("Ticket quantities cannot be negative.");
+  }
+
+  @Test
   void requiresAtLeastOneTicket() {
     assertThatThrownBy(() -> checkout.start(event.getId(), select(standing, 0)))
         .isInstanceOf(BusinessException.class)

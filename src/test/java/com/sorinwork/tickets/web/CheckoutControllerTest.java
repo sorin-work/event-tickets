@@ -66,6 +66,21 @@ class CheckoutControllerTest extends IntegrationTest {
   }
 
   @Test
+  void negativeQuantitiesFromAHandMadeFormAreRejected() throws Exception {
+    TicketTier other = data.tier(event, "Balcony", "20", 10);
+
+    mvc.perform(
+            post("/events/film-club/checkout")
+                .with(csrf())
+                .param("qty_" + tier.getId(), "-5")
+                .param("qty_" + other.getId(), "1"))
+        .andExpect(redirectedUrl("/events/film-club"))
+        .andExpect(flash().attribute("error", "Ticket quantities cannot be negative."));
+
+    assertThat(orders.count()).isZero();
+  }
+
+  @Test
   void showsExpiredReservation() throws Exception {
     mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
     Order order = orders.findAll().get(0);

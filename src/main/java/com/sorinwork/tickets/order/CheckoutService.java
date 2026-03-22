@@ -80,6 +80,9 @@ public class CheckoutService {
 
     for (var entry : quantities.entrySet()) {
       int quantity = entry.getValue() == null ? 0 : entry.getValue();
+      if (quantity < 0) {
+        throw new BusinessException("Ticket quantities cannot be negative.");
+      }
       if (quantity == 0) {
         continue;
       }
