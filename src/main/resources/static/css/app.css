@@ -498,3 +498,32 @@ form.inline {
 .rename-form input {
   padding: 4px 8px;
 }
+
+/* Phones: let wide admin tables scroll sideways instead of squashing. */
+@media (max-width: 640px) {
+  main table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+
+  .site-header .container {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .tier {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .stat-value {
+    font-size: 1.25rem;
+  }
+
+  h1 {
+    font-size: 1.5rem;
+  }
+}
