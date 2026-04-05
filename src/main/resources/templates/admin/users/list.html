@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Admins')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('users')}"></header>
+<main class="container">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <h1>Admins</h1>
+  <p class="muted">Everyone listed here can manage events, orders and check-in.</p>
+  <table class="card">
+    <thead><tr><th>Name</th><th>Email</th><th>Since</th><th></th></tr></thead>
+    <tbody>
+    <tr th:each="user : ${users}">
+      <td th:text="${user.displayName}">Ana</td>
+      <td th:text="${user.email}">ana@example.com</td>
+      <td th:text="${#temporals.format(user.createdAt, 'd MMM yyyy')}">date</td>
+      <td>
+        <span th:if="${user.email == me}" class="muted">you</span>
+        <form th:unless="${user.email == me}" method="post" class="inline"
+              th:action="@{/admin/users/{id}/delete(id=${user.id})}"
+              onsubmit="return confirm('Remove this admin?')">
+          <button class="btn-link" type="submit">remove</button>
+        </form>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <form class="card" method="post" th:action="@{/admin/users}">
+    <h2>Add an admin</h2>
+    <div class="field">
+      <label for="name">Name</label>
+      <input id="name" name="name" required maxlength="120">
+    </div>
+    <div class="field">
+      <label for="email">Email</label>
+      <input id="email" name="email" type="email" required maxlength="255">
+    </div>
+    <div class="field">
+      <label for="password">Password <span class="muted">(at least 10 characters)</span></label>
+      <input id="password" name="password" type="password" required minlength="10" autocomplete="new-password">
+    </div>
+    <button class="btn btn-primary" type="submit">Add admin</button>
+  </form>
+</main>
+</body>
+</html>
