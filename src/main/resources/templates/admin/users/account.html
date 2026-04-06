@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" lang="en">
+<head th:replace="~{fragments/layout :: head('Your account')}"></head>
+<body>
+<header th:replace="~{fragments/admin :: header('account')}"></header>
+<main class="container narrow">
+  <div th:replace="~{fragments/admin :: flash}"></div>
+  <h1>Your account</h1>
+  <p class="muted">Signed in as <strong sec:authentication="name">admin@example.com</strong>.</p>
+  <form class="card" method="post" th:action="@{/admin/account/password}">
+    <h2>Change password</h2>
+    <div class="field">
+      <label for="currentPassword">Current password</label>
+      <input id="currentPassword" name="currentPassword" type="password" required autocomplete="current-password">
+    </div>
+    <div class="field">
+      <label for="newPassword">New password <span class="muted">(at least 10 characters)</span></label>
+      <input id="newPassword" name="newPassword" type="password" required minlength="10" autocomplete="new-password">
+    </div>
+    <div class="field">
+      <label for="confirmation">Repeat the new password</label>
+      <input id="confirmation" name="confirmation" type="password" required minlength="10" autocomplete="new-password">
+    </div>
+    <button class="btn btn-primary" type="submit">Change password</button>
+  </form>
+</main>
+</body>
+</html>

@@ -11,7 +11,7 @@
       <a th:href="@{/admin/users}" th:classappend="${section == 'users'} ? 'active'">Admins</a>
       <a th:href="@{/}" target="_blank">Public site</a>
       <form th:action="@{/admin/logout}" method="post" style="display:inline">
-        <span class="muted" sec:authentication="name">admin</span>
+        <a th:href="@{/admin/account}" th:classappend="${section == 'account'} ? 'active'" sec:authentication="name">admin</a>
         <button class="btn" type="submit">Sign out</button>
       </form>
     </nav>

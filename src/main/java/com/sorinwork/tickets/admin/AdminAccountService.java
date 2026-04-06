@@ -56,6 +56,23 @@ public class AdminAccountService {
     users.delete(user);
   }
 
+  public void changePassword(
+      String email, String currentPassword, String newPassword, String confirmation) {
+    AdminUser user =
+        users
+            .findByEmail(AdminUser.normalizeEmail(email))
+            .orElseThrow(() -> new NotFoundException("Admin " + email));
+    if (currentPassword == null
+        || !passwordEncoder.matches(currentPassword, user.getPasswordHash())) {
+      throw new BusinessException("Your current password is not right.");
+    }
+    checkPassword(newPassword);
+    if (!newPassword.equals(confirmation)) {
+      throw new BusinessException("The new passwords do not match.");
+    }
+    user.setPasswordHash(passwordEncoder.encode(newPassword));
+  }
+
   static void checkPassword(String password) {
     if (password == null || password.length() < MIN_PASSWORD_LENGTH) {
       throw new BusinessException(
