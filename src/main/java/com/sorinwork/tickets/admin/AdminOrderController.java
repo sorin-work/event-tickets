@@ -4,6 +4,7 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderAdminService;
+import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.ticket.CheckInService;
 import com.sorinwork.tickets.ticket.Ticket;
 import org.springframework.stereotype.Controller;
@@ -28,9 +29,14 @@ public class AdminOrderController {
   }
 
   @GetMapping("/admin/events/{eventId}/orders")
-  public String list(@PathVariable long eventId, Model model) {
+  public String list(
+      @PathVariable long eventId,
+      @org.springframework.web.bind.annotation.RequestParam(required = false) OrderStatus status,
+      Model model) {
     model.addAttribute("event", events.get(eventId));
-    model.addAttribute("orders", orders.forEvent(eventId));
+    model.addAttribute("status", status);
+    model.addAttribute("statuses", OrderStatus.values());
+    model.addAttribute("orders", orders.forEvent(eventId, status));
     return "admin/orders/list";
   }
 

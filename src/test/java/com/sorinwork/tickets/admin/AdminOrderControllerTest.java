@@ -59,6 +59,18 @@ class AdminOrderControllerTest extends IntegrationTest {
   }
 
   @Test
+  void filtersByStatus() throws Exception {
+    Order paid = paidOrder("Maria Ionescu");
+    Order pending = checkout.start(event.getId(), Map.of(tier.getId(), 1));
+
+    mvc.perform(get("/admin/events/" + event.getId() + "/orders").param("status", "PENDING"))
+        .andExpect(content().string(containsString(pending.getReference())))
+        .andExpect(content().string(not(containsString(paid.getReference()))));
+    mvc.perform(get("/admin/events/" + event.getId() + "/orders").param("status", "EXPIRED"))
+        .andExpect(content().string(containsString("No orders yet.")));
+  }
+
+  @Test
   void showsOrderWithTickets() throws Exception {
     Order paid = paidOrder("Maria Ionescu");
 

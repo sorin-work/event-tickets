@@ -52,7 +52,13 @@ public class OrderAdminService {
   /** Orders of an event, newest first; expired checkouts are left out. */
   @Transactional(readOnly = true)
   public List<Order> forEvent(long eventId) {
-    return orders.findForEvent(eventId, VISIBLE);
+    return forEvent(eventId, null);
+  }
+
+  /** Orders of an event with the given status, or all visible ones when {@code status} is null. */
+  @Transactional(readOnly = true)
+  public List<Order> forEvent(long eventId, OrderStatus status) {
+    return orders.findForEvent(eventId, status == null ? VISIBLE : List.of(status));
   }
 
   /** The latest paid orders across all events, for the dashboard. */
