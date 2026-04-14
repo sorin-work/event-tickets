@@ -30,11 +30,7 @@
       </tr>
       </tbody>
     </table>
-    <nav class="pager" th:if="${attendees.totalPages() > 1}">
-      <a th:if="${attendees.hasPrevious()}" class="btn" th:href="@{''(page=${attendees.page - 1},q=${q})}">&larr; Previous</a>
-      <span class="muted" th:text="'Page ' + ${attendees.page} + ' of ' + ${attendees.totalPages()}">Page 1 of 3</span>
-      <a th:if="${attendees.hasNext()}" class="btn" th:href="@{''(page=${attendees.page + 1},q=${q})}">Next &rarr;</a>
-    </nav>
+    <nav th:replace="~{fragments/admin :: pager(${attendees}, 'q', ${q})}"></nav>
   </th:block>
 </main>
 </body>

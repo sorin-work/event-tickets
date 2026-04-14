@@ -30,11 +30,7 @@
     </tr>
     </tbody>
   </table>
-  <nav class="pager" th:if="${orders.totalPages() > 1}">
-    <a th:if="${orders.hasPrevious()}" class="btn" th:href="@{''(page=${orders.page - 1},status=${status})}">&larr; Previous</a>
-    <span class="muted" th:text="'Page ' + ${orders.page} + ' of ' + ${orders.totalPages()}">Page 1 of 3</span>
-    <a th:if="${orders.hasNext()}" class="btn" th:href="@{''(page=${orders.page + 1},status=${status})}">Next &rarr;</a>
-  </nav>
+  <nav th:replace="~{fragments/admin :: pager(${orders}, 'status', ${status})}"></nav>
 </main>
 </body>
 </html>
