@@ -3,6 +3,7 @@ package com.sorinwork.tickets.order;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -29,13 +30,21 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   List<Order> findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus status, Instant now);
 
   @Query(
-      """
-      select o from Order o
-      where o.event.id = :eventId and o.status in :statuses
-      order by o.createdAt desc, o.id desc
-      """)
-  List<Order> findForEvent(
-      @Param("eventId") long eventId, @Param("statuses") List<OrderStatus> statuses);
+      value =
+          """
+          select o from Order o
+          where o.event.id = :eventId and o.status in :statuses
+          order by o.createdAt desc, o.id desc
+          """,
+      countQuery =
+          """
+          select count(o) from Order o
+          where o.event.id = :eventId and o.status in :statuses
+          """)
+  Page<Order> findForEvent(
+      @Param("eventId") long eventId,
+      @Param("statuses") List<OrderStatus> statuses,
+      Pageable pageable);
 
   @Query(
       """

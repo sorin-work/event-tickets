@@ -32,11 +32,12 @@ public class AdminOrderController {
   public String list(
       @PathVariable long eventId,
       @org.springframework.web.bind.annotation.RequestParam(required = false) OrderStatus status,
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") int page,
       Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("status", status);
     model.addAttribute("statuses", OrderStatus.values());
-    model.addAttribute("orders", orders.forEvent(eventId, status));
+    model.addAttribute("orders", orders.forEvent(eventId, status, page));
     return "admin/orders/list";
   }
 

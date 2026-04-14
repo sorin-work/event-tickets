@@ -12,13 +12,13 @@
     <a th:each="s : ${statuses}" th:href="@{''(status=${s})}" th:classappend="${status == s} ? 'active'"
        th:text="${#strings.capitalize(#strings.toLowerCase(s.name()))}">Paid</a>
   </nav>
-  <div th:if="${#lists.isEmpty(orders)}" class="card empty">No orders yet.</div>
-  <table th:unless="${#lists.isEmpty(orders)}">
+  <div th:if="${orders.isEmpty()}" class="card empty">No orders yet.</div>
+  <table th:unless="${orders.isEmpty()}">
     <thead>
     <tr><th>Order</th><th>Buyer</th><th>Placed</th><th class="num">Total</th><th>Status</th></tr>
     </thead>
     <tbody>
-    <tr th:each="order : ${orders}">
+    <tr th:each="order : ${orders.items}">
       <td><a th:href="@{/admin/orders/{id}(id=${order.id})}" th:text="${order.reference}">ET-ABC234</a></td>
       <td>
         <span th:text="${order.buyerName} ?: '—'">Ana Pop</span>
@@ -30,6 +30,11 @@
     </tr>
     </tbody>
   </table>
+  <nav class="pager" th:if="${orders.totalPages() > 1}">
+    <a th:if="${orders.hasPrevious()}" class="btn" th:href="@{''(page=${orders.page - 1},status=${status})}">&larr; Previous</a>
+    <span class="muted" th:text="'Page ' + ${orders.page} + ' of ' + ${orders.totalPages()}">Page 1 of 3</span>
+    <a th:if="${orders.hasNext()}" class="btn" th:href="@{''(page=${orders.page + 1},status=${status})}">Next &rarr;</a>
+  </nav>
 </main>
 </body>
 </html>

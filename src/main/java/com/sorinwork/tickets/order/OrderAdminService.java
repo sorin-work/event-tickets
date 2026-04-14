@@ -2,6 +2,7 @@ package com.sorinwork.tickets.order;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
+import com.sorinwork.tickets.common.PageView;
 import com.sorinwork.tickets.notify.Emails;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
@@ -16,6 +17,8 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @Transactional
 public class OrderAdminService {
+
+  public static final int PAGE_SIZE = 30;
 
   static final List<OrderStatus> VISIBLE =
       List.of(OrderStatus.PAID, OrderStatus.PENDING, OrderStatus.CANCELLED);
@@ -51,14 +54,21 @@ public class OrderAdminService {
 
   /** Orders of an event, newest first; expired checkouts are left out. */
   @Transactional(readOnly = true)
-  public List<Order> forEvent(long eventId) {
-    return forEvent(eventId, null);
+  public PageView<Order> forEvent(long eventId, int page) {
+    return forEvent(eventId, null, page);
   }
 
-  /** Orders of an event with the given status, or all visible ones when {@code status} is null. */
+  /**
+   * A page of the event's orders with the given status, or all visible ones when {@code status} is
+   * null. {@code page} is 1-based.
+   */
   @Transactional(readOnly = true)
-  public List<Order> forEvent(long eventId, OrderStatus status) {
-    return orders.findForEvent(eventId, status == null ? VISIBLE : List.of(status));
+  public PageView<Order> forEvent(long eventId, OrderStatus status, int page) {
+    return PageView.of(
+        orders.findForEvent(
+            eventId,
+            status == null ? VISIBLE : List.of(status),
+            PageRequest.of(Math.max(page, 1) - 1, PAGE_SIZE)));
   }
 
   /** The latest paid orders across all events, for the dashboard. */
