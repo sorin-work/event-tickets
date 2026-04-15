@@ -5,7 +5,14 @@
 <header th:replace="~{fragments/layout :: header}"></header>
 <main class="container">
   <h1>Upcoming events</h1>
-  <div th:if="${#lists.isEmpty(events)}" class="card empty">No events on sale yet. Check back soon.</div>
+  <form th:if="${hasEvents}" class="search" method="get" th:action="@{/}">
+    <input type="search" name="q" th:value="${q}" placeholder="Search events or venues" aria-label="Search events">
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div th:unless="${hasEvents}" class="card empty">No events on sale yet. Check back soon.</div>
+  <div th:if="${hasEvents and #lists.isEmpty(events)}" class="card empty">
+    No upcoming events match <strong th:text="${q}">query</strong>. <a th:href="@{/}">Show all</a>
+  </div>
   <div class="event-list">
     <a class="card event-card" th:each="event : ${events}" th:href="@{/events/{slug}(slug=${event.slug})}">
       <div class="event-date" th:text="${@fmt.when(event)}">Fri 14 Mar 2030, 19:30</div>

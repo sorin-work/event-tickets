@@ -24,6 +24,24 @@ class HomeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void searchesTitlesAndVenuesIgnoringAccents() throws Exception {
+    Event cafe = data.event("Café Concert");
+    data.tier(cafe, "Entry", "5", 30);
+    events.publish(cafe.getId());
+    Event other = data.event("Board Games");
+    data.tier(other, "Entry", "5", 30);
+    events.publish(other.getId());
+
+    mvc.perform(get("/").param("q", "cafe"))
+        .andExpect(content().string(containsString("Café Concert")))
+        .andExpect(content().string(not(containsString("Board Games"))));
+    mvc.perform(get("/").param("q", "attic games"))
+        .andExpect(content().string(containsString("Board Games")));
+    mvc.perform(get("/").param("q", "opera"))
+        .andExpect(content().string(containsString("No upcoming events match")));
+  }
+
+  @Test
   void listsOnlyPublishedEvents() throws Exception {
     Event published = data.event("Poetry Slam");
     data.tier(published, "Entry", "5", 30);
