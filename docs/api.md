@@ -49,7 +49,19 @@ are still returned (with `"status": "CANCELLED"`); drafts are `404`.
 
 ## Door endpoints
 
-For scanner apps used by door staff.
+For scanner apps used by door staff. These need an admin account, sent with
+HTTP Basic authentication on every request (the API keeps no session):
+
+```bash
+curl -u door@example.com:door-password \
+  -H 'Content-Type: application/json' \
+  -d '{"code": "K7M2Q9X4P3TZ"}' \
+  http://localhost:4411/api/v1/admin/events/3/check-in
+```
+
+Missing or wrong credentials get `401 Unauthorized`. Create a separate admin
+for door staff under **Admins** so their check-ins are recorded under their
+own name.
 
 ### `POST /api/v1/admin/events/{eventId}/check-in`
 
