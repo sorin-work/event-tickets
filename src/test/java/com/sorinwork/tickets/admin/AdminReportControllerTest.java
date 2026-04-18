@@ -33,6 +33,27 @@ class AdminReportControllerTest extends IntegrationTest {
   }
 
   @Test
+  void exportsTheReportAsCsv() throws Exception {
+    Event event = data.event("Rock Night");
+    TicketTier tier = data.tier(event, "Standing", "20", 100);
+    events.publish(event.getId());
+    purchases.buy(tier, 3, "Ana", "ana@example.com");
+
+    String csv =
+        mvc.perform(get("/admin/events/" + event.getId() + "/report.csv"))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+
+    org.assertj.core.api.Assertions.assertThat(csv)
+        .startsWith("Section,Name,Price,Sold,Capacity,Amount (EUR)\r\n")
+        .contains("Tier,Standing,20.00,3,100,60.00\r\n")
+        .contains("Total,Net,,,,60.00\r\n")
+        .contains("Day,2030-01-15,,3,,60.00\r\n");
+  }
+
+  @Test
   void rendersEventsWithoutSales() throws Exception {
     Event event = data.event("Quiet Night");
     data.tier(event, "Entry", "5", 10);
