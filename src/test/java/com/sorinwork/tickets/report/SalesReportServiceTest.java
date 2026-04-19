@@ -75,6 +75,22 @@ class SalesReportServiceTest extends IntegrationTest {
   }
 
   @Test
+  void countsArrivalsPerHourInTheEventTimeZone() {
+    Order order = purchases.buy(standing, 3, "Ana", "ana@example.com");
+    var codes = tickets.findByOrderIdOrderById(order.getId());
+    clock.set(java.time.Instant.parse("2030-03-14T16:55:00Z"));
+    checkIn.checkIn(event.getId(), codes.get(0).getCode(), "door");
+    clock.set(java.time.Instant.parse("2030-03-14T17:10:00Z"));
+    checkIn.checkIn(event.getId(), codes.get(1).getCode(), "door");
+    checkIn.checkIn(event.getId(), codes.get(2).getCode(), "door");
+
+    assertThat(reports.checkInsByHour(event))
+        .containsExactly(
+            java.util.Map.entry(java.time.LocalDateTime.of(2030, 3, 14, 18, 0), 1L),
+            java.util.Map.entry(java.time.LocalDateTime.of(2030, 3, 14, 19, 0), 2L));
+  }
+
+  @Test
   void emptyEvent() {
     SalesReport report = reports.forEvent(event.getId());
 

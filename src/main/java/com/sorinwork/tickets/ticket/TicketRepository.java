@@ -59,6 +59,14 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
   long countByEventIdAndOrderStatus(Long eventId, OrderStatus status);
 
+  @Query(
+      """
+      select t.checkedInAt from Ticket t
+      where t.event.id = :eventId and t.checkedInAt is not null
+      order by t.checkedInAt
+      """)
+  List<java.time.Instant> checkInTimes(@Param("eventId") long eventId);
+
   interface EventCount {
     Long getEventId();
 

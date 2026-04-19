@@ -67,6 +67,19 @@
     </table>
   </section>
 
+  <section class="card" th:unless="${#maps.isEmpty(checkIns)}">
+    <h2>Arrivals</h2>
+    <table class="day-chart">
+      <tr th:each="hour : ${checkIns}">
+        <td th:text="${#temporals.format(hour.key, 'EEE d MMM, HH:00')}">Fri 12 Jun, 19:00</td>
+        <td class="bar-cell">
+          <div class="bar" th:style="'width:' + ${hour.value * 100 / report.checkedIn} + '%'"></div>
+        </td>
+        <td class="num" th:text="${hour.value}">42</td>
+      </tr>
+    </table>
+  </section>
+
   <section class="card">
     <h2>Sales by day</h2>
     <div th:if="${#lists.isEmpty(days)}" class="empty">No sales yet.</div>

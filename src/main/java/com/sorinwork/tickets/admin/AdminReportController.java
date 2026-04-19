@@ -37,6 +37,7 @@ public class AdminReportController {
     model.addAttribute("report", reports.forEvent(eventId));
     model.addAttribute("days", days);
     model.addAttribute("promos", reports.promoUsage(eventId));
+    model.addAttribute("checkIns", reports.checkInsByHour(event));
     model.addAttribute("maxDay", days.stream().mapToLong(DailySales::tickets).max().orElse(1));
     return "admin/report/show";
   }
