@@ -18,6 +18,9 @@
       <div class="event-date" th:text="${@fmt.when(event)}">Fri 14 Mar 2030, 19:30</div>
       <h2 th:text="${event.title}">Summer Jazz Night</h2>
       <div class="muted" th:text="${event.venueName}">The Attic</div>
+      <span th:if="${left[event.id] == 0}" class="badge badge-danger">Sold out</span>
+      <span th:if="${left[event.id] > 0 and left[event.id] <= 10}" class="badge badge-warn"
+            th:text="'Only ' + ${left[event.id]} + ' left'">Only 3 left</span>
     </a>
   </div>
 </main>

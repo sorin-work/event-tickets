@@ -2,9 +2,13 @@ package com.sorinwork.tickets.web;
 
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.order.AvailabilityService;
+import com.sorinwork.tickets.order.TierAvailability;
 import java.text.Normalizer;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 public class HomeController {
 
   private final EventService events;
+  private final AvailabilityService availability;
 
-  public HomeController(EventService events) {
+  public HomeController(EventService events, AvailabilityService availability) {
     this.events = events;
+    this.availability = availability;
   }
 
   @GetMapping("/")
@@ -24,7 +30,17 @@ public class HomeController {
     List<Event> upcoming = events.upcomingPublished();
     model.addAttribute("q", q);
     model.addAttribute("hasEvents", !upcoming.isEmpty());
-    model.addAttribute("events", matching(upcoming, q));
+    List<Event> shown = matching(upcoming, q);
+    Map<Long, Integer> left = new HashMap<>();
+    for (Event event : shown) {
+      left.put(
+          event.getId(),
+          availability.forEvent(event.getId()).values().stream()
+              .mapToInt(TierAvailability::remaining)
+              .sum());
+    }
+    model.addAttribute("events", shown);
+    model.addAttribute("left", left);
     return "public/home";
   }
 

@@ -42,6 +42,21 @@ class HomeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void flagsSoldOutAndAlmostSoldOutEvents() throws Exception {
+    Event full = data.event("Tiny Gig");
+    var tier = data.tier(full, "Entry", "5", 2);
+    events.publish(full.getId());
+    purchases.buy(tier, 2, "Ana", "ana@example.com");
+    Event almost = data.event("Small Gig");
+    data.tier(almost, "Entry", "5", 4);
+    events.publish(almost.getId());
+
+    mvc.perform(get("/"))
+        .andExpect(content().string(containsString("Sold out")))
+        .andExpect(content().string(containsString("Only 4 left")));
+  }
+
+  @Test
   void listsOnlyPublishedEvents() throws Exception {
     Event published = data.event("Poetry Slam");
     data.tier(published, "Entry", "5", 30);
