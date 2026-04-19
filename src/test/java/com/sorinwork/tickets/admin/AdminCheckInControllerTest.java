@@ -64,6 +64,20 @@ class AdminCheckInControllerTest extends IntegrationTest {
   }
 
   @Test
+  void attendeeNamesAreEscaped() throws Exception {
+    TicketTier tier = data.tier(event, "VIP", "0", 5);
+    Order order = purchases.buy(tier, 1, "<img src=x onerror=alert(1)>", "evil@example.com");
+    String evilCode = tickets.findByOrderIdOrderById(order.getId()).get(0).getCode();
+
+    mvc.perform(post(url).with(csrf()).header("HX-Request", "true").param("code", evilCode))
+        .andExpect(content().string(containsString("&lt;img src=x onerror=alert(1)&gt;")))
+        .andExpect(content().string(not(containsString("<img src=x"))));
+
+    mvc.perform(post(url).with(csrf()).header("HX-Request", "true").param("code", evilCode))
+        .andExpect(content().string(not(containsString("<img src=x"))));
+  }
+
+  @Test
   void unknownCode() throws Exception {
     mvc.perform(post(url).with(csrf()).param("code", "XXXX"))
         .andExpect(content().string(containsString("No ticket with this code")));
