@@ -84,5 +84,6 @@ public class TierService {
     tier.setMaxPerOrder(form.getMaxPerOrder());
     tier.setSalesStart(form.getSalesStart());
     tier.setSalesEnd(form.getSalesEnd());
+    tier.setPaused(form.isPaused());
   }
 }

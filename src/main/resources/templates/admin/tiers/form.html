@@ -42,6 +42,9 @@
       <input id="salesEnd" type="datetime-local" th:field="*{salesEnd}">
       <div class="field-error" th:errors="*{salesWindowValid}"></div>
     </div>
+    <div class="field checkbox">
+      <label><input type="checkbox" th:field="*{paused}"> Pause sales for this tier</label>
+    </div>
     <button class="btn btn-primary" type="submit">Save</button>
   </form>
   <form th:if="${tier}" method="post" th:action="@{/admin/events/{e}/tiers/{t}/delete(e=${event.id},t=${tier.id})}"

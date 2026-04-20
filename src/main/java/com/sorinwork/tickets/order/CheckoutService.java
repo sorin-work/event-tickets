@@ -241,6 +241,9 @@ public class CheckoutService {
   }
 
   private void checkOnSale(TicketTier tier) {
+    if (tier.isPaused()) {
+      throw new BusinessException(tier.getName() + " is not on sale right now.");
+    }
     LocalDateTime now = LocalDateTime.now(clock);
     if (tier.getSalesStart() != null && now.isBefore(tier.getSalesStart())) {
       throw new BusinessException(tier.getName() + " is not on sale yet.");

@@ -48,6 +48,10 @@ public class TicketTier {
   @Column(name = "sales_end")
   private LocalDateTime salesEnd;
 
+  /** Temporarily off sale, e.g. while the organiser checks how many seats are really left. */
+  @Column(nullable = false)
+  private boolean paused;
+
   @Column(nullable = false)
   private int position;
 
@@ -130,6 +134,14 @@ public class TicketTier {
 
   public void setSalesEnd(LocalDateTime salesEnd) {
     this.salesEnd = salesEnd;
+  }
+
+  public boolean isPaused() {
+    return paused;
+  }
+
+  public void setPaused(boolean paused) {
+    this.paused = paused;
   }
 
   public int getPosition() {

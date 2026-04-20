@@ -37,6 +37,8 @@ public class TierForm {
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime salesEnd;
 
+  private boolean paused;
+
   public static TierForm from(TicketTier tier) {
     TierForm form = new TierForm();
     form.name = tier.getName();
@@ -46,6 +48,7 @@ public class TierForm {
     form.maxPerOrder = tier.getMaxPerOrder();
     form.salesStart = tier.getSalesStart();
     form.salesEnd = tier.getSalesEnd();
+    form.paused = tier.isPaused();
     return form;
   }
 
@@ -125,5 +128,13 @@ public class TierForm {
 
   public void setSalesEnd(LocalDateTime salesEnd) {
     this.salesEnd = salesEnd;
+  }
+
+  public boolean isPaused() {
+    return paused;
+  }
+
+  public void setPaused(boolean paused) {
+    this.paused = paused;
   }
 }
