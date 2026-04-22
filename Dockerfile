@@ -15,5 +15,6 @@ WORKDIR /app
 COPY --from=build /workspace/app.jar app.jar
 USER tickets
 EXPOSE 8080
-ENV JAVA_OPTS=""
+# Sized for a small VPS; override with JAVA_OPTS.
+ENV JAVA_OPTS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -Xss512k"
 ENTRYPOINT ["sh", "-c", "exec java $JAVA_OPTS -jar /app/app.jar"]

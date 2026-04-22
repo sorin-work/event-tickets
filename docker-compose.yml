@@ -30,6 +30,7 @@ services:
       # Sample events, orders and a waitlist on first start.
       SEED_DEMO: ${SEED_DEMO:-true}
       BASE_URL: ${BASE_URL:-http://localhost:4411}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75 -XX:+UseSerialGC}
     depends_on:
       db:
         condition: service_healthy
