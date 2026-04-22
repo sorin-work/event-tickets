@@ -3,6 +3,7 @@ name: event-tickets
 services:
   db:
     image: postgres:17-alpine
+    restart: unless-stopped
     environment:
       POSTGRES_USER: tickets
       POSTGRES_PASSWORD: tickets
@@ -11,9 +12,15 @@ services:
       - db-data:/var/lib/postgresql/data
     ports:
       - '${DB_PORT:-5432}:5432'
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U tickets -d tickets']
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   app:
     build: .
+    restart: unless-stopped
     environment:
       DATABASE_URL: jdbc:postgresql://db:5432/tickets
       DATABASE_USER: tickets
@@ -24,9 +31,16 @@ services:
       SEED_DEMO: ${SEED_DEMO:-true}
       BASE_URL: ${BASE_URL:-http://localhost:4411}
     depends_on:
-      - db
+      db:
+        condition: service_healthy
     ports:
       - '${WEB_PORT:-4411}:8080'
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -fs http://localhost:8080/actuator/health/readiness || exit 1']
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 40s
 
 volumes:
   db-data:
