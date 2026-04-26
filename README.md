@@ -56,6 +56,28 @@ ADMIN_EMAIL=admin@example.com ADMIN_PASSWORD=change-me ./mvnw spring-boot:run
 The app listens on http://localhost:8080 and applies database migrations on
 startup.
 
+## Configuration
+
+All settings are environment variables (or the matching `app.*` /
+`spring.*` properties in `application.yml`).
+
+| Variable                  | Default                                  | What it does                                                    |
+| ------------------------- | ---------------------------------------- | --------------------------------------------------------------- |
+| `DATABASE_URL`            | `jdbc:postgresql://localhost:5432/tickets` | JDBC URL of the Postgres database                             |
+| `DATABASE_USER`           | `tickets`                                | Database user                                                   |
+| `DATABASE_PASSWORD`       | `tickets`                                | Database password                                               |
+| `PORT`                    | `8080`                                   | HTTP port inside the container / on your machine                |
+| `BASE_URL`                | `http://localhost:8080`                  | Public address, used for links in emails                        |
+| `ADMIN_EMAIL`             | _(empty)_                                | First admin account, created when there are no admins           |
+| `ADMIN_PASSWORD`          | _(empty)_                                | Password of that account                                        |
+| `SEED_DEMO`               | `false`                                  | Fill an empty database with demo events and orders              |
+| `CHECKOUT_HOLD_DURATION`  | `10m`                                    | How long seats are held while a buyer checks out                |
+| `WAITLIST_OFFER_DURATION` | `24h`                                    | How long released tickets are held for someone on the waitlist  |
+| `JAVA_OPTS`               | see `Dockerfile`                         | JVM options for the container                                   |
+
+Docker Compose also reads `WEB_PORT` (default `4411`) and `DB_PORT`
+(default `5432`) for the ports published on your machine.
+
 ## Tests
 
 ```bash
