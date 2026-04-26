@@ -19,6 +19,10 @@ spring:
 server:
   port: ${PORT:8080}
 
+logging:
+  pattern:
+    level: "%5p [%X{requestId:-}]"
+
 management:
   endpoints:
     web:
