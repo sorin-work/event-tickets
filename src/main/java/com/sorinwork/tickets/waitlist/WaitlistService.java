@@ -102,7 +102,8 @@ public class WaitlistService {
     for (TicketTier tier : tiers.findByEventIdOrderByPositionAscIdAsc(eventId)) {
       int remaining = available.get(tier.getId()).remaining();
       for (WaitlistEntry entry :
-          entries.findByTierIdAndStatusOrderByCreatedAtDesc(tier.getId(), WaitlistStatus.WAITING)) {
+          entries.findByTierIdAndStatusOrderByCreatedAtAscIdAsc(
+              tier.getId(), WaitlistStatus.WAITING)) {
         if (entry.getQuantity() > remaining) {
           break;
         }

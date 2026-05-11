@@ -74,6 +74,38 @@ class WaitlistOfferTest extends IntegrationTest {
   }
 
   @Test
+  void releasedTicketsGoToWhoeverJoinedFirst() {
+    WaitlistEntry ana = join("Ana", 1);
+    clock.advance(Duration.ofMinutes(30));
+    WaitlistEntry bogdan = join("Bogdan", 1);
+    clock.advance(Duration.ofMinutes(30));
+    WaitlistEntry cara = join("Cara", 1);
+
+    orders.cancel(first.getId());
+
+    assertThat(entries.findById(ana.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.OFFERED);
+    assertThat(entries.findById(bogdan.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.WAITING);
+    assertThat(entries.findById(cara.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.WAITING);
+  }
+
+  @Test
+  void theFirstInLineKeepsTheirPlaceWhenTheyWantMore() {
+    WaitlistEntry ana = join("Ana", 2);
+    clock.advance(Duration.ofMinutes(5));
+    WaitlistEntry bogdan = join("Bogdan", 1);
+
+    orders.cancel(first.getId());
+
+    assertThat(entries.findById(ana.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.WAITING);
+    assertThat(entries.findById(bogdan.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.WAITING);
+  }
+
+  @Test
   void personWantingMoreThanReleasedKeepsWaiting() {
     WaitlistEntry entry = join("Ana", 2);
     orders.cancel(first.getId());
