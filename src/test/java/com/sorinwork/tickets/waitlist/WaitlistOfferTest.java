@@ -131,6 +131,7 @@ class WaitlistOfferTest extends IntegrationTest {
 
     String token = offerToken(entry);
     assertThat(outbox.findByRecipientOrderByIdAsc("ana@example.com"))
+        .filteredOn(m -> m.getSubject().startsWith("Tickets available"))
         .singleElement()
         .satisfies(
             m -> {

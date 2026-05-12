@@ -26,6 +26,9 @@ public interface WaitlistRepository extends JpaRepository<WaitlistEntry, Long> {
 
   Optional<WaitlistEntry> findByOfferOrderId(Long orderId);
 
+  @EntityGraph(attributePaths = {"event", "tier"})
+  Optional<WaitlistEntry> findByLeaveToken(String leaveToken);
+
   List<WaitlistEntry> findByTierIdAndStatusOrderByCreatedAtAscIdAsc(
       Long tierId, WaitlistStatus status);
 

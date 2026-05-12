@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.waitlist;
 
+import com.sorinwork.tickets.common.Tokens;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.order.Order;
@@ -48,6 +49,10 @@ public class WaitlistEntry {
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
 
+  /** Secret part of the "leave the waitlist" link sent to the person. */
+  @Column(name = "leave_token")
+  private String leaveToken;
+
   @Column(name = "offered_at")
   private Instant offeredAt;
 
@@ -65,6 +70,7 @@ public class WaitlistEntry {
     this.email = email;
     this.quantity = quantity;
     this.createdAt = createdAt;
+    this.leaveToken = Tokens.accessToken();
   }
 
   public void offer(Order order, Instant at) {
@@ -107,6 +113,10 @@ public class WaitlistEntry {
 
   public Instant getCreatedAt() {
     return createdAt;
+  }
+
+  public String getLeaveToken() {
+    return leaveToken;
   }
 
   public Instant getOfferedAt() {

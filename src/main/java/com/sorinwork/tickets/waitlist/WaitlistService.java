@@ -77,8 +77,47 @@ public class WaitlistService {
     if (entries.existsByTierIdAndEmailAndStatusIn(tier.getId(), email, ACTIVE)) {
       throw new BusinessException("You are already on the waitlist for " + tier.getName() + ".");
     }
-    return entries.save(
-        new WaitlistEntry(tier, form.getName().trim(), email, form.getQuantity(), clock.instant()));
+    WaitlistEntry entry =
+        entries.save(
+            new WaitlistEntry(
+                tier, form.getName().trim(), email, form.getQuantity(), clock.instant()));
+    sendJoined(entry);
+    return entry;
+  }
+
+  @Transactional(readOnly = true)
+  public WaitlistEntry byLeaveToken(String token) {
+    return entries
+        .findByLeaveToken(token)
+        .orElseThrow(() -> new NotFoundException("Waitlist entry"));
+  }
+
+  /** The person asked to be taken off the list. Has no effect once an offer was made. */
+  public WaitlistEntry leave(String token) {
+    WaitlistEntry entry = byLeaveToken(token);
+    if (entry.getStatus() == WaitlistStatus.WAITING) {
+      entry.setStatus(WaitlistStatus.REMOVED);
+    }
+    return entry;
+  }
+
+  private void sendJoined(WaitlistEntry entry) {
+    Event event = entry.getEvent();
+    String body =
+        "Hi "
+            + entry.getName()
+            + ",\n\nYou are on the waitlist for "
+            + entry.getQuantity()
+            + " × "
+            + entry.getTier().getName()
+            + " for "
+            + event.getTitle()
+            + ". If tickets are released we offer them in the order people joined and"
+            + " email you a link to buy them.\n\nChanged your mind? Leave the waitlist here:\n"
+            + properties.url("/waitlist/leave/" + entry.getLeaveToken())
+            + "\n";
+    notifier.send(
+        entry.getEmail(), "You are on the waitlist: " + event.getTitle(), body, event.getId());
   }
 
   /**

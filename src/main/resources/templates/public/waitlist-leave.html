@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Leave the waitlist')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container narrow">
+  <h1>Leave the waitlist</h1>
+  <th:block th:switch="${entry.status.name()}">
+    <div th:case="'REMOVED'" class="alert alert-ok">
+      You are no longer on the waitlist for <strong th:text="${entry.event.title}">Event</strong>.
+    </div>
+    <div th:case="'WAITING'" class="card">
+      <p>
+        Take <strong th:text="${entry.name}">Ana</strong> off the waitlist for
+        <strong th:text="${entry.tier.name}">Seat</strong> at
+        <strong th:text="${entry.event.title}">Event</strong>?
+      </p>
+      <form method="post" th:action="@{/waitlist/leave/{t}(t=${entry.leaveToken})}">
+        <button class="btn btn-danger" type="submit">Leave the waitlist</button>
+      </form>
+    </div>
+    <div th:case="*" class="alert alert-warn">
+      Tickets have already been offered to you for this waitlist place, so there is nothing to
+      cancel. If you do not want them, simply do not complete the order.
+    </div>
+  </th:block>
+</main>
+</body>
+</html>
