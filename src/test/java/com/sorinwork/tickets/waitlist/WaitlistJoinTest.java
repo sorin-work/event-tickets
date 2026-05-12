@@ -87,6 +87,22 @@ class WaitlistJoinTest extends IntegrationTest {
   }
 
   @Test
+  void tellsPeopleTheirPlaceInTheQueue() throws Exception {
+    sellOut();
+    waitlist.join(event, new WaitlistForm(tier.getId(), "First", "first@example.com", 1));
+
+    mvc.perform(
+            post("/events/small-gig/waitlist")
+                .with(csrf())
+                .param("tierId", tier.getId().toString())
+                .param("name", "Ana Pop")
+                .param("email", "ana@example.com")
+                .param("quantity", "1"))
+        .andExpect(
+            flash().attribute("notice", org.hamcrest.Matchers.startsWith("You are number 2")));
+  }
+
+  @Test
   void joinsThroughTheForm() throws Exception {
     sellOut();
 

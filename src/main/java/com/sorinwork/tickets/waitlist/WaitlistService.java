@@ -181,6 +181,13 @@ public class WaitlistService {
     return entries.findByEventIdOrderByCreatedAtAscIdAsc(eventId);
   }
 
+  /** 1 for the next person to get an offer for the tier. */
+  @Transactional(readOnly = true)
+  public long position(WaitlistEntry entry) {
+    return entries.countAheadOrEqual(
+        entry.getTier().getId(), WaitlistStatus.WAITING, entry.getCreatedAt(), entry.getId());
+  }
+
   @Transactional(readOnly = true)
   public long waitingCount(long tierId) {
     return entries.countByTierIdAndStatus(tierId, WaitlistStatus.WAITING);

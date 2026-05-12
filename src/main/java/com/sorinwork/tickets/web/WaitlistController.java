@@ -4,6 +4,7 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
+import com.sorinwork.tickets.waitlist.WaitlistEntry;
 import com.sorinwork.tickets.waitlist.WaitlistForm;
 import com.sorinwork.tickets.waitlist.WaitlistService;
 import jakarta.validation.Valid;
@@ -49,14 +50,18 @@ public class WaitlistController {
     if (binding.hasErrors()) {
       return render(event, form.getTierId(), model);
     }
+    WaitlistEntry entry;
     try {
-      waitlist.join(event, form);
+      entry = waitlist.join(event, form);
     } catch (BusinessException e) {
       model.addAttribute("error", e.getMessage());
       return render(event, form.getTierId(), model);
     }
     redirect.addFlashAttribute(
-        "notice", "You are on the waitlist. We will email you if tickets become available.");
+        "notice",
+        "You are number "
+            + waitlist.position(entry)
+            + " on the waitlist. We will email you if tickets become available.");
     return "redirect:/events/" + slug;
   }
 

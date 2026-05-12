@@ -12,6 +12,18 @@ public interface WaitlistRepository extends JpaRepository<WaitlistEntry, Long> {
 
   long countByTierIdAndStatus(Long tierId, WaitlistStatus status);
 
+  @org.springframework.data.jpa.repository.Query(
+      """
+      select count(w) from WaitlistEntry w
+      where w.tier.id = :tierId and w.status = :status
+        and (w.createdAt < :createdAt or (w.createdAt = :createdAt and w.id <= :id))
+      """)
+  long countAheadOrEqual(
+      @org.springframework.data.repository.query.Param("tierId") long tierId,
+      @org.springframework.data.repository.query.Param("status") WaitlistStatus status,
+      @org.springframework.data.repository.query.Param("createdAt") java.time.Instant createdAt,
+      @org.springframework.data.repository.query.Param("id") long id);
+
   Optional<WaitlistEntry> findByOfferOrderId(Long orderId);
 
   List<WaitlistEntry> findByTierIdAndStatusOrderByCreatedAtAscIdAsc(
