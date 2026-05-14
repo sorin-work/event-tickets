@@ -34,6 +34,23 @@ public class Emails {
     notifier.send(email, "Your tickets", body.toString(), null);
   }
 
+  public void orderCancelled(Order order) {
+    Event event = order.getEvent();
+    String body =
+        "Hi "
+            + order.getBuyerName()
+            + ",\n\nYour order "
+            + order.getReference()
+            + " for "
+            + event.getTitle()
+            + " ("
+            + fmt.when(event)
+            + ") has been cancelled and its tickets are no longer valid.\n\n"
+            + "If you paid for it, the organiser will be in touch about a refund.\n";
+    notifier.send(
+        order.getBuyerEmail(), "Order cancelled: " + event.getTitle(), body, event.getId());
+  }
+
   public void orderConfirmation(Order order) {
     Event event = order.getEvent();
     StringBuilder body = new StringBuilder();

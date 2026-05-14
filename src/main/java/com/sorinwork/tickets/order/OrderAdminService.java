@@ -126,8 +126,12 @@ public class OrderAdminService {
     if (order.getStatus() == OrderStatus.EXPIRED) {
       throw new BusinessException("Expired checkouts cannot be cancelled.");
     }
-    order.setStatus(OrderStatus.CANCELLED);
+    boolean wasPaid = order.getStatus() == OrderStatus.PAID;
     order.setCancelledAt(clock.instant());
+    order.setStatus(OrderStatus.CANCELLED);
+    if (wasPaid && order.getBuyerEmail() != null) {
+      emails.orderCancelled(order);
+    }
     orders.flush();
     publisher.publishEvent(new OrderEvents.TicketsReleased(order.getEvent().getId()));
     return order;

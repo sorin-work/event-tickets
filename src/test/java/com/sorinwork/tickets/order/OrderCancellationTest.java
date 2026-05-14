@@ -22,6 +22,7 @@ class OrderCancellationTest extends IntegrationTest {
   @Autowired CheckoutService checkout;
   @Autowired OrderAdminService admin;
   @Autowired AvailabilityService availability;
+  @Autowired com.sorinwork.tickets.notify.OutboxRepository outbox;
 
   Event event;
   TicketTier tier;
@@ -48,6 +49,17 @@ class OrderCancellationTest extends IntegrationTest {
     assertThat(cancelled.getStatus()).isEqualTo(OrderStatus.CANCELLED);
     assertThat(cancelled.getCancelledAt()).isEqualTo(clock.instant());
     assertThat(availability.forEvent(event.getId()).get(tier.getId()).remaining()).isEqualTo(4);
+  }
+
+  @Test
+  void buyersAreToldAboutTheCancellation() {
+    Order order = paid(1);
+
+    admin.cancel(order.getId());
+
+    assertThat(outbox.findByRecipientOrderByIdAsc("ana@example.com"))
+        .extracting(com.sorinwork.tickets.notify.OutboxMessage::getSubject)
+        .containsExactly("Your tickets for Choir Concert", "Order cancelled: Choir Concert");
   }
 
   @Test
