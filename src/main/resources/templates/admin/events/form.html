@@ -30,7 +30,7 @@
     <h2>Ticket tiers</h2>
     <div th:if="${#lists.isEmpty(tiers)}" class="empty">No ticket tiers yet. Add one before publishing.</div>
     <table th:unless="${#lists.isEmpty(tiers)}">
-      <thead><tr><th>Tier</th><th class="num">Price</th><th class="num">Quantity</th><th>Sales window</th></tr></thead>
+      <thead><tr><th>Tier</th><th class="num">Price</th><th class="num">Sold</th><th class="num">In checkout</th><th class="num">Left</th><th>Sales window</th></tr></thead>
       <tbody>
       <tr th:each="tier : ${tiers}">
         <td>
@@ -41,7 +41,12 @@
           <a th:href="@{/admin/events/{e}/tiers/{t}/edit(e=${event.id},t=${tier.id})}" th:text="${tier.name}">GA</a>
         </td>
         <td class="num" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</td>
-        <td class="num" th:text="${tier.quantity}">100</td>
+        <td class="num" th:text="${availability[tier.id].sold} + ' / ' + ${tier.quantity}">10 / 100</td>
+        <td class="num" th:text="${availability[tier.id].held}">2</td>
+        <td class="num">
+          <span th:text="${availability[tier.id].remaining()}">88</span>
+          <span th:if="${tier.paused}" class="badge badge-warn">paused</span>
+        </td>
         <td class="muted">
           <span th:text="${tier.salesStart} ? ${#temporals.format(tier.salesStart, 'd MMM HH:mm')} : 'now'">now</span>
           &ndash;

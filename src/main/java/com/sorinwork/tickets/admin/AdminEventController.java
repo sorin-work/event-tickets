@@ -6,6 +6,7 @@ import com.sorinwork.tickets.event.EventCopier;
 import com.sorinwork.tickets.event.EventForm;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
+import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.ticket.AttendeeService;
 import jakarta.validation.Valid;
 import java.time.ZoneId;
@@ -34,13 +35,19 @@ public class AdminEventController {
   private final TierService tiers;
   private final AttendeeService attendees;
   private final EventCopier copier;
+  private final AvailabilityService availability;
 
   public AdminEventController(
-      EventService events, TierService tiers, AttendeeService attendees, EventCopier copier) {
+      EventService events,
+      TierService tiers,
+      AttendeeService attendees,
+      EventCopier copier,
+      AvailabilityService availability) {
     this.events = events;
     this.tiers = tiers;
     this.attendees = attendees;
     this.copier = copier;
+    this.availability = availability;
   }
 
   @ModelAttribute("timeZones")
@@ -79,6 +86,7 @@ public class AdminEventController {
     Event event = events.get(id);
     model.addAttribute("event", event);
     model.addAttribute("tiers", tiers.forEvent(id));
+    model.addAttribute("availability", availability.forEvent(id));
     model.addAttribute("form", EventForm.from(event));
     return "admin/events/form";
   }
@@ -93,6 +101,7 @@ public class AdminEventController {
     if (binding.hasErrors()) {
       model.addAttribute("event", events.get(id));
       model.addAttribute("tiers", tiers.forEvent(id));
+      model.addAttribute("availability", availability.forEvent(id));
       return "admin/events/form";
     }
     events.update(id, form);
