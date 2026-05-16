@@ -119,7 +119,11 @@ public class AdminEventController {
 
   @PostMapping("/{id}/cancel")
   public String cancel(@PathVariable long id, RedirectAttributes redirect) {
-    return changeStatus(id, redirect, () -> events.cancel(id), "Event cancelled.");
+    return changeStatus(
+        id,
+        redirect,
+        () -> events.cancel(id),
+        "Event cancelled. Its orders were cancelled and buyers have been emailed.");
   }
 
   private String changeStatus(

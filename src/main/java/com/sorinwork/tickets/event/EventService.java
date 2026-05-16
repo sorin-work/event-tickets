@@ -6,6 +6,7 @@ import com.sorinwork.tickets.common.Slugs;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +16,17 @@ public class EventService {
 
   private final EventRepository events;
   private final TicketTierRepository tiers;
+  private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
-  public EventService(EventRepository events, TicketTierRepository tiers, Clock clock) {
+  public EventService(
+      EventRepository events,
+      TicketTierRepository tiers,
+      ApplicationEventPublisher publisher,
+      Clock clock) {
     this.events = events;
     this.tiers = tiers;
+    this.publisher = publisher;
     this.clock = clock;
   }
 
@@ -88,8 +95,16 @@ public class EventService {
     return changeStatus(event, EventStatus.DRAFT);
   }
 
+  /** Cancels the event; its orders are cancelled and buyers emailed as well. */
   public Event cancel(long id) {
-    return changeStatus(get(id), EventStatus.CANCELLED);
+    Event event = get(id);
+    if (event.getStatus() == EventStatus.CANCELLED) {
+      return event;
+    }
+    changeStatus(event, EventStatus.CANCELLED);
+    events.flush();
+    publisher.publishEvent(new EventCancelled(id));
+    return event;
   }
 
   private Event changeStatus(Event event, EventStatus status) {

@@ -3,12 +3,14 @@ package com.sorinwork.tickets.order;
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.common.PageView;
+import com.sorinwork.tickets.event.EventCancelled;
 import com.sorinwork.tickets.notify.Emails;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.context.event.EventListener;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -112,6 +114,20 @@ public class OrderAdminService {
         tickets.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket " + ticketId));
     ticket.setAttendeeName(trimmed);
     return ticket;
+  }
+
+  /** When an event is called off, every paid order and open checkout of it is cancelled. */
+  @EventListener
+  public void onEventCancelled(EventCancelled cancelled) {
+    for (Order order :
+        orders
+            .findForEvent(
+                cancelled.eventId(),
+                List.of(OrderStatus.PAID, OrderStatus.PENDING),
+                org.springframework.data.domain.Pageable.unpaged())
+            .getContent()) {
+      cancel(order.getId());
+    }
   }
 
   /**
