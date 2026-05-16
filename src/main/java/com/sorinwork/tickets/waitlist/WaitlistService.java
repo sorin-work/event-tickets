@@ -7,7 +7,7 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventRepository;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TicketTierRepository;
-import com.sorinwork.tickets.notify.Notifier;
+import com.sorinwork.tickets.notify.Emails;
 import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
@@ -34,7 +34,7 @@ public class WaitlistService {
   private final EventRepository events;
   private final AvailabilityService availability;
   private final CheckoutService checkout;
-  private final Notifier notifier;
+  private final Emails emails;
   private final AppProperties properties;
   private final Clock clock;
 
@@ -44,7 +44,7 @@ public class WaitlistService {
       EventRepository events,
       AvailabilityService availability,
       CheckoutService checkout,
-      Notifier notifier,
+      Emails emails,
       AppProperties properties,
       Clock clock) {
     this.entries = entries;
@@ -52,7 +52,7 @@ public class WaitlistService {
     this.events = events;
     this.availability = availability;
     this.checkout = checkout;
-    this.notifier = notifier;
+    this.emails = emails;
     this.properties = properties;
     this.clock = clock;
   }
@@ -81,7 +81,7 @@ public class WaitlistService {
         entries.save(
             new WaitlistEntry(
                 tier, form.getName().trim(), email, form.getQuantity(), clock.instant()));
-    sendJoined(entry);
+    emails.waitlistJoined(entry);
     return entry;
   }
 
@@ -99,25 +99,6 @@ public class WaitlistService {
       entry.setStatus(WaitlistStatus.REMOVED);
     }
     return entry;
-  }
-
-  private void sendJoined(WaitlistEntry entry) {
-    Event event = entry.getEvent();
-    String body =
-        "Hi "
-            + entry.getName()
-            + ",\n\nYou are on the waitlist for "
-            + entry.getQuantity()
-            + " × "
-            + entry.getTier().getName()
-            + " for "
-            + event.getTitle()
-            + ". If tickets are released we offer them in the order people joined and"
-            + " email you a link to buy them.\n\nChanged your mind? Leave the waitlist here:\n"
-            + properties.url("/waitlist/leave/" + entry.getLeaveToken())
-            + "\n";
-    notifier.send(
-        entry.getEmail(), "You are on the waitlist: " + event.getTitle(), body, event.getId());
   }
 
   /**
@@ -150,7 +131,7 @@ public class WaitlistService {
             checkout.holdForWaitlist(
                 event, tier, entry.getQuantity(), entry.getName(), entry.getEmail(), until);
         entry.offer(hold, now);
-        sendOffer(entry, hold);
+        emails.waitlistOffer(entry, hold);
         remaining -= entry.getQuantity();
         offered++;
       }
@@ -176,28 +157,6 @@ public class WaitlistService {
   @EventListener
   public void onTicketsReleased(OrderEvents.TicketsReleased released) {
     offerReleasedTickets(released.eventId());
-  }
-
-  private void sendOffer(WaitlistEntry entry, Order hold) {
-    Event event = hold.getEvent();
-    String body =
-        "Hi "
-            + entry.getName()
-            + ",\n\nGood news: "
-            + entry.getQuantity()
-            + " × "
-            + entry.getTier().getName()
-            + " for "
-            + event.getTitle()
-            + " became available and we are holding them for you until "
-            + hold.getHoldExpiresAt().atZone(event.zone()).toLocalDateTime().withSecond(0)
-            + " ("
-            + event.getTimeZone()
-            + ").\n\nComplete your order here:\n"
-            + properties.url("/checkout/" + hold.getAccessToken())
-            + "\n\nIf you no longer want them, just ignore this email and they will go to the"
-            + " next person on the list.\n";
-    notifier.send(entry.getEmail(), "Tickets available: " + event.getTitle(), body, event.getId());
   }
 
   /** Takes someone off the waitlist. Only people still waiting can be removed. */

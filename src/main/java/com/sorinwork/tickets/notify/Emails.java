@@ -5,6 +5,7 @@ import com.sorinwork.tickets.config.AppProperties;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderItem;
+import com.sorinwork.tickets.waitlist.WaitlistEntry;
 import com.sorinwork.tickets.web.Formatters;
 import org.springframework.stereotype.Component;
 
@@ -75,5 +76,47 @@ public class Emails {
         "Your tickets for " + event.getTitle(),
         body.toString(),
         event.getId());
+  }
+
+  public void waitlistJoined(WaitlistEntry entry) {
+    Event event = entry.getEvent();
+    String body =
+        "Hi "
+            + entry.getName()
+            + ",\n\nYou are on the waitlist for "
+            + entry.getQuantity()
+            + " × "
+            + entry.getTier().getName()
+            + " for "
+            + event.getTitle()
+            + ". If tickets are released we offer them in the order people joined and"
+            + " email you a link to buy them.\n\nChanged your mind? Leave the waitlist here:\n"
+            + properties.url("/waitlist/leave/" + entry.getLeaveToken())
+            + "\n";
+    notifier.send(
+        entry.getEmail(), "You are on the waitlist: " + event.getTitle(), body, event.getId());
+  }
+
+  /** Released tickets are held for someone on the waitlist; tells them how to buy them. */
+  public void waitlistOffer(WaitlistEntry entry, Order hold) {
+    Event event = hold.getEvent();
+    String body =
+        "Hi "
+            + entry.getName()
+            + ",\n\nGood news: "
+            + entry.getQuantity()
+            + " × "
+            + entry.getTier().getName()
+            + " for "
+            + event.getTitle()
+            + " became available and we are holding them for you until "
+            + hold.getHoldExpiresAt().atZone(event.zone()).toLocalDateTime().withSecond(0)
+            + " ("
+            + event.getTimeZone()
+            + ").\n\nComplete your order here:\n"
+            + properties.url("/checkout/" + hold.getAccessToken())
+            + "\n\nIf you no longer want them, just ignore this email and they will go to the"
+            + " next person on the list.\n";
+    notifier.send(entry.getEmail(), "Tickets available: " + event.getTitle(), body, event.getId());
   }
 }
