@@ -44,6 +44,23 @@ class PublicEventControllerTest extends IntegrationTest {
   }
 
   @Test
+  void hasLinkPreviewTags() throws Exception {
+    Event event = data.event("Poetry Slam");
+    data.tier(event, "Standing", "8.50", 30);
+    events.publish(event.getId());
+
+    mvc.perform(get("/events/poetry-slam"))
+        .andExpect(
+            content()
+                .string(containsString("<meta property=\"og:title\" content=\"Poetry Slam\">")))
+        .andExpect(
+            content()
+                .string(
+                    containsString(
+                        "<meta property=\"og:url\" content=\"http://localhost:8080/events/poetry-slam\">")));
+  }
+
+  @Test
   void draftsAreNotFound() throws Exception {
     data.event("Poetry Slam");
 

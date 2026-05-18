@@ -25,18 +25,21 @@ public class PublicEventController {
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final Clock clock;
+  private final Formatters fmt;
 
   public PublicEventController(
       EventService events,
       TierService tiers,
       AvailabilityService availability,
       AppProperties properties,
-      Clock clock) {
+      Clock clock,
+      Formatters fmt) {
     this.events = events;
     this.tiers = tiers;
     this.availability = availability;
     this.properties = properties;
     this.clock = clock;
+    this.fmt = fmt;
   }
 
   @GetMapping(value = "/events/{slug}/calendar.ics", produces = "text/calendar")
@@ -57,6 +60,8 @@ public class PublicEventController {
     Event event = events.getPublic(slug);
     model.addAttribute("event", event);
     model.addAttribute("onSale", event.isOnSale(clock.instant()));
+    model.addAttribute(
+        "og", OpenGraph.of(event, fmt.when(event), properties.url("/events/" + event.getSlug())));
     model.addAttribute("tiers", tiers.forEvent(event.getId()));
     model.addAttribute("availability", availability.forEvent(event.getId()));
     return "public/event";
