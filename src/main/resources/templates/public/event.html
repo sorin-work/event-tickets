@@ -17,6 +17,8 @@
   <p>
     <strong th:text="${event.venueName}">The Attic</strong>
     <span class="muted" th:if="${event.venueAddress}" th:text="' · ' + ${event.venueAddress}">address</span>
+    <a th:if="${event.venueAddress}" target="_blank" rel="noopener"
+       th:href="@{https://www.openstreetmap.org/search(query=${event.venueName + ', ' + event.venueAddress})}">map</a>
   </p>
   <p class="muted">
     Times are in <span th:text="${event.timeZone}">Europe/Bucharest</span> ·
