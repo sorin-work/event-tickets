@@ -41,6 +41,21 @@ public class AdminOrderController {
     return "admin/orders/list";
   }
 
+  @GetMapping("/admin/events/{eventId}/orders.csv")
+  public void exportCsv(
+      @PathVariable long eventId, jakarta.servlet.http.HttpServletResponse response)
+      throws java.io.IOException {
+    var event = events.get(eventId);
+    response.setContentType("text/csv;charset=UTF-8");
+    response.setHeader(
+        org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
+        org.springframework.http.ContentDisposition.attachment()
+            .filename(event.getSlug() + "-orders.csv", java.nio.charset.StandardCharsets.UTF_8)
+            .build()
+            .toString());
+    orders.exportCsv(eventId, event.zone(), response.getWriter());
+  }
+
   @GetMapping("/admin/orders/{orderId}")
   public String show(@PathVariable long orderId, Model model) {
     Order order = orders.get(orderId);
