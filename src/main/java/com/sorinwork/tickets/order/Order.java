@@ -76,6 +76,10 @@ public class Order {
   @Column(name = "cancelled_at")
   private Instant cancelledAt;
 
+  /** Internal note, only shown to admins. */
+  @Column(name = "admin_note")
+  private String adminNote;
+
   /** Guards against two requests completing the same checkout at once. */
   @Version private long version;
 
@@ -200,6 +204,14 @@ public class Order {
 
   public void setCancelledAt(Instant cancelledAt) {
     this.cancelledAt = cancelledAt;
+  }
+
+  public String getAdminNote() {
+    return adminNote;
+  }
+
+  public void setAdminNote(String adminNote) {
+    this.adminNote = adminNote;
   }
 
   public List<OrderItem> getItems() {

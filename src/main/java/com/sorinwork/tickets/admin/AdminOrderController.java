@@ -81,6 +81,20 @@ public class AdminOrderController {
     }
   }
 
+  @PostMapping("/admin/orders/{orderId}/note")
+  public String saveNote(
+      @PathVariable long orderId,
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "") String note,
+      RedirectAttributes redirect) {
+    try {
+      orders.saveNote(orderId, note);
+      redirect.addFlashAttribute("flash", "Note saved.");
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/admin/orders/" + orderId;
+  }
+
   @PostMapping("/admin/orders/{orderId}/resend")
   public String resend(@PathVariable long orderId, RedirectAttributes redirect) {
     try {

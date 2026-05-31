@@ -86,6 +86,16 @@ public class OrderAdminService {
     }
   }
 
+  public Order saveNote(long orderId, String note) {
+    String trimmed = note == null ? "" : note.trim();
+    if (trimmed.length() > 1000) {
+      throw new BusinessException("Notes can be at most 1000 characters.");
+    }
+    Order order = get(orderId);
+    order.setAdminNote(trimmed.isEmpty() ? null : trimmed);
+    return order;
+  }
+
   /** Sends the buyer their ticket link again, e.g. when the first email went to spam. */
   public Order resendConfirmation(long orderId) {
     Order order = get(orderId);

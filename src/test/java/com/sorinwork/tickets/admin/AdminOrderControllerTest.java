@@ -98,6 +98,22 @@ class AdminOrderControllerTest extends IntegrationTest {
   }
 
   @Test
+  void savesAnInternalNote() throws Exception {
+    Order paid = paidOrder("Maria Ionescu");
+
+    mvc.perform(
+        org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                "/admin/orders/" + paid.getId() + "/note")
+            .with(
+                org.springframework.security.test.web.servlet.request
+                    .SecurityMockMvcRequestPostProcessors.csrf())
+            .param("note", "  Paid cash at the door  "));
+
+    mvc.perform(get("/admin/orders/" + paid.getId()))
+        .andExpect(content().string(containsString("Paid cash at the door</textarea>")));
+  }
+
+  @Test
   void emptyState() throws Exception {
     mvc.perform(get("/admin/events/" + event.getId() + "/orders"))
         .andExpect(content().string(containsString("No orders yet.")));
