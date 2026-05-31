@@ -1,6 +1,7 @@
 package com.sorinwork.tickets.admin;
 
 import com.sorinwork.tickets.common.BusinessException;
+import com.sorinwork.tickets.config.AppProperties;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventCopier;
 import com.sorinwork.tickets.event.EventForm;
@@ -36,18 +37,21 @@ public class AdminEventController {
   private final AttendeeService attendees;
   private final EventCopier copier;
   private final AvailabilityService availability;
+  private final AppProperties properties;
 
   public AdminEventController(
       EventService events,
       TierService tiers,
       AttendeeService attendees,
       EventCopier copier,
-      AvailabilityService availability) {
+      AvailabilityService availability,
+      AppProperties properties) {
     this.events = events;
     this.tiers = tiers;
     this.attendees = attendees;
     this.copier = copier;
     this.availability = availability;
+    this.properties = properties;
   }
 
   @ModelAttribute("timeZones")
@@ -85,6 +89,7 @@ public class AdminEventController {
   public String editForm(@PathVariable long id, Model model) {
     Event event = events.get(id);
     model.addAttribute("event", event);
+    model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
     model.addAttribute("tiers", tiers.forEvent(id));
     model.addAttribute("availability", availability.forEvent(id));
     model.addAttribute("form", EventForm.from(event));
@@ -99,7 +104,9 @@ public class AdminEventController {
       Model model,
       RedirectAttributes redirect) {
     if (binding.hasErrors()) {
-      model.addAttribute("event", events.get(id));
+      Event event = events.get(id);
+      model.addAttribute("event", event);
+      model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
       model.addAttribute("tiers", tiers.forEvent(id));
       model.addAttribute("availability", availability.forEvent(id));
       return "admin/events/form";
