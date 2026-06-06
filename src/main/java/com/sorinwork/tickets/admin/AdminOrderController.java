@@ -4,6 +4,7 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderAdminService;
+import com.sorinwork.tickets.order.OrderExport;
 import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.ticket.CheckInService;
 import com.sorinwork.tickets.ticket.Ticket;
@@ -20,12 +21,14 @@ public class AdminOrderController {
   private final EventService events;
   private final OrderAdminService orders;
   private final CheckInService checkIn;
+  private final OrderExport export;
 
   public AdminOrderController(
-      EventService events, OrderAdminService orders, CheckInService checkIn) {
+      EventService events, OrderAdminService orders, CheckInService checkIn, OrderExport export) {
     this.events = events;
     this.orders = orders;
     this.checkIn = checkIn;
+    this.export = export;
   }
 
   @GetMapping("/admin/events/{eventId}/orders")
@@ -53,7 +56,7 @@ public class AdminOrderController {
             .filename(event.getSlug() + "-orders.csv", java.nio.charset.StandardCharsets.UTF_8)
             .build()
             .toString());
-    orders.exportCsv(eventId, event.zone(), response.getWriter());
+    export.writeCsv(eventId, event.zone(), response.getWriter());
   }
 
   @GetMapping("/admin/orders/{orderId}")

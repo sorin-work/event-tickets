@@ -44,48 +44,6 @@ public class OrderAdminService {
     this.clock = clock;
   }
 
-  /** Paid and cancelled orders of the event for the CSV export, oldest first. */
-  @Transactional(readOnly = true)
-  public void exportCsv(long eventId, java.time.ZoneId zone, java.io.Writer out) {
-    java.time.format.DateTimeFormatter time =
-        java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(zone);
-    com.sorinwork.tickets.common.Csv csv = new com.sorinwork.tickets.common.Csv(out);
-    csv.row(
-        "Order",
-        "Status",
-        "Buyer",
-        "Email",
-        "Tickets",
-        "Subtotal",
-        "Discount",
-        "Total",
-        "Promo code",
-        "Paid at");
-    List<Order> all =
-        new java.util.ArrayList<>(
-            orders
-                .findForEvent(
-                    eventId,
-                    List.of(OrderStatus.PAID, OrderStatus.CANCELLED),
-                    org.springframework.data.domain.Pageable.unpaged())
-                .getContent());
-    java.util.Collections.reverse(all);
-    for (Order order : all) {
-      Order full = get(order.getId());
-      csv.row(
-          full.getReference(),
-          full.getStatus(),
-          full.getBuyerName(),
-          full.getBuyerEmail(),
-          full.ticketCount(),
-          com.sorinwork.tickets.common.Money.toDecimal(full.getSubtotalCents()),
-          com.sorinwork.tickets.common.Money.toDecimal(full.getDiscountCents()),
-          com.sorinwork.tickets.common.Money.toDecimal(full.getTotalCents()),
-          full.getPromoCode() == null ? "" : full.getPromoCode().getCode(),
-          full.getPaidAt() == null ? "" : time.format(full.getPaidAt()));
-    }
-  }
-
   public Order saveNote(long orderId, String note) {
     String trimmed = note == null ? "" : note.trim();
     if (trimmed.length() > 1000) {
