@@ -142,6 +142,34 @@ class CheckoutServiceTest extends IntegrationTest {
   }
 
   @Test
+  void salesWindowsUseTheEventTimeZone() {
+    // The clock is 10:00 UTC, which is 12:00 in Bucharest.
+    standing.setSalesEnd(LocalDateTime.of(2030, 1, 15, 11, 0));
+    tiers.save(standing);
+    vip.setSalesStart(LocalDateTime.of(2030, 1, 15, 11, 30));
+    tiers.save(vip);
+
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(standing, 1)))
+        .hasMessage("Sales for Standing have ended.");
+    assertThat(checkout.start(event.getId(), select(vip, 1)).ticketCount()).isEqualTo(1);
+  }
+
+  @Test
+  void farAwayVenuesOpenSalesInTheirOwnMorning() {
+    Event tokyo = data.event("Tokyo Meetup");
+    var form = com.sorinwork.tickets.support.TestData.eventForm("Tokyo Meetup");
+    form.setTimeZone("Asia/Tokyo");
+    events.update(tokyo.getId(), form);
+    TicketTier seat = data.tier(tokyo, "Seat", "0", 10);
+    // 09:00 in Tokyo is 00:00 UTC; the clock is at 10:00 UTC = 19:00 Tokyo.
+    seat.setSalesStart(LocalDateTime.of(2030, 1, 15, 18, 0));
+    tiers.save(seat);
+    events.publish(tokyo.getId());
+
+    assertThat(checkout.start(tokyo.getId(), select(seat, 1)).ticketCount()).isEqualTo(1);
+  }
+
+  @Test
   void respectsSalesWindow() {
     standing.setSalesStart(LocalDateTime.of(2030, 2, 1, 10, 0));
     tiers.save(standing);

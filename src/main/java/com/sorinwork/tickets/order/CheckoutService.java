@@ -244,7 +244,8 @@ public class CheckoutService {
     if (tier.isPaused()) {
       throw new BusinessException(tier.getName() + " is not on sale right now.");
     }
-    LocalDateTime now = LocalDateTime.now(clock);
+    // Sales windows are wall-clock times at the venue, not in the server's zone.
+    LocalDateTime now = LocalDateTime.now(clock.withZone(tier.getEvent().zone()));
     if (tier.getSalesStart() != null && now.isBefore(tier.getSalesStart())) {
       throw new BusinessException(tier.getName() + " is not on sale yet.");
     }
