@@ -60,6 +60,7 @@ public class PublicEventController {
     Event event = events.getPublic(slug);
     model.addAttribute("event", event);
     model.addAttribute("onSale", event.isOnSale(clock.instant()));
+    model.addAttribute("eventNow", java.time.LocalDateTime.now(clock.withZone(event.zone())));
     model.addAttribute(
         "og", OpenGraph.of(event, fmt.when(event), properties.url("/events/" + event.getSlug())));
     model.addAttribute("tiers", tiers.forEvent(event.getId()));

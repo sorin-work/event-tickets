@@ -61,6 +61,24 @@ class PublicEventControllerTest extends IntegrationTest {
   }
 
   @Test
+  void showsSalesWindows() throws Exception {
+    Event event = data.event("Poetry Slam");
+    var early = data.tier(event, "Early", "5", 30);
+    early.setSalesEnd(java.time.LocalDateTime.of(2030, 1, 10, 23, 59));
+    data.saveTier(early);
+    var late = data.tier(event, "Late", "9", 30);
+    late.setSalesStart(java.time.LocalDateTime.of(2030, 2, 1, 10, 0));
+    data.saveTier(late);
+    events.publish(event.getId());
+
+    mvc.perform(get("/events/poetry-slam"))
+        .andExpect(content().string(containsString("Sales have ended")))
+        .andExpect(content().string(containsString("On sale from Fri 1 Feb 2030, 10:00")))
+        .andExpect(
+            content().string(org.hamcrest.Matchers.not(containsString("qty_" + late.getId()))));
+  }
+
+  @Test
   void draftsAreNotFound() throws Exception {
     data.event("Poetry Slam");
 

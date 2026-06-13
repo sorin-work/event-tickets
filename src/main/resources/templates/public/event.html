@@ -40,11 +40,21 @@
                th:href="@{/events/{slug}/waitlist(slug=${event.slug},tier=${tier.id})}">· join the waitlist</a>
           </div>
           <div class="muted" th:if="${tier.paused and !left.soldOut}">Not on sale right now</div>
+          <th:block th:with="notYet=${tier.salesStart != null and tier.salesStart.isAfter(eventNow)},
+                             ended=${tier.salesEnd != null and !tier.salesEnd.isAfter(eventNow)}">
+            <div class="muted" th:if="${notYet}" th:text="'On sale from ' + ${@fmt.dateTime(tier.salesStart)}">On sale from</div>
+            <div class="muted" th:if="${ended}">Sales have ended</div>
+            <div class="muted" th:if="${!notYet and !ended and tier.salesEnd != null and !left.soldOut}"
+                 th:text="'Sales end ' + ${@fmt.dateTime(tier.salesEnd)}">Sales end</div>
+          </th:block>
           <div class="muted" th:if="${!tier.paused and !left.soldOut and left.remaining() <= 10}" th:text="${left.remaining()} + ' left'">3 left</div>
         </div>
         <div class="tier-buy">
           <span class="tier-price" th:text="${@fmt.price(tier.priceCents, event.currency)}">€10.00</span>
-          <select th:unless="${left.soldOut or !onSale or tier.paused}" th:name="'qty_' + ${tier.id}"
+          <select th:unless="${left.soldOut or !onSale or tier.paused
+                                or (tier.salesStart != null and tier.salesStart.isAfter(eventNow))
+                                or (tier.salesEnd != null and !tier.salesEnd.isAfter(eventNow))}"
+                  th:name="'qty_' + ${tier.id}"
                   th:aria-label="'Number of ' + ${tier.name} + ' tickets'">
             <option th:each="n : ${#numbers.sequence(0, T(java.lang.Math).min(tier.maxPerOrder, left.remaining()))}"
                     th:value="${n}" th:text="${n}">0</option>
