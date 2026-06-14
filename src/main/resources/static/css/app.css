@@ -559,3 +559,28 @@ form.inline {
 .checkbox input {
   width: auto;
 }
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #141416;
+    --surface: #1d1d21;
+    --text: #ececef;
+    --muted: #9a9aa3;
+    --border: #2e2e35;
+    --accent: #9d86ff;
+    --accent-text: #141416;
+    --ok: #6fd3a0;
+    --ok-bg: #16332a;
+    --warn: #f1c26b;
+    --warn-bg: #3a2f17;
+    --danger: #ff8a7f;
+    --danger-bg: #3b1d1b;
+    --shadow: none;
+    color-scheme: dark;
+  }
+
+  .qr {
+    background: #fff;
+    padding: 4px;
+  }
+}
