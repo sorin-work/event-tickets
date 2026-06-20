@@ -42,10 +42,26 @@ are still returned (with `"status": "CANCELLED"`); drafts are `404`.
   "description": "Three sets, two bands.",
   "venueAddress": "Str. Lipscani 12, Bucharest",
   "tiers": [
-    { "id": 4, "name": "Standing", "priceCents": 4500, "currency": "RON", "remaining": 37, "soldOut": false }
+    {
+      "id": 4,
+      "name": "Standing",
+      "description": null,
+      "priceCents": 4500,
+      "currency": "RON",
+      "remaining": 37,
+      "soldOut": false,
+      "maxPerOrder": 6,
+      "salesStart": null,
+      "salesEnd": "2026-06-12T18:00:00",
+      "paused": false
+    }
   ]
 }
 ```
+
+`remaining` already takes open checkouts and the venue capacity into account.
+A tier can only be bought while it is not `paused` and the current time at the
+venue is inside its sales window.
 
 ## Door endpoints
 

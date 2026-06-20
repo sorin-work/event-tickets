@@ -52,7 +52,17 @@ public class EventApiController {
   }
 
   public record TierInfo(
-      long id, String name, long priceCents, String currency, int remaining, boolean soldOut) {}
+      long id,
+      String name,
+      String description,
+      long priceCents,
+      String currency,
+      int remaining,
+      boolean soldOut,
+      int maxPerOrder,
+      LocalDateTime salesStart,
+      LocalDateTime salesEnd,
+      boolean paused) {}
 
   public record EventDetails(
       EventSummary event, String description, String venueAddress, List<TierInfo> tiers) {}
@@ -78,9 +88,14 @@ public class EventApiController {
     return new TierInfo(
         tier.getId(),
         tier.getName(),
+        tier.getDescription(),
         tier.getPriceCents(),
         event.getCurrency(),
         count.remaining(),
-        count.isSoldOut());
+        count.isSoldOut(),
+        tier.getMaxPerOrder(),
+        tier.getSalesStart(),
+        tier.getSalesEnd(),
+        tier.isPaused());
   }
 }

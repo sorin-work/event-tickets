@@ -46,7 +46,9 @@ class EventApiControllerTest extends IntegrationTest {
         .andExpect(jsonPath("$.tiers[0].priceCents").value(750))
         .andExpect(jsonPath("$.tiers[0].currency").value("EUR"))
         .andExpect(jsonPath("$.tiers[0].remaining").value(1))
-        .andExpect(jsonPath("$.tiers[0].soldOut").value(false));
+        .andExpect(jsonPath("$.tiers[0].soldOut").value(false))
+        .andExpect(jsonPath("$.tiers[0].maxPerOrder").value(10))
+        .andExpect(jsonPath("$.tiers[0].paused").value(false));
   }
 
   @Test
