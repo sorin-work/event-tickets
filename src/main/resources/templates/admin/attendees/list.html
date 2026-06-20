@@ -9,8 +9,14 @@
   <form class="search" method="get">
     <input type="search" name="q" th:value="${q}" placeholder="Name, email, ticket code or order" aria-label="Search attendees">
     <button class="btn" type="submit">Search</button>
+    <input type="hidden" name="arrival" th:value="${arrival}">
     <a class="btn" th:href="@{/admin/events/{id}/attendees.csv(id=${event.id})}">Export CSV</a>
   </form>
+  <nav class="filters">
+    <a th:href="@{''(q=${q})}" th:classappend="${arrival.name() == 'ALL'} ? 'active'">Everyone</a>
+    <a th:href="@{''(q=${q},arrival='IN')}" th:classappend="${arrival.name() == 'IN'} ? 'active'">Checked in</a>
+    <a th:href="@{''(q=${q},arrival='OUT')}" th:classappend="${arrival.name() == 'OUT'} ? 'active'">Not arrived</a>
+  </nav>
   <div th:if="${attendees.isEmpty() and #strings.isEmpty(q)}" class="card empty">No tickets sold yet.</div>
   <div th:if="${attendees.isEmpty() and !#strings.isEmpty(q)}" class="card empty">
     Nobody matches <strong th:text="${q}">query</strong>.

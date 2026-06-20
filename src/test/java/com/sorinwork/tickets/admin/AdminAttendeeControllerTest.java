@@ -22,6 +22,7 @@ class AdminAttendeeControllerTest extends IntegrationTest {
 
   @Autowired EventService events;
   @Autowired OrderAdminService orders;
+  @Autowired com.sorinwork.tickets.ticket.CheckInService checkIn;
 
   Event event;
   TicketTier tier;
@@ -79,6 +80,21 @@ class AdminAttendeeControllerTest extends IntegrationTest {
         .andExpect(content().string(containsString("Next")));
     mvc.perform(get(url).param("page", "2"))
         .andExpect(content().string(containsString("Showing 26–26 of 26")));
+  }
+
+  @Test
+  void filtersByArrival() throws Exception {
+    Order arrived = purchases.buy(tier, 1, "Early Arrival", "early@example.com");
+    purchases.buy(tier, 1, "Still Outside", "late@example.com");
+    checkIn.checkIn(
+        event.getId(), orders.tickets(arrived.getId()).get(0).getCode(), "door@example.com");
+
+    mvc.perform(get(url).param("arrival", "IN"))
+        .andExpect(content().string(containsString("Early Arrival")))
+        .andExpect(content().string(not(containsString("Still Outside"))));
+    mvc.perform(get(url).param("arrival", "OUT"))
+        .andExpect(content().string(containsString("Still Outside")))
+        .andExpect(content().string(not(containsString("Early Arrival"))));
   }
 
   @Test

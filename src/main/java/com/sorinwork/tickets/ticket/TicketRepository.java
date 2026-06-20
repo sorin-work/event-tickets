@@ -29,6 +29,9 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             and (:query = '' or lower(t.attendeeName) like :pattern
                  or lower(t.attendeeEmail) like :pattern
                  or t.code = upper(:query) or o.reference = upper(:query))
+            and (:arrival = 'all'
+                 or (:arrival = 'in' and t.checkedInAt is not null)
+                 or (:arrival = 'out' and t.checkedInAt is null))
           order by lower(t.attendeeName), t.id
           """,
       countQuery =
@@ -38,12 +41,16 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
             and (:query = '' or lower(t.attendeeName) like :pattern
                  or lower(t.attendeeEmail) like :pattern
                  or t.code = upper(:query) or o.reference = upper(:query))
+            and (:arrival = 'all'
+                 or (:arrival = 'in' and t.checkedInAt is not null)
+                 or (:arrival = 'out' and t.checkedInAt is null))
           """)
   Page<Ticket> findAttendees(
       @Param("eventId") long eventId,
       @Param("status") OrderStatus status,
       @Param("query") String query,
       @Param("pattern") String pattern,
+      @Param("arrival") String arrival,
       Pageable pageable);
 
   List<Ticket> findByEventIdAndOrderStatusOrderById(Long eventId, OrderStatus status);

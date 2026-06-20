@@ -30,10 +30,28 @@ public class AttendeeService {
    * or a whole ticket code or order reference. {@code page} is 1-based.
    */
   public PageView<Ticket> attendees(long eventId, String query, int page) {
+    return attendees(eventId, query, Arrival.ALL, page);
+  }
+
+  /** Same as above, limited to people who have or have not arrived yet. */
+  public PageView<Ticket> attendees(long eventId, String query, Arrival arrival, int page) {
     String q = query == null ? "" : query.trim();
     String pattern = "%" + escapeLike(q.toLowerCase(Locale.ROOT)) + "%";
     PageRequest request = PageRequest.of(Math.max(page, 1) - 1, PAGE_SIZE);
-    return PageView.of(tickets.findAttendees(eventId, OrderStatus.PAID, q, pattern, request));
+    return PageView.of(
+        tickets.findAttendees(eventId, OrderStatus.PAID, q, pattern, arrival.key, request));
+  }
+
+  public enum Arrival {
+    ALL("all"),
+    IN("in"),
+    OUT("out");
+
+    final String key;
+
+    Arrival(String key) {
+      this.key = key;
+    }
   }
 
   /** Writes every valid ticket of the event as CSV, for door lists and mail merges. */

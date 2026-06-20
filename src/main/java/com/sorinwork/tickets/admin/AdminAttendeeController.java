@@ -29,11 +29,13 @@ public class AdminAttendeeController {
   public String list(
       @PathVariable long eventId,
       @RequestParam(defaultValue = "") String q,
+      @RequestParam(defaultValue = "ALL") AttendeeService.Arrival arrival,
       @RequestParam(defaultValue = "1") int page,
       Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("q", q);
-    model.addAttribute("attendees", attendees.attendees(eventId, q, page));
+    model.addAttribute("arrival", arrival);
+    model.addAttribute("attendees", attendees.attendees(eventId, q, arrival, page));
     return "admin/attendees/list";
   }
 
