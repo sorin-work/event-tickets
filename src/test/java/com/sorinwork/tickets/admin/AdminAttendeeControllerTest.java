@@ -98,6 +98,16 @@ class AdminAttendeeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void pagerKeepsSearchAndArrivalFilter() throws Exception {
+    purchases.buy(tier, 30, "Group Buyer", "group@example.com");
+
+    mvc.perform(get(url).param("q", "group buyer").param("arrival", "OUT"))
+        .andExpect(
+            content()
+                .string(containsString("href=\"?page=2&amp;q=group%20buyer&amp;arrival=OUT\"")));
+  }
+
+  @Test
   void emptyState() throws Exception {
     mvc.perform(get(url)).andExpect(content().string(containsString("No tickets sold yet.")));
   }

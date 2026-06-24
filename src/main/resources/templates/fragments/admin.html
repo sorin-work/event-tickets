@@ -23,11 +23,11 @@
   <div th:if="${error}" class="alert alert-danger" th:text="${error}">Something went wrong.</div>
 </div>
 
-<!-- Previous/next links for a PageView; keeps one extra query parameter such as a search. -->
-<nav th:fragment="pager(view, keep, value)" class="pager" th:if="${view.totalPages() > 1}">
-  <a th:if="${view.hasPrevious()}" class="btn" th:href="@{''(page=${view.page - 1},__${keep}__=${value})}">&larr; Previous</a>
+<!-- Previous/next links for a PageView. "extra" is appended to the query, e.g. '&q=ana'. -->
+<nav th:fragment="pager(view, extra)" class="pager" th:if="${view.totalPages() > 1}">
+  <a th:if="${view.hasPrevious()}" class="btn" th:href="${'?page=' + (view.page - 1) + extra}">&larr; Previous</a>
   <span class="muted" th:text="'Page ' + ${view.page} + ' of ' + ${view.totalPages()}">Page 1 of 3</span>
-  <a th:if="${view.hasNext()}" class="btn" th:href="@{''(page=${view.page + 1},__${keep}__=${value})}">Next &rarr;</a>
+  <a th:if="${view.hasNext()}" class="btn" th:href="${'?page=' + (view.page + 1) + extra}">Next &rarr;</a>
 </nav>
 
 <span th:fragment="orderStatus(status)" class="badge"

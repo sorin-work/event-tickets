@@ -36,7 +36,7 @@
       </tr>
       </tbody>
     </table>
-    <nav th:replace="~{fragments/admin :: pager(${attendees}, 'q', ${q})}"></nav>
+    <nav th:replace="~{fragments/admin :: pager(${attendees}, ${'&q=' + #uris.escapeQueryParam(q) + '&arrival=' + arrival})}"></nav>
   </th:block>
 </main>
 </body>
