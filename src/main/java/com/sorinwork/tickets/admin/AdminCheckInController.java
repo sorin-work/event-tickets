@@ -35,6 +35,7 @@ public class AdminCheckInController {
   public String page(@PathVariable long eventId, Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("progress", checkIn.progress(eventId));
+    model.addAttribute("recent", checkIn.recent(eventId));
     return "admin/checkin/page";
   }
 
@@ -42,6 +43,7 @@ public class AdminCheckInController {
   public String progress(@PathVariable long eventId, Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("progress", checkIn.progress(eventId));
+    model.addAttribute("recent", checkIn.recent(eventId));
     return "admin/checkin/page :: progress";
   }
 
@@ -58,6 +60,7 @@ public class AdminCheckInController {
     model.addAttribute("result", result);
     model.addAttribute("message", message(result, event));
     model.addAttribute("progress", checkIn.progress(eventId));
+    model.addAttribute("recent", checkIn.recent(eventId));
     model.addAttribute("oob", htmx != null);
     return htmx != null ? "admin/checkin/page :: result-and-progress" : "admin/checkin/page";
   }

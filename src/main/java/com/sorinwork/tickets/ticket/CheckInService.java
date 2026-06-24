@@ -55,6 +55,12 @@ public class CheckInService {
     return tickets.countByEventIdAndCheckedInAtIsNotNullAndOrderStatus(eventId, OrderStatus.PAID);
   }
 
+  /** The last few people let in, newest first, so door staff can see who just came in. */
+  @Transactional(readOnly = true)
+  public java.util.List<Ticket> recent(long eventId) {
+    return tickets.findTop8ByEventIdAndCheckedInAtIsNotNullOrderByCheckedInAtDesc(eventId);
+  }
+
   /** Checked-in and total valid tickets, for the counter at the door. */
   @Transactional(readOnly = true)
   public Progress progress(long eventId) {

@@ -584,3 +584,16 @@ form.inline {
     padding: 4px;
   }
 }
+
+.recent-check-ins {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  font-size: 0.9rem;
+}
+
+.recent-check-ins li {
+  display: flex;
+  gap: 8px;
+  padding: 2px 0;
+}

@@ -12,6 +12,13 @@
        hx-trigger="every 15s" hx-swap="outerHTML">
     <strong th:text="${progress.checkedIn} + ' / ' + ${progress.total}">12 / 80</strong> checked in
     <div class="progress"><div class="progress-bar" th:style="'width:' + ${progress.percent()} + '%'"></div></div>
+    <ul class="recent-check-ins" th:unless="${#lists.isEmpty(recent)}">
+      <li th:each="ticket : ${recent}">
+        <span th:text="${#temporals.format(ticket.checkedInAt.atZone(event.zone()), 'HH:mm')}">19:42</span>
+        <strong th:text="${ticket.attendeeName}">Ana Pop</strong>
+        <span class="muted" th:text="${ticket.tier.name}">Standing</span>
+      </li>
+    </ul>
   </div>
   <form class="card" method="post" data-scan-form th:action="@{/admin/events/{id}/check-in(id=${event.id})}"
         th:attr="hx-post=@{/admin/events/{id}/check-in(id=${event.id})}"
