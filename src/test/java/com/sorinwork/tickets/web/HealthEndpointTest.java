@@ -15,4 +15,11 @@ class HealthEndpointTest extends IntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.status").value("UP"));
   }
+
+  @Test
+  void infoShowsTheVersion() throws Exception {
+    mvc.perform(get("/actuator/info"))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.build.artifact").value("event-tickets"));
+  }
 }
