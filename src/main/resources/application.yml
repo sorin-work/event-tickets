@@ -15,6 +15,18 @@ spring:
           time_zone: UTC
   flyway:
     locations: classpath:db/migration
+  web:
+    resources:
+      # File names get a content hash (app-3f2a....css), so browsers can keep them for a year.
+      chain:
+        strategy:
+          content:
+            enabled: true
+            paths: /css/**,/js/**,/favicon.svg
+      cache:
+        cachecontrol:
+          max-age: 365d
+          cache-public: true
 
 server:
   port: ${PORT:8080}
