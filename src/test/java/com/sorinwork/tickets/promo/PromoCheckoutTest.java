@@ -64,6 +64,43 @@ class PromoCheckoutTest extends IntegrationTest {
   }
 
   @Test
+  void tierCodesOnlyDiscountThatTier() {
+    TicketTier vip = data.tier(event, "VIP", "100", 10);
+    PromoCode promo = promo("VIPHALF", DiscountType.PERCENT, 50);
+    promo.setTier(vip);
+    promos.save(promo);
+    Order order = checkout.start(event.getId(), Map.of(tier.getId(), 1, vip.getId(), 1));
+
+    Order discounted = checkout.applyPromoCode(order.getAccessToken(), "VIPHALF");
+
+    assertThat(discounted.getDiscountCents()).isEqualTo(5000);
+    assertThat(discounted.getTotalCents()).isEqualTo(4000 + 5000);
+  }
+
+  @Test
+  void tierCodesNeedATicketOfThatTier() {
+    TicketTier vip = data.tier(event, "VIP", "100", 10);
+    PromoCode promo = promo("VIPHALF", DiscountType.FIXED, 2000);
+    promo.setTier(vip);
+    promos.save(promo);
+
+    assertThatThrownBy(() -> checkout.applyPromoCode(order(1).getAccessToken(), "VIPHALF"))
+        .hasMessage("That promo code is only for VIP tickets.");
+  }
+
+  @Test
+  void fixedTierDiscountIsCappedAtThatTiersTotal() {
+    TicketTier cheap = data.tier(event, "Student", "5", 10);
+    PromoCode promo = promo("STUDENT", DiscountType.FIXED, 2000);
+    promo.setTier(cheap);
+    promos.save(promo);
+    Order order = checkout.start(event.getId(), Map.of(tier.getId(), 1, cheap.getId(), 2));
+
+    assertThat(checkout.applyPromoCode(order.getAccessToken(), "STUDENT").getDiscountCents())
+        .isEqualTo(1000);
+  }
+
+  @Test
   void appliesFixedDiscount() {
     promo("TENOFF", DiscountType.FIXED, 1000);
 
