@@ -135,11 +135,27 @@ public class CheckoutService {
     if (promo.isUsedUp()) {
       throw new BusinessException("That promo code has been used up.");
     }
+    long discountable = discountableCents(order, promo);
+    if (discountable == 0 && promo.getTier() != null) {
+      throw new BusinessException(
+          "That promo code is only for " + promo.getTier().getName() + " tickets.");
+    }
     releasePromoCode(order);
     promo.setUsedCount(promo.getUsedCount() + 1);
     order.setPromoCode(promo);
-    order.setDiscountCents(DiscountCalculator.discount(promo, order.getSubtotalCents()));
+    order.setDiscountCents(DiscountCalculator.discount(promo, discountable));
     return order;
+  }
+
+  /** The part of the order a code applies to: everything, or only its tier's tickets. */
+  private static long discountableCents(Order order, PromoCode promo) {
+    if (promo.getTier() == null) {
+      return order.getSubtotalCents();
+    }
+    return order.getItems().stream()
+        .filter(item -> item.getTier().getId().equals(promo.getTier().getId()))
+        .mapToLong(OrderItem::lineTotalCents)
+        .sum();
   }
 
   public Order removePromoCode(String token) {

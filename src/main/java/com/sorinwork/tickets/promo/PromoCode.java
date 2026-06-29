@@ -1,6 +1,7 @@
 package com.sorinwork.tickets.promo;
 
 import com.sorinwork.tickets.event.Event;
+import com.sorinwork.tickets.event.TicketTier;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -30,6 +31,11 @@ public class PromoCode {
 
   @Column(nullable = false)
   private String code;
+
+  /** When set, only tickets of this tier are discounted. */
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "tier_id")
+  private TicketTier tier;
 
   @Enumerated(EnumType.STRING)
   @Column(name = "discount_type", nullable = false)
@@ -83,6 +89,14 @@ public class PromoCode {
 
   public String getCode() {
     return code;
+  }
+
+  public TicketTier getTier() {
+    return tier;
+  }
+
+  public void setTier(TicketTier tier) {
+    this.tier = tier;
   }
 
   public DiscountType getDiscountType() {

@@ -4,6 +4,7 @@ import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.event.TicketTierRepository;
 import java.time.Clock;
 import java.util.List;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,14 @@ public class PromoCodeService {
 
   private final PromoCodeRepository codes;
   private final EventService events;
+  private final TicketTierRepository tiers;
   private final Clock clock;
 
-  public PromoCodeService(PromoCodeRepository codes, EventService events, Clock clock) {
+  public PromoCodeService(
+      PromoCodeRepository codes, EventService events, TicketTierRepository tiers, Clock clock) {
     this.codes = codes;
     this.events = events;
+    this.tiers = tiers;
     this.clock = clock;
   }
 
@@ -38,6 +42,12 @@ public class PromoCodeService {
         new PromoCode(event, code, form.getDiscountType(), form.amountValue(), clock.instant());
     promo.setMaxUses(form.getMaxUses());
     promo.setValidUntil(form.getValidUntil());
+    if (form.getTierId() != null) {
+      promo.setTier(
+          tiers
+              .findByIdAndEventId(form.getTierId(), eventId)
+              .orElseThrow(() -> new BusinessException("Unknown ticket tier.")));
+    }
     return codes.save(promo);
   }
 

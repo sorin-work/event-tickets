@@ -22,6 +22,9 @@ public class PromoForm {
   @Min(1)
   private Integer maxUses;
 
+  /** Limit the code to one tier, or null for the whole order. */
+  private Long tierId;
+
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime validUntil;
 
@@ -68,6 +71,14 @@ public class PromoForm {
 
   public void setAmount(String amount) {
     this.amount = amount;
+  }
+
+  public Long getTierId() {
+    return tierId;
+  }
+
+  public void setTierId(Long tierId) {
+    this.tierId = tierId;
   }
 
   public Integer getMaxUses() {

@@ -2,6 +2,7 @@ package com.sorinwork.tickets.admin;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.event.TierService;
 import com.sorinwork.tickets.promo.DiscountType;
 import com.sorinwork.tickets.promo.PromoCodeService;
 import com.sorinwork.tickets.promo.PromoForm;
@@ -23,10 +24,12 @@ public class AdminPromoController {
 
   private final EventService events;
   private final PromoCodeService promos;
+  private final TierService tiers;
 
-  public AdminPromoController(EventService events, PromoCodeService promos) {
+  public AdminPromoController(EventService events, PromoCodeService promos, TierService tiers) {
     this.events = events;
     this.promos = promos;
+    this.tiers = tiers;
   }
 
   @GetMapping
@@ -70,6 +73,7 @@ public class AdminPromoController {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("promos", promos.forEvent(eventId));
     model.addAttribute("types", DiscountType.values());
+    model.addAttribute("tiers", tiers.forEvent(eventId));
     return "admin/promos/list";
   }
 }
