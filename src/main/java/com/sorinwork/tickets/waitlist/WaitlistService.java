@@ -186,6 +186,18 @@ public class WaitlistService {
         entry.getTier().getId(), WaitlistStatus.WAITING, entry.getCreatedAt(), entry.getId());
   }
 
+  /** Number of people waiting per tier id; tiers without anyone waiting are left out. */
+  @Transactional(readOnly = true)
+  public Map<Long, Long> waitingPerTier(long eventId) {
+    Map<Long, Long> result = new java.util.HashMap<>();
+    for (WaitlistEntry entry : entries.findByEventIdOrderByCreatedAtAscIdAsc(eventId)) {
+      if (entry.getStatus() == WaitlistStatus.WAITING) {
+        result.merge(entry.getTier().getId(), 1L, Long::sum);
+      }
+    }
+    return result;
+  }
+
   @Transactional(readOnly = true)
   public long waitingCount(long tierId) {
     return entries.countByTierIdAndStatus(tierId, WaitlistStatus.WAITING);

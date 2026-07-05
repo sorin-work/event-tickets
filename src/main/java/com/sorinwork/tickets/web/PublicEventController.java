@@ -6,6 +6,7 @@ import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
 import com.sorinwork.tickets.order.AvailabilityService;
+import com.sorinwork.tickets.waitlist.WaitlistService;
 import java.time.Clock;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
@@ -26,6 +27,7 @@ public class PublicEventController {
   private final AppProperties properties;
   private final Clock clock;
   private final Formatters fmt;
+  private final WaitlistService waitlist;
 
   public PublicEventController(
       EventService events,
@@ -33,7 +35,9 @@ public class PublicEventController {
       AvailabilityService availability,
       AppProperties properties,
       Clock clock,
-      Formatters fmt) {
+      Formatters fmt,
+      WaitlistService waitlist) {
+    this.waitlist = waitlist;
     this.events = events;
     this.tiers = tiers;
     this.availability = availability;
@@ -64,6 +68,7 @@ public class PublicEventController {
     model.addAttribute(
         "og", OpenGraph.of(event, fmt.when(event), properties.url("/events/" + event.getSlug())));
     model.addAttribute("tiers", tiers.forEvent(event.getId()));
+    model.addAttribute("waiting", waitlist.waitingPerTier(event.getId()));
     model.addAttribute("availability", availability.forEvent(event.getId()));
     return "public/event";
   }

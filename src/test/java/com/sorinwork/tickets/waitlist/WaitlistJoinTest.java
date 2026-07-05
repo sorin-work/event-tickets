@@ -103,6 +103,16 @@ class WaitlistJoinTest extends IntegrationTest {
   }
 
   @Test
+  void eventPageShowsHowManyAreWaiting() throws Exception {
+    sellOut();
+    waitlist.join(event, new WaitlistForm(tier.getId(), "Ana", "ana@example.com", 1));
+    waitlist.join(event, new WaitlistForm(tier.getId(), "Bob", "bob@example.com", 2));
+
+    mvc.perform(get("/events/small-gig"))
+        .andExpect(content().string(containsString("(2 people waiting)")));
+  }
+
+  @Test
   void joinsThroughTheForm() throws Exception {
     sellOut();
 

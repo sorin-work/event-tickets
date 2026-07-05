@@ -38,6 +38,8 @@
             Sold out
             <a th:if="${onSale}"
                th:href="@{/events/{slug}/waitlist(slug=${event.slug},tier=${tier.id})}">· join the waitlist</a>
+            <span th:if="${waiting[tier.id]}"
+                  th:text="'(' + ${waiting[tier.id]} + (${waiting[tier.id] == 1} ? ' person' : ' people') + ' waiting)'">(3 people waiting)</span>
           </div>
           <div class="muted" th:if="${tier.paused and !left.soldOut}">Not on sale right now</div>
           <th:block th:with="notYet=${tier.salesStart != null and tier.salesStart.isAfter(eventNow)},
