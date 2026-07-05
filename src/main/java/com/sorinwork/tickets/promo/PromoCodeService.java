@@ -51,6 +51,22 @@ public class PromoCodeService {
     return codes.save(promo);
   }
 
+  /** Changes how often and until when a code can be used. {@code null} means no limit. */
+  public PromoCode updateLimits(
+      long eventId, long promoId, Integer maxUses, java.time.LocalDateTime validUntil) {
+    PromoCode promo =
+        codes
+            .findByIdAndEventId(promoId, eventId)
+            .orElseThrow(() -> new NotFoundException("Promo code " + promoId));
+    if (maxUses != null && maxUses < Math.max(1, promo.getUsedCount())) {
+      throw new BusinessException(
+          "Max uses cannot be lower than the " + promo.getUsedCount() + " times it was used.");
+    }
+    promo.setMaxUses(maxUses);
+    promo.setValidUntil(validUntil);
+    return promo;
+  }
+
   public PromoCode setActive(long eventId, long promoId, boolean active) {
     PromoCode promo =
         codes

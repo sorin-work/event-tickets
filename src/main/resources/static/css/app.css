@@ -597,3 +597,24 @@ form.inline {
   gap: 8px;
   padding: 2px 0;
 }
+
+.inline-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0;
+}
+
+.inline-fields label {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-weight: normal;
+  margin: 0;
+}
+
+.inline-fields input {
+  width: auto;
+  padding: 4px 8px;
+}

@@ -91,6 +91,28 @@ class AdminPromoControllerTest extends IntegrationTest {
   }
 
   @Test
+  void changesLimits() throws Exception {
+    mvc.perform(
+        post(base)
+            .with(csrf())
+            .param("code", "VIP")
+            .param("discountType", "PERCENT")
+            .param("amount", "10"));
+    PromoCode promo = promos.findByEventIdAndCode(event.getId(), "VIP").orElseThrow();
+
+    mvc.perform(
+            post(base + "/" + promo.getId() + "/limits")
+                .with(csrf())
+                .param("maxUses", "25")
+                .param("validUntil", "2030-03-01T23:59"))
+        .andExpect(status().is3xxRedirection());
+
+    PromoCode changed = promos.findById(promo.getId()).orElseThrow();
+    assertThat(changed.getMaxUses()).isEqualTo(25);
+    assertThat(changed.getValidUntil()).isEqualTo(java.time.LocalDateTime.of(2030, 3, 1, 23, 59));
+  }
+
+  @Test
   void disablesCode() throws Exception {
     mvc.perform(
         post(base)

@@ -26,6 +26,20 @@
         </form>
       </td>
     </tr>
+    <tr th:each="promo : ${promos}" class="promo-limits">
+      <td colspan="5">
+        <form class="inline-fields" method="post"
+              th:action="@{/admin/events/{e}/promo-codes/{p}/limits(e=${event.id},p=${promo.id})}">
+          <span th:text="${promo.code}">CODE</span>
+          <label>Max uses <input type="number" min="1" name="maxUses" th:value="${promo.maxUses}"></label>
+          <label>Valid until
+            <input type="datetime-local" name="validUntil"
+                   th:value="${promo.validUntil} ? ${#temporals.format(promo.validUntil, 'yyyy-MM-dd''T''HH:mm')} : ''">
+          </label>
+          <button class="btn-link" type="submit">save</button>
+        </form>
+      </td>
+    </tr>
     </tbody>
   </table>
 

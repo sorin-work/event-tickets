@@ -69,6 +69,25 @@ public class AdminPromoController {
     return "redirect:/admin/events/" + eventId + "/promo-codes";
   }
 
+  @PostMapping("/{promoId}/limits")
+  public String updateLimits(
+      @PathVariable long eventId,
+      @PathVariable long promoId,
+      @RequestParam(required = false) Integer maxUses,
+      @RequestParam(required = false)
+          @org.springframework.format.annotation.DateTimeFormat(
+              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
+          java.time.LocalDateTime validUntil,
+      RedirectAttributes redirect) {
+    try {
+      promos.updateLimits(eventId, promoId, maxUses, validUntil);
+      redirect.addFlashAttribute("flash", "Promo code updated.");
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/admin/events/" + eventId + "/promo-codes";
+  }
+
   private String render(long eventId, Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("promos", promos.forEvent(eventId));
