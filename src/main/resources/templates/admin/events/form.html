@@ -50,6 +50,8 @@
         <td class="num">
           <span th:text="${availability[tier.id].remaining()}">88</span>
           <span th:if="${tier.paused}" class="badge badge-warn">paused</span>
+          <a th:if="${waiting[tier.id]}" class="badge" th:href="@{/admin/events/{id}/waitlist(id=${event.id})}"
+             th:text="${waiting[tier.id]} + ' waiting'">3 waiting</a>
         </td>
         <td class="muted">
           <span th:text="${tier.salesStart} ? ${#temporals.format(tier.salesStart, 'd MMM HH:mm')} : 'now'">now</span>

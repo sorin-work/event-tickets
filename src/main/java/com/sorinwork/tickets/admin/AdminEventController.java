@@ -9,6 +9,7 @@ import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierService;
 import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.ticket.AttendeeService;
+import com.sorinwork.tickets.waitlist.WaitlistService;
 import jakarta.validation.Valid;
 import java.time.ZoneId;
 import java.util.List;
@@ -38,6 +39,7 @@ public class AdminEventController {
   private final EventCopier copier;
   private final AvailabilityService availability;
   private final AppProperties properties;
+  private final WaitlistService waitlist;
 
   public AdminEventController(
       EventService events,
@@ -45,13 +47,15 @@ public class AdminEventController {
       AttendeeService attendees,
       EventCopier copier,
       AvailabilityService availability,
-      AppProperties properties) {
+      AppProperties properties,
+      WaitlistService waitlist) {
     this.events = events;
     this.tiers = tiers;
     this.attendees = attendees;
     this.copier = copier;
     this.availability = availability;
     this.properties = properties;
+    this.waitlist = waitlist;
   }
 
   @ModelAttribute("timeZones")
@@ -92,6 +96,7 @@ public class AdminEventController {
     model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
     model.addAttribute("tiers", tiers.forEvent(id));
     model.addAttribute("availability", availability.forEvent(id));
+    model.addAttribute("waiting", waitlist.waitingPerTier(id));
     model.addAttribute("form", EventForm.from(event));
     return "admin/events/form";
   }
@@ -109,6 +114,7 @@ public class AdminEventController {
       model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
       model.addAttribute("tiers", tiers.forEvent(id));
       model.addAttribute("availability", availability.forEvent(id));
+      model.addAttribute("waiting", waitlist.waitingPerTier(id));
       return "admin/events/form";
     }
     events.update(id, form);
