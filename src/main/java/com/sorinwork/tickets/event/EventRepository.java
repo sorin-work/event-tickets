@@ -13,6 +13,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
   Optional<Event> findBySlug(String slug);
 
+  @Query("select count(o) from Order o where o.event.id = :id")
+  long countOrders(@Param("id") long id);
+
   boolean existsBySlug(String slug);
 
   List<Event> findAllByOrderByStartsAtDesc();

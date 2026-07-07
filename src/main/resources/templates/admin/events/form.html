@@ -19,6 +19,11 @@
        th:href="@{/events/{slug}(slug=${event.slug})}">View page</a>
     <button th:unless="${event.status.name() == 'DRAFT'}" class="btn" type="button"
             th:attr="data-copy=${publicUrl}">Copy link</button>
+    <form th:if="${event.status.name() == 'DRAFT'}" method="post"
+          th:action="@{/admin/events/{id}/delete(id=${event.id})}"
+          onsubmit="return confirm('Delete this draft and its ticket tiers?')">
+      <button class="btn btn-danger" type="submit">Delete draft</button>
+    </form>
     <form method="post" th:action="@{/admin/events/{id}/duplicate(id=${event.id})}">
       <button class="btn" type="submit">Duplicate</button>
     </form>

@@ -122,6 +122,18 @@ public class AdminEventController {
     return "redirect:/admin/events/" + id + "/edit";
   }
 
+  @PostMapping("/{id}/delete")
+  public String delete(@PathVariable long id, RedirectAttributes redirect) {
+    try {
+      events.delete(id);
+      redirect.addFlashAttribute("flash", "Event deleted.");
+      return "redirect:/admin/events";
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+      return "redirect:/admin/events/" + id + "/edit";
+    }
+  }
+
   @PostMapping("/{id}/duplicate")
   public String duplicate(@PathVariable long id, RedirectAttributes redirect) {
     Event copy = copier.duplicate(id);

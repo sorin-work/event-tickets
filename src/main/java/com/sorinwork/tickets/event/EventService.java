@@ -95,6 +95,18 @@ public class EventService {
     return changeStatus(event, EventStatus.DRAFT);
   }
 
+  /** Deletes a draft that never sold anything, e.g. one created by mistake. */
+  public void delete(long id) {
+    Event event = get(id);
+    if (event.getStatus() != EventStatus.DRAFT) {
+      throw new BusinessException("Only draft events can be deleted. Cancel it instead.");
+    }
+    if (events.countOrders(id) > 0) {
+      throw new BusinessException("This event has orders and cannot be deleted.");
+    }
+    events.delete(event);
+  }
+
   /** Cancels the event; its orders are cancelled and buyers emailed as well. */
   public Event cancel(long id) {
     Event event = get(id);
