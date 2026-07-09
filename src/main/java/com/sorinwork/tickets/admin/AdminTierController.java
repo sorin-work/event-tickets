@@ -86,8 +86,12 @@ public class AdminTierController {
   @PostMapping("/{tierId}/delete")
   public String delete(
       @PathVariable long eventId, @PathVariable long tierId, RedirectAttributes redirect) {
-    tiers.delete(eventId, tierId);
-    redirect.addFlashAttribute("flash", "Ticket tier removed.");
+    try {
+      tiers.delete(eventId, tierId);
+      redirect.addFlashAttribute("flash", "Ticket tier removed.");
+    } catch (com.sorinwork.tickets.common.BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
     return "redirect:/admin/events/" + eventId + "/edit";
   }
 }

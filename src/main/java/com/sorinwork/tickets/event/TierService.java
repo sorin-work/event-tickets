@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.event;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import java.time.Clock;
 import java.util.ArrayList;
@@ -53,8 +54,14 @@ public class TierService {
     return tier;
   }
 
+  /** Removes a tier nobody has bought or reserved; otherwise it can only be paused. */
   public void delete(long eventId, long tierId) {
-    tiers.delete(get(eventId, tierId));
+    TicketTier tier = get(eventId, tierId);
+    if (tiers.countOrderItems(tierId) > 0) {
+      throw new BusinessException(
+          tier.getName() + " has orders and cannot be removed. Pause its sales instead.");
+    }
+    tiers.delete(tier);
   }
 
   /** Moves a tier one place up ({@code -1}) or down ({@code +1}) on the event page. */
