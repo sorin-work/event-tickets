@@ -76,6 +76,9 @@ public class Order {
   @Column(name = "cancelled_at")
   private Instant cancelledAt;
 
+  @Column(name = "reminder_sent_at")
+  private Instant reminderSentAt;
+
   /** Internal note, only shown to admins. */
   @Column(name = "admin_note")
   private String adminNote;
@@ -204,6 +207,14 @@ public class Order {
 
   public void setCancelledAt(Instant cancelledAt) {
     this.cancelledAt = cancelledAt;
+  }
+
+  public Instant getReminderSentAt() {
+    return reminderSentAt;
+  }
+
+  public void setReminderSentAt(Instant reminderSentAt) {
+    this.reminderSentAt = reminderSentAt;
   }
 
   public String getAdminNote() {

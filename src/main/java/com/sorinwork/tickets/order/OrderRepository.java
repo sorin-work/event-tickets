@@ -77,6 +77,19 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   long countByEventIdAndStatus(Long eventId, OrderStatus status);
 
+  /** Paid orders without a reminder for published events starting between two local times. */
+  @Query(
+      """
+      select o from Order o join fetch o.event e
+      where o.status = :paid and o.reminderSentAt is null
+        and e.status = com.sorinwork.tickets.event.EventStatus.PUBLISHED
+        and e.startsAt between :from and :to
+      """)
+  List<Order> findReminderCandidates(
+      @Param("paid") OrderStatus paid,
+      @Param("from") java.time.LocalDateTime from,
+      @Param("to") java.time.LocalDateTime to);
+
   @Query(
       """
       select o from Order o join fetch o.event e

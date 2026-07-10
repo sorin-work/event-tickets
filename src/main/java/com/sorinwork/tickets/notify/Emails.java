@@ -35,6 +35,26 @@ public class Emails {
     notifier.send(email, "Your tickets", body.toString(), null);
   }
 
+  public void reminder(Order order) {
+    Event event = order.getEvent();
+    String body =
+        "Hi "
+            + order.getBuyerName()
+            + ",\n\nSee you soon at "
+            + event.getTitle()
+            + ": "
+            + fmt.when(event)
+            + " ("
+            + event.getTimeZone()
+            + ") at "
+            + event.getVenueName()
+            + (event.getVenueAddress() == null ? "" : ", " + event.getVenueAddress())
+            + ".\n\nHave your QR codes ready at the door:\n"
+            + properties.url("/orders/" + order.getAccessToken())
+            + "\n";
+    notifier.send(order.getBuyerEmail(), "Tomorrow: " + event.getTitle(), body, event.getId());
+  }
+
   public void orderCancelled(Order order) {
     Event event = order.getEvent();
     String body =
