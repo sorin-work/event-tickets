@@ -4,9 +4,12 @@ import com.sorinwork.tickets.common.Csv;
 import com.sorinwork.tickets.common.Money;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
+import com.sorinwork.tickets.order.AvailabilityService;
+import com.sorinwork.tickets.order.TierAvailability;
 import com.sorinwork.tickets.report.DailySales;
 import com.sorinwork.tickets.report.SalesReport;
 import com.sorinwork.tickets.report.SalesReportService;
+import com.sorinwork.tickets.waitlist.WaitlistService;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -23,10 +26,18 @@ public class AdminReportController {
 
   private final EventService events;
   private final SalesReportService reports;
+  private final AvailabilityService availability;
+  private final WaitlistService waitlist;
 
-  public AdminReportController(EventService events, SalesReportService reports) {
+  public AdminReportController(
+      EventService events,
+      SalesReportService reports,
+      AvailabilityService availability,
+      WaitlistService waitlist) {
     this.events = events;
     this.reports = reports;
+    this.availability = availability;
+    this.waitlist = waitlist;
   }
 
   @GetMapping("/admin/events/{eventId}/report")
@@ -38,6 +49,12 @@ public class AdminReportController {
     model.addAttribute("days", days);
     model.addAttribute("promos", reports.promoUsage(eventId));
     model.addAttribute("checkIns", reports.checkInsByHour(event));
+    model.addAttribute(
+        "held",
+        availability.forEvent(eventId).values().stream().mapToInt(TierAvailability::held).sum());
+    model.addAttribute(
+        "waiting",
+        waitlist.waitingPerTier(eventId).values().stream().mapToLong(Long::longValue).sum());
     model.addAttribute("maxDay", days.stream().mapToLong(DailySales::tickets).max().orElse(1));
     return "admin/report/show";
   }

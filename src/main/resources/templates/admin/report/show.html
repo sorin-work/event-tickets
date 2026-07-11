@@ -26,6 +26,14 @@
       <div class="stat-label">Checked in</div>
       <div class="stat-value" th:text="${report.checkedIn} + ' (' + ${report.percentCheckedIn()} + '%)'">0</div>
     </div>
+    <div class="card stat">
+      <div class="stat-label">In checkout right now</div>
+      <div class="stat-value" th:text="${held}">3</div>
+    </div>
+    <div class="card stat">
+      <div class="stat-label">On the waitlist</div>
+      <div class="stat-value" th:text="${waiting}">5</div>
+    </div>
   </div>
 
   <section class="card">
