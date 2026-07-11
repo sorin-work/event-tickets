@@ -9,4 +9,7 @@ public interface OutboxRepository extends JpaRepository<OutboxMessage, Long> {
   List<OutboxMessage> findByOrderByCreatedAtDescIdDesc(Pageable pageable);
 
   List<OutboxMessage> findByRecipientOrderByIdAsc(String recipient);
+
+  List<OutboxMessage> findByRecipientContainingIgnoreCaseOrderByCreatedAtDescIdDesc(
+      String recipient, Pageable pageable);
 }

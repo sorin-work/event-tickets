@@ -18,9 +18,17 @@ public class AdminOutboxController {
   }
 
   @GetMapping("/admin/outbox")
-  public String list(Model model) {
+  public String list(
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "") String to,
+      Model model) {
+    PageRequest limit = PageRequest.of(0, LIMIT);
     model.addAttribute(
-        "messages", outbox.findByOrderByCreatedAtDescIdDesc(PageRequest.of(0, LIMIT)));
+        "messages",
+        to.isBlank()
+            ? outbox.findByOrderByCreatedAtDescIdDesc(limit)
+            : outbox.findByRecipientContainingIgnoreCaseOrderByCreatedAtDescIdDesc(
+                to.trim(), limit));
+    model.addAttribute("to", to);
     model.addAttribute("limit", LIMIT);
     return "admin/outbox/list";
   }

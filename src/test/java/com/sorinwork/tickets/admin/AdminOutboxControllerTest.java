@@ -30,6 +30,16 @@ class AdminOutboxControllerTest extends IntegrationTest {
   }
 
   @Test
+  void searchesByRecipient() throws Exception {
+    notifier.send("ana@example.com", "For Ana", "Body", null);
+    notifier.send("bob@example.com", "For Bob", "Body", null);
+
+    mvc.perform(get("/admin/outbox").param("to", "ANA@"))
+        .andExpect(content().string(containsString("For Ana")))
+        .andExpect(content().string(not(containsString("For Bob"))));
+  }
+
+  @Test
   void emptyState() throws Exception {
     mvc.perform(get("/admin/outbox"))
         .andExpect(content().string(containsString("No emails sent yet.")));

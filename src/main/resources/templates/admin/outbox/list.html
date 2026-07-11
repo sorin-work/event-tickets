@@ -6,7 +6,12 @@
 <main class="container">
   <h1>Outbox</h1>
   <p class="muted" th:text="'Emails the app has sent, newest first (last ' + ${limit} + ').'">Emails</p>
-  <div th:if="${#lists.isEmpty(messages)}" class="card empty">No emails sent yet.</div>
+  <form class="search" method="get">
+    <input type="search" name="to" th:value="${to}" placeholder="Recipient" aria-label="Search by recipient">
+    <button class="btn" type="submit">Search</button>
+  </form>
+  <div th:if="${#lists.isEmpty(messages)}" class="card empty"
+       th:text="${#strings.isEmpty(to)} ? 'No emails sent yet.' : 'No emails to ' + ${to} + '.'">No emails sent yet.</div>
   <details class="card outbox-message" th:each="message : ${messages}">
     <summary>
       <strong th:text="${message.subject}">Your tickets</strong>
