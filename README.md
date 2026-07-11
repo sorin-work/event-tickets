@@ -88,6 +88,30 @@ Integration tests boot the whole application against an in-memory H2 database,
 so no running Postgres is needed. `./mvnw spotless:apply` formats the code;
 `verify` fails on unformatted code.
 
+## Project layout
+
+```
+src/main/java/com/sorinwork/tickets/
+  event/      events, ticket tiers, calendar files
+  order/      checkout holds, orders, availability, reminders
+  promo/      promo codes and discounts
+  ticket/     tickets, QR codes, check-in, attendee list
+  waitlist/   waitlist and offers of released tickets
+  notify/     outbox and buyer emails
+  report/     sales report
+  admin/      admin pages and accounts
+  web/        public pages
+  api/        JSON API
+  config/     security, scheduling, properties
+  seed/       demo data
+src/main/resources/
+  db/migration/   Flyway migrations
+  templates/      Thymeleaf pages (public/, admin/, fragments/)
+  static/         CSS and the little JavaScript there is
+src/test/java/    unit and integration tests
+docs/             API and architecture notes
+```
+
 ## License
 
 MIT, see [LICENSE](LICENSE).
