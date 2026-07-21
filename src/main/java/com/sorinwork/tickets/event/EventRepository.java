@@ -13,6 +13,9 @@ public interface EventRepository extends JpaRepository<Event, Long> {
 
   Optional<Event> findBySlug(String slug);
 
+  List<Event> findTop20ByStatusAndStartsAtBeforeOrderByStartsAtDesc(
+      EventStatus status, LocalDateTime before);
+
   @Query("select count(o) from Order o where o.event.id = :id")
   long countOrders(@Param("id") long id);
 

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head th:replace="~{fragments/layout :: head('Past events')}"></head>
+<body>
+<header th:replace="~{fragments/layout :: header}"></header>
+<main class="container">
+  <h1>Past events</h1>
+  <div th:if="${#lists.isEmpty(events)}" class="card empty">Nothing here yet.</div>
+  <div class="event-list">
+    <a class="card event-card" th:each="event : ${events}" th:href="@{/events/{slug}(slug=${event.slug})}">
+      <div class="event-date muted" th:text="${@fmt.when(event)}">date</div>
+      <h2 th:text="${event.title}">Event</h2>
+      <div class="muted" th:text="${event.venueName}">Venue</div>
+    </a>
+  </div>
+  <p><a th:href="@{/}">&larr; Upcoming events</a></p>
+</main>
+<footer th:replace="~{fragments/layout :: footer}"></footer>
+</body>
+</html>

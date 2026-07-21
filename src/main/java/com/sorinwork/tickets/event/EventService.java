@@ -55,6 +55,13 @@ public class EventService {
         List.of(EventStatus.PUBLISHED), LocalDateTime.now(clock).minusHours(6));
   }
 
+  /** The 20 most recent published events that already took place. */
+  @Transactional(readOnly = true)
+  public List<Event> recentPast() {
+    return events.findTop20ByStatusAndStartsAtBeforeOrderByStartsAtDesc(
+        EventStatus.PUBLISHED, LocalDateTime.now(clock).minusHours(6));
+  }
+
   /** Drafts and published events that have not started yet, soonest first. */
   @Transactional(readOnly = true)
   public List<Event> upcomingForAdmin() {

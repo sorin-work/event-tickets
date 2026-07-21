@@ -44,6 +44,12 @@ public class HomeController {
     return "public/home";
   }
 
+  @GetMapping("/events/past")
+  public String past(Model model) {
+    model.addAttribute("events", events.recentPast());
+    return "public/past";
+  }
+
   /** Events whose title or venue contains every word of the query, ignoring case and accents. */
   static List<Event> matching(List<Event> events, String query) {
     String[] words = fold(query).split("\\s+");

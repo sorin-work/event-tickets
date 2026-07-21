@@ -57,6 +57,17 @@ class HomeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void pastEventsHaveTheirOwnPage() throws Exception {
+    Event event = data.event("Last Year");
+    data.tier(event, "Entry", "5", 30);
+    events.publish(event.getId());
+    clock.set(java.time.Instant.parse("2030-04-01T10:00:00Z"));
+
+    mvc.perform(get("/")).andExpect(content().string(not(containsString("Last Year"))));
+    mvc.perform(get("/events/past")).andExpect(content().string(containsString("Last Year")));
+  }
+
+  @Test
   void listsOnlyPublishedEvents() throws Exception {
     Event published = data.event("Poetry Slam");
     data.tier(published, "Entry", "5", 30);

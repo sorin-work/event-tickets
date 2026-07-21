@@ -31,7 +31,10 @@
 </header>
 
 <footer th:fragment="footer" class="site-footer">
-  <div class="container">Event Tickets · tickets for small venues and meetups</div>
+  <div class="container">
+    Event Tickets · tickets for small venues and meetups ·
+    <a th:href="@{/events/past}">past events</a>
+  </div>
 </footer>
 
 </body>
