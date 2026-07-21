@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 class EventServiceTest extends IntegrationTest {
 
   @Autowired EventService service;
+  @Autowired EventRepository events;
 
   @Test
   void createsDraftEventWithSlug() {
@@ -73,6 +74,27 @@ class EventServiceTest extends IntegrationTest {
 
     assertThatThrownBy(() -> service.unpublish(event.getId()))
         .isInstanceOf(BusinessException.class);
+  }
+
+  @Test
+  void changesTheSlug() {
+    Event event = service.create(TestData.eventForm("Summer Jazz Night"));
+
+    assertThat(service.changeSlug(event.getId(), " Jazz-2030 ").getSlug()).isEqualTo("jazz-2030");
+    assertThat(events.findBySlug("jazz-2030")).isPresent();
+  }
+
+  @Test
+  void rejectsBadOrTakenSlugs() {
+    Event event = service.create(TestData.eventForm("Summer Jazz Night"));
+    service.create(TestData.eventForm("Taken"));
+
+    assertThatThrownBy(() -> service.changeSlug(event.getId(), "no spaces"))
+        .isInstanceOf(BusinessException.class);
+    assertThatThrownBy(() -> service.changeSlug(event.getId(), "--"))
+        .isInstanceOf(BusinessException.class);
+    assertThatThrownBy(() -> service.changeSlug(event.getId(), "taken"))
+        .hasMessageContaining("already uses /events/taken");
   }
 
   @Test
