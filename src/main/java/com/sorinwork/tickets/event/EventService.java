@@ -95,6 +95,28 @@ public class EventService {
     return changeStatus(event, EventStatus.DRAFT);
   }
 
+  /**
+   * Gives the event a different address, e.g. a shorter one for posters. Old links stop working, so
+   * this is best done before sharing the page.
+   */
+  public Event changeSlug(long id, String requested) {
+    Event event = get(id);
+    String slug = requested == null ? "" : requested.trim().toLowerCase(java.util.Locale.ROOT);
+    if (!slug.matches("[a-z0-9]+(-[a-z0-9]+)*") || slug.length() < 3 || slug.length() > 80) {
+      throw new BusinessException(
+          "Use 3-80 lower case letters, digits and single dashes, e.g. jazz-night-2026.");
+    }
+    if (slug.equals(event.getSlug())) {
+      return event;
+    }
+    if (events.existsBySlug(slug)) {
+      throw new BusinessException("Another event already uses /events/" + slug + ".");
+    }
+    event.setSlug(slug);
+    event.setUpdatedAt(clock.instant());
+    return event;
+  }
+
   /** Deletes a draft that never sold anything, e.g. one created by mistake. */
   public void delete(long id) {
     Event event = get(id);

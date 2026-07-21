@@ -35,6 +35,12 @@
       <button class="btn btn-danger" type="submit">Cancel event</button>
     </form>
   </div>
+  <form th:if="${event}" class="card inline-fields" method="post" th:action="@{/admin/events/{id}/slug(id=${event.id})}">
+    <label>Page address <span class="muted" th:text="${publicUrl.substring(0, publicUrl.length() - event.slug.length())}">https://…/events/</span>
+      <input name="slug" th:value="${event.slug}" maxlength="80" required pattern="[a-z0-9]+(-[a-z0-9]+)*">
+    </label>
+    <button class="btn" type="submit">Change</button>
+  </form>
   <section th:if="${event}" class="card">
     <h2>Ticket tiers</h2>
     <div th:if="${#lists.isEmpty(tiers)}" class="empty">No ticket tiers yet. Add one before publishing.</div>

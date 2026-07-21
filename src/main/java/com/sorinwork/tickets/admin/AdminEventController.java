@@ -122,6 +122,20 @@ public class AdminEventController {
     return "redirect:/admin/events/" + id + "/edit";
   }
 
+  @PostMapping("/{id}/slug")
+  public String changeSlug(
+      @PathVariable long id,
+      @org.springframework.web.bind.annotation.RequestParam String slug,
+      RedirectAttributes redirect) {
+    try {
+      Event event = events.changeSlug(id, slug);
+      redirect.addFlashAttribute("flash", "The event page is now at /events/" + event.getSlug());
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/admin/events/" + id + "/edit";
+  }
+
   @PostMapping("/{id}/delete")
   public String delete(@PathVariable long id, RedirectAttributes redirect) {
     try {
