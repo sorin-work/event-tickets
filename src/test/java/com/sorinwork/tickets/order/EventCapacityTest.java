@@ -53,6 +53,26 @@ class EventCapacityTest extends IntegrationTest {
   }
 
   @Test
+  void remainingForSeveralEventsMatchesThePerEventFigures() {
+    purchases.buy(standing, 3, "Ana", "ana@example.com");
+    checkout.start(event.getId(), Map.of(seated.getId(), 2));
+    Event other = data.event("Other");
+    TicketTier open = data.tier(other, "Open", "0", 50);
+    events.publish(other.getId());
+    purchases.buy(open, 5, "Bob", "bob@example.com");
+    Event empty = data.event("No Tiers Yet");
+
+    Map<Long, Integer> left =
+        availability.remainingPerEvent(
+            java.util.List.of(event.getId(), other.getId(), empty.getId()));
+
+    // venue capacity 10: 3 sold + 2 held leave 5 across both tiers
+    assertThat(left.get(event.getId())).isEqualTo(5);
+    assertThat(left.get(other.getId())).isEqualTo(45);
+    assertThat(left.get(empty.getId())).isZero();
+  }
+
+  @Test
   void fullVenueSellsOutEveryTier() {
     purchases.buy(standing, 5, "Ana", "ana@example.com");
     purchases.buy(seated, 5, "Bogdan", "bogdan@example.com");

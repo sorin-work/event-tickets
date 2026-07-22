@@ -3,9 +3,7 @@ package com.sorinwork.tickets.web;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.AvailabilityService;
-import com.sorinwork.tickets.order.TierAvailability;
 import java.text.Normalizer;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -31,14 +29,8 @@ public class HomeController {
     model.addAttribute("q", q);
     model.addAttribute("hasEvents", !upcoming.isEmpty());
     List<Event> shown = matching(upcoming, q);
-    Map<Long, Integer> left = new HashMap<>();
-    for (Event event : shown) {
-      left.put(
-          event.getId(),
-          availability.forEvent(event.getId()).values().stream()
-              .mapToInt(TierAvailability::remaining)
-              .sum());
-    }
+    Map<Long, Integer> left =
+        availability.remainingPerEvent(shown.stream().map(Event::getId).toList());
     model.addAttribute("events", shown);
     model.addAttribute("left", left);
     return "public/home";

@@ -12,6 +12,9 @@ public interface TicketTierRepository extends JpaRepository<TicketTier, Long> {
 
   int countByEventId(Long eventId);
 
+  @org.springframework.data.jpa.repository.EntityGraph(attributePaths = "event")
+  List<TicketTier> findByEventIdIn(java.util.Collection<Long> eventIds);
+
   @org.springframework.data.jpa.repository.Query(
       "select count(i) from OrderItem i where i.tier.id = :tierId")
   long countOrderItems(@org.springframework.data.repository.query.Param("tierId") long tierId);
