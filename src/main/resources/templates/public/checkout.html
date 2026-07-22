@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Checkout')}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
-<main class="container narrow">
+<main id="main" class="container narrow">
   <p><a th:href="@{/events/{slug}(slug=${event.slug})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
   <h1>Checkout</h1>
   <div th:unless="${holdActive}" class="alert alert-warn">

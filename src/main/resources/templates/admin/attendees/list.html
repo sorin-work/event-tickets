@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Attendees')}"></head>
 <body>
 <header th:replace="~{fragments/admin :: header('events')}"></header>
-<main class="container">
+<main id="main" class="container">
   <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
   <h1>Attendees</h1>
   <form class="search" method="get">

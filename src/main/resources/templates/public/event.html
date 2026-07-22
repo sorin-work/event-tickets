@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head(${event.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
-<main class="container">
+<main id="main" class="container">
   <div th:if="${event.status.name() == 'CANCELLED'}" class="alert alert-danger">
     This event has been cancelled.
   </div>

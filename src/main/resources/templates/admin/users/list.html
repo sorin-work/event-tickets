@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Admins')}"></head>
 <body>
 <header th:replace="~{fragments/admin :: header('users')}"></header>
-<main class="container">
+<main id="main" class="container">
   <div th:replace="~{fragments/admin :: flash}"></div>
   <h1>Admins</h1>
   <p class="muted">Everyone listed here can manage events, orders and check-in.</p>

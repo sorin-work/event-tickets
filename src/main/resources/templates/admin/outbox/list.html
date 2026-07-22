@@ -3,7 +3,7 @@
 <head th:replace="~{fragments/layout :: head('Outbox')}"></head>
 <body>
 <header th:replace="~{fragments/admin :: header('outbox')}"></header>
-<main class="container">
+<main id="main" class="container">
   <h1>Outbox</h1>
   <p class="muted" th:text="'Emails the app has sent, newest first (last ' + ${limit} + ').'">Emails</p>
   <form class="search" method="get">
