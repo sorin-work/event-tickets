@@ -88,6 +88,30 @@ Integration tests boot the whole application against an in-memory H2 database,
 so no running Postgres is needed. `./mvnw spotless:apply` formats the code;
 `verify` fails on unformatted code.
 
+## Troubleshooting
+
+**The app does not start: `Connection to localhost:5432 refused`.** Postgres is
+not running or `DATABASE_URL` points elsewhere. With Docker:
+`docker compose up -d db`.
+
+**I cannot sign in to the admin area.** The first admin is only created when
+there are no admins at all. If you changed `ADMIN_PASSWORD` after the first
+start, the old password still applies; remove the `db-data` volume
+(`docker compose down -v`) to start over, or add another admin under
+**Admins**.
+
+**Links in emails point to localhost.** Set `BASE_URL` to the address people
+use to reach the app.
+
+**Tickets show as sold out right after somebody left the checkout.** Seats are
+held for 10 minutes (`CHECKOUT_HOLD_DURATION`). If people are on the waitlist,
+released seats are offered to them first and held for 24 hours
+(`WAITLIST_OFFER_DURATION`).
+
+**The camera button is missing on the check-in page.** Camera scanning needs a
+browser with the BarcodeDetector API (Chrome, Edge, most Android browsers) and
+HTTPS (or localhost). Typing the code or using a USB scanner always works.
+
 ## Project layout
 
 ```
