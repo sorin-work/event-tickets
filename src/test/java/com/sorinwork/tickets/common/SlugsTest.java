@@ -19,7 +19,21 @@ class SlugsTest {
 
   @Test
   void handlesNull() {
-    assertThat(Slugs.slugify(null)).isEmpty();
+    assertThat(Slugs.slugify(null)).isEqualTo("event");
+  }
+
+  @Test
+  void keepsAccentedLettersAsPlainOnes() {
+    assertThat(Slugs.slugify("Café Müller Night")).isEqualTo("cafe-muller-night");
+    assertThat(Slugs.slugify("Șezătoare în Grădină")).isEqualTo("sezatoare-in-gradina");
+    assertThat(Slugs.slugify("Straße Fest Ølstue")).isEqualTo("strasse-fest-olstue");
+  }
+
+  @Test
+  void titlesWithoutLatinLettersGetAFallback() {
+    assertThat(Slugs.slugify("Концерт")).isEqualTo("event");
+    assertThat(Slugs.slugify("!!!")).isEqualTo("event");
+    assertThat(Slugs.slugify("Концерт 2030")).isEqualTo("2030");
   }
 
   @Test

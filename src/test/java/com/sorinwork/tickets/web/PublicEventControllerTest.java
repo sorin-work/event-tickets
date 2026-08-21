@@ -79,6 +79,15 @@ class PublicEventControllerTest extends IntegrationTest {
   }
 
   @Test
+  void accentedTitlesGetReadableAddresses() throws Exception {
+    Event event = data.event("Seară de Poezie în Cafenea");
+    data.tier(event, "Intrare", "10", 30);
+    events.publish(event.getId());
+
+    mvc.perform(get("/events/seara-de-poezie-in-cafenea")).andExpect(status().isOk());
+  }
+
+  @Test
   void draftsAreNotFound() throws Exception {
     data.event("Poetry Slam");
 

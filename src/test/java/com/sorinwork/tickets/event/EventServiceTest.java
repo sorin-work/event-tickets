@@ -34,6 +34,15 @@ class EventServiceTest extends IntegrationTest {
   }
 
   @Test
+  void nonLatinTitlesStillGetWorkingDistinctUrls() {
+    Event first = service.create(TestData.eventForm("Концерт"));
+    Event second = service.create(TestData.eventForm("Вечер джаза"));
+
+    assertThat(first.getSlug()).isEqualTo("event");
+    assertThat(second.getSlug()).isEqualTo("event-2");
+  }
+
+  @Test
   void updateKeepsTheSlug() {
     Event event = service.create(TestData.eventForm("Board Games"));
     EventForm changed = TestData.eventForm("Board Games Marathon");
