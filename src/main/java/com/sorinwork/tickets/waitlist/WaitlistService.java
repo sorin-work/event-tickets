@@ -159,6 +159,20 @@ public class WaitlistService {
     offerReleasedTickets(released.eventId());
   }
 
+  /** Sends the offer email again, e.g. when the person says they never got it. */
+  public WaitlistEntry resendOffer(long eventId, long entryId) {
+    WaitlistEntry entry =
+        entries
+            .findById(entryId)
+            .filter(e -> e.getEvent().getId().equals(eventId))
+            .orElseThrow(() -> new NotFoundException("Waitlist entry " + entryId));
+    if (entry.getStatus() != WaitlistStatus.OFFERED) {
+      throw new BusinessException("Only open offers can be sent again.");
+    }
+    emails.waitlistOffer(entry, entry.getOfferOrder());
+    return entry;
+  }
+
   /** Takes someone off the waitlist. Only people still waiting can be removed. */
   public WaitlistEntry remove(long eventId, long entryId) {
     WaitlistEntry entry =

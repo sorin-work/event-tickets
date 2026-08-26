@@ -31,6 +31,10 @@
       <td>
         <a th:if="${entry.offerOrder != null and entry.status.name() == 'CLAIMED'}"
            th:href="@{/admin/orders/{id}(id=${entry.offerOrder.id})}">order</a>
+        <form th:if="${entry.status.name() == 'OFFERED'}" method="post" class="inline"
+              th:action="@{/admin/events/{e}/waitlist/{w}/resend(e=${event.id},w=${entry.id})}">
+          <button class="btn-link" type="submit">resend offer</button>
+        </form>
         <form th:if="${entry.status.name() == 'WAITING'}" method="post"
               th:action="@{/admin/events/{e}/waitlist/{w}/remove(e=${event.id},w=${entry.id})}"
               onsubmit="return confirm('Remove this person from the waitlist?')">

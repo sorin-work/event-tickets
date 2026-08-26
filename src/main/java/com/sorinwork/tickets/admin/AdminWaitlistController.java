@@ -47,6 +47,18 @@ public class AdminWaitlistController {
     return "redirect:/admin/events/" + eventId + "/waitlist";
   }
 
+  @PostMapping("/admin/events/{eventId}/waitlist/{entryId}/resend")
+  public String resend(
+      @PathVariable long eventId, @PathVariable long entryId, RedirectAttributes redirect) {
+    try {
+      WaitlistEntry entry = waitlist.resendOffer(eventId, entryId);
+      redirect.addFlashAttribute("flash", "Offer sent again to " + entry.getEmail() + ".");
+    } catch (BusinessException e) {
+      redirect.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/admin/events/" + eventId + "/waitlist";
+  }
+
   /** Queue position of each waiting entry within its tier, 1 = next to get an offer. */
   static Map<Long, Integer> positions(List<WaitlistEntry> entries) {
     Map<Long, Integer> perTier = new HashMap<>();

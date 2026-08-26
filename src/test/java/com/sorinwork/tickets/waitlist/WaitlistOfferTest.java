@@ -151,6 +151,26 @@ class WaitlistOfferTest extends IntegrationTest {
   }
 
   @Test
+  void anOpenOfferCanBeSentAgain() {
+    WaitlistEntry entry = join("Ana", 1);
+    orders.cancel(first.getId());
+
+    waitlist.resendOffer(event.getId(), entry.getId());
+
+    assertThat(outbox.findByRecipientOrderByIdAsc("ana@example.com"))
+        .filteredOn(m -> m.getSubject().startsWith("Tickets available"))
+        .hasSize(2);
+  }
+
+  @Test
+  void onlyOpenOffersCanBeSentAgain() {
+    WaitlistEntry entry = join("Ana", 1);
+
+    assertThatThrownBy(() -> waitlist.resendOffer(event.getId(), entry.getId()))
+        .hasMessage("Only open offers can be sent again.");
+  }
+
+  @Test
   void nothingToOfferWhileSoldOut() {
     join("Ana", 1);
 
