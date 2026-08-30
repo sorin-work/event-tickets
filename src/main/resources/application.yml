@@ -30,6 +30,12 @@ spring:
 
 server:
   port: ${PORT:8080}
+  # Trust X-Forwarded-* from a reverse proxy so redirects and secure cookies use https.
+  forward-headers-strategy: native
+  servlet:
+    session:
+      cookie:
+        same-site: lax
 
 logging:
   pattern:

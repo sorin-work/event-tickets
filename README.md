@@ -88,6 +88,24 @@ Integration tests boot the whole application against an in-memory H2 database,
 so no running Postgres is needed. `./mvnw spotless:apply` formats the code;
 `verify` fails on unformatted code.
 
+## Running behind a reverse proxy
+
+Put nginx, Caddy or Traefik in front for HTTPS and point it at the app port.
+The app understands `X-Forwarded-Proto` and `X-Forwarded-For`, so redirects
+stay on https. Set `BASE_URL` to the public address. A minimal nginx block:
+
+```nginx
+location / {
+    proxy_pass http://127.0.0.1:4411;
+    proxy_set_header Host $host;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+}
+```
+
+Only `/actuator/health` and `/actuator/info` are exposed; block `/actuator` at
+the proxy if you do not want them public.
+
 ## Troubleshooting
 
 **The app does not start: `Connection to localhost:5432 refused`.** Postgres is
