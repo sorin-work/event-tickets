@@ -76,7 +76,9 @@ All settings are environment variables (or the matching `app.*` /
 | `JAVA_OPTS`               | see `Dockerfile`                         | JVM options for the container                                   |
 
 Docker Compose also reads `WEB_PORT` (default `4411`) and `DB_PORT`
-(default `5432`) for the ports published on your machine.
+(default `5432`) for the ports published on your machine. Copy
+`.env.example` to `.env` to change any of these without editing the compose
+file.
 
 ## Tests
 
