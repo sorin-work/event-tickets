@@ -6,6 +6,11 @@
 <main id="main" class="container">
   <div th:replace="~{fragments/admin :: flash}"></div>
   <h1>Events</h1>
+  <nav class="filters">
+    <a th:href="@{/admin/events}" th:classappend="${show == 'upcoming'} ? 'active'">Upcoming</a>
+    <a th:href="@{/admin/events(show='past')}" th:classappend="${show == 'past'} ? 'active'">Past</a>
+    <a th:href="@{/admin/events(show='all')}" th:classappend="${show == 'all'} ? 'active'">All</a>
+  </nav>
   <p><a class="btn btn-primary" th:href="@{/admin/events/new}">New event</a></p>
   <div th:if="${#lists.isEmpty(events)}" class="card empty">No events yet. Create your first one.</div>
   <table th:unless="${#lists.isEmpty(events)}">

@@ -120,6 +120,28 @@ class AdminEventControllerTest extends IntegrationTest {
   }
 
   @Test
+  void listsUpcomingEventsUnlessAskedForPastOnes() throws Exception {
+    data.event("Spring Fair");
+    clock.set(java.time.Instant.parse("2030-04-01T10:00:00Z"));
+    data.event("Later Fair");
+    eventService.update(
+        events.findBySlug("later-fair").orElseThrow().getId(),
+        withStart(com.sorinwork.tickets.support.TestData.eventForm("Later Fair"), 2030, 6));
+
+    mvc.perform(get("/admin/events"))
+        .andExpect(content().string(containsString("Later Fair")))
+        .andExpect(content().string(org.hamcrest.Matchers.not(containsString("Spring Fair"))));
+    mvc.perform(get("/admin/events").param("show", "past"))
+        .andExpect(content().string(containsString("Spring Fair")));
+  }
+
+  private static com.sorinwork.tickets.event.EventForm withStart(
+      com.sorinwork.tickets.event.EventForm form, int year, int month) {
+    form.setStartsAt(LocalDateTime.of(year, month, 1, 19, 0));
+    return form;
+  }
+
+  @Test
   void unknownEventIs404() throws Exception {
     mvc.perform(get("/admin/events/12345/edit")).andExpect(status().isNotFound());
   }

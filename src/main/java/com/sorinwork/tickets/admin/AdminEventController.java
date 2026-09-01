@@ -40,6 +40,7 @@ public class AdminEventController {
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final WaitlistService waitlist;
+  private final java.time.Clock clock;
 
   public AdminEventController(
       EventService events,
@@ -48,7 +49,9 @@ public class AdminEventController {
       EventCopier copier,
       AvailabilityService availability,
       AppProperties properties,
-      WaitlistService waitlist) {
+      WaitlistService waitlist,
+      java.time.Clock clock) {
+    this.clock = clock;
     this.events = events;
     this.tiers = tiers;
     this.attendees = attendees;
@@ -64,8 +67,22 @@ public class AdminEventController {
   }
 
   @GetMapping
-  public String list(Model model) {
-    model.addAttribute("events", events.listAll());
+  public String list(
+      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "upcoming") String show,
+      Model model) {
+    java.time.Instant now = clock.instant();
+    model.addAttribute(
+        "events",
+        events.listAll().stream()
+            .filter(
+                event ->
+                    switch (show) {
+                      case "past" -> !event.startsAtInstant().isAfter(now);
+                      case "all" -> true;
+                      default -> event.startsAtInstant().isAfter(now);
+                    })
+            .toList());
+    model.addAttribute("show", show);
     model.addAttribute("sold", attendees.soldPerEvent());
     return "admin/events/list";
   }
