@@ -30,6 +30,7 @@ public class AdminController {
     model.addAttribute("upcoming", events.upcomingForAdmin());
     model.addAttribute("recentOrders", orders.recentPaid(10));
     model.addAttribute("ordersThisWeek", orders.paidSince(Duration.ofDays(7)));
+    model.addAttribute("ticketsToday", orders.ticketsSoldSince(Duration.ofHours(24)));
     return "admin/dashboard";
   }
 }

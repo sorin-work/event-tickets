@@ -31,7 +31,10 @@ class AdminDashboardTest extends IntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().string(containsString("Garden Party")))
         .andExpect(content().string(containsString("Still a Draft")))
-        .andExpect(content().string(containsString(order.getReference())));
+        .andExpect(content().string(containsString(order.getReference())))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.model()
+                .attribute("ticketsToday", 1L));
   }
 
   @Test

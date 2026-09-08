@@ -27,6 +27,7 @@ public class OrderAdminService {
 
   private final OrderRepository orders;
   private final TicketRepository tickets;
+  private final OrderItemRepository items;
   private final ApplicationEventPublisher publisher;
   private final Emails emails;
   private final Clock clock;
@@ -34,11 +35,13 @@ public class OrderAdminService {
   public OrderAdminService(
       OrderRepository orders,
       TicketRepository tickets,
+      OrderItemRepository items,
       ApplicationEventPublisher publisher,
       Emails emails,
       Clock clock) {
     this.orders = orders;
     this.tickets = tickets;
+    this.items = items;
     this.publisher = publisher;
     this.emails = emails;
     this.clock = clock;
@@ -87,6 +90,11 @@ public class OrderAdminService {
   @Transactional(readOnly = true)
   public List<Order> recentPaid(int limit) {
     return orders.findRecent(OrderStatus.PAID, PageRequest.of(0, limit));
+  }
+
+  @Transactional(readOnly = true)
+  public long ticketsSoldSince(java.time.Duration period) {
+    return items.ticketsPaidAfter(OrderStatus.PAID, clock.instant().minus(period));
   }
 
   @Transactional(readOnly = true)

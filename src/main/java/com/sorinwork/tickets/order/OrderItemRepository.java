@@ -48,6 +48,13 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
       @Param("paid") OrderStatus paid,
       @Param("pending") OrderStatus pending);
 
+  @Query(
+      """
+      select coalesce(sum(i.quantity), 0) from OrderItem i join i.order o
+      where o.status = :paid and o.paidAt > :after
+      """)
+  long ticketsPaidAfter(@Param("paid") OrderStatus paid, @Param("after") Instant after);
+
   interface TierRevenue {
     Long getTierId();
 
