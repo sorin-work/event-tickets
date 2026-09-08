@@ -132,7 +132,8 @@ public class CheckoutService {
     if (promo.getId().equals(order.getPromoCode() == null ? null : order.getPromoCode().getId())) {
       return order;
     }
-    if (promo.isUsedUp()) {
+    if (promo.getMaxUses() != null
+        && promoCodes.countRedemptions(promo.getId(), clock.instant()) >= promo.getMaxUses()) {
       throw new BusinessException("That promo code has been used up.");
     }
     long discountable = discountableCents(order, promo);
@@ -141,7 +142,6 @@ public class CheckoutService {
           "That promo code is only for " + promo.getTier().getName() + " tickets.");
     }
     releasePromoCode(order);
-    promo.setUsedCount(promo.getUsedCount() + 1);
     order.setPromoCode(promo);
     order.setDiscountCents(DiscountCalculator.discount(promo, discountable));
     return order;
@@ -167,7 +167,6 @@ public class CheckoutService {
   private void releasePromoCode(Order order) {
     PromoCode current = order.getPromoCode();
     if (current != null) {
-      current.setUsedCount(Math.max(0, current.getUsedCount() - 1));
       order.setPromoCode(null);
       order.setDiscountCents(0);
     }

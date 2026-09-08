@@ -58,13 +58,24 @@ public class PromoCodeService {
         codes
             .findByIdAndEventId(promoId, eventId)
             .orElseThrow(() -> new NotFoundException("Promo code " + promoId));
-    if (maxUses != null && maxUses < Math.max(1, promo.getUsedCount())) {
+    long used = codes.countRedemptions(promoId, clock.instant());
+    if (maxUses != null && maxUses < Math.max(1, used)) {
       throw new BusinessException(
-          "Max uses cannot be lower than the " + promo.getUsedCount() + " times it was used.");
+          "Max uses cannot be lower than the " + used + " times it was used.");
     }
     promo.setMaxUses(maxUses);
     promo.setValidUntil(validUntil);
     return promo;
+  }
+
+  /** Current uses per promo code id: paid orders and open checkouts. */
+  @Transactional(readOnly = true)
+  public java.util.Map<Long, Long> usesForEvent(long eventId) {
+    java.util.Map<Long, Long> uses = new java.util.HashMap<>();
+    for (var row : codes.countRedemptionsForEvent(eventId, clock.instant())) {
+      uses.put(row.getPromoId(), row.getUses());
+    }
+    return uses;
   }
 
   public PromoCode setActive(long eventId, long promoId, boolean active) {

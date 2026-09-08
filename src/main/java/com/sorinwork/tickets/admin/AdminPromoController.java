@@ -91,6 +91,7 @@ public class AdminPromoController {
   private String render(long eventId, Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("promos", promos.forEvent(eventId));
+    model.addAttribute("uses", promos.usesForEvent(eventId));
     model.addAttribute("types", DiscountType.values());
     model.addAttribute("tiers", tiers.forEvent(eventId));
     return "admin/promos/list";

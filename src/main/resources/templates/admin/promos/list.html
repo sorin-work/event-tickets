@@ -17,7 +17,8 @@
         <div class="muted" th:if="${promo.tier}" th:text="'only ' + ${promo.tier.name}">only VIP</div>
       </td>
       <td th:text="${promo.discountType.name() == 'PERCENT'} ? ${promo.amount} + '%' : ${@fmt.money(promo.amount, event.currency)}">10%</td>
-      <td class="num" th:text="${promo.maxUses} ? ${promo.usedCount} + ' / ' + ${promo.maxUses} : ${promo.usedCount}">0</td>
+      <td class="num" th:with="used=${uses[promo.id] ?: 0}"
+          th:text="${promo.maxUses} ? ${used} + ' / ' + ${promo.maxUses} : ${used}">0</td>
       <td th:text="${promo.validUntil} ? ${@fmt.dateTime(promo.validUntil)} : '—'">—</td>
       <td>
         <form method="post" th:action="@{/admin/events/{e}/promo-codes/{p}/active(e=${event.id},p=${promo.id})}">

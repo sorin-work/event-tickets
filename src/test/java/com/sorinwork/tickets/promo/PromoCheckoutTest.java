@@ -22,6 +22,7 @@ class PromoCheckoutTest extends IntegrationTest {
   @Autowired CheckoutService checkout;
   @Autowired EventService events;
   @Autowired PromoCodeRepository promos;
+  @Autowired com.sorinwork.tickets.order.OrderAdminService orderAdmin;
 
   Event event;
   TicketTier tier;
@@ -153,6 +154,48 @@ class PromoCheckoutTest extends IntegrationTest {
   }
 
   @Test
+  void abandonedCheckoutsGiveTheirUseBack() {
+    PromoCode promo = promo("ONCE", DiscountType.PERCENT, 50);
+    promo.setMaxUses(1);
+    promos.save(promo);
+    checkout.applyPromoCode(order(1).getAccessToken(), "ONCE");
+
+    clock.advance(Duration.ofMinutes(11));
+
+    Order next = checkout.applyPromoCode(order(1).getAccessToken(), "ONCE");
+    assertThat(next.getDiscountCents()).isEqualTo(2000);
+  }
+
+  @Test
+  void cancelledOrdersGiveTheirUseBack() {
+    PromoCode promo = promo("ONCE", DiscountType.PERCENT, 50);
+    promo.setMaxUses(1);
+    promos.save(promo);
+    String token = order(1).getAccessToken();
+    checkout.applyPromoCode(token, "ONCE");
+    Order paid = checkout.complete(token, new CheckoutForm("Ana", "ana@example.com"));
+
+    orderAdmin.cancel(paid.getId());
+
+    assertThat(checkout.applyPromoCode(order(1).getAccessToken(), "ONCE").getPromoCode())
+        .isNotNull();
+  }
+
+  @Test
+  void paidOrdersKeepUsingUpTheCode() {
+    PromoCode promo = promo("ONCE", DiscountType.PERCENT, 50);
+    promo.setMaxUses(1);
+    promos.save(promo);
+    String token = order(1).getAccessToken();
+    checkout.applyPromoCode(token, "ONCE");
+    checkout.complete(token, new CheckoutForm("Ana", "ana@example.com"));
+    clock.advance(Duration.ofDays(2));
+
+    assertThatThrownBy(() -> checkout.applyPromoCode(order(1).getAccessToken(), "ONCE"))
+        .hasMessage("That promo code has been used up.");
+  }
+
+  @Test
   void replacingACodeFreesTheOldOne() {
     PromoCode first = promo("FIRST", DiscountType.PERCENT, 10);
     promo("SECOND", DiscountType.PERCENT, 20);
@@ -162,7 +205,7 @@ class PromoCheckoutTest extends IntegrationTest {
     Order order = checkout.applyPromoCode(token, "SECOND");
 
     assertThat(order.getDiscountCents()).isEqualTo(800);
-    assertThat(promos.findById(first.getId()).orElseThrow().getUsedCount()).isZero();
+    assertThat(promos.countRedemptions(first.getId(), clock.instant())).isZero();
   }
 
   @Test
