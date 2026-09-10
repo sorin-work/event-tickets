@@ -47,9 +47,6 @@ public class PromoCode {
   @Column(name = "max_uses")
   private Integer maxUses;
 
-  @Column(name = "used_count", nullable = false)
-  private int usedCount;
-
   /** Last moment the code can be used, wall-clock time in the event's time zone. */
   @Column(name = "valid_until")
   private LocalDateTime validUntil;
@@ -73,10 +70,6 @@ public class PromoCode {
 
   public static String normalize(String code) {
     return code == null ? null : code.trim().toUpperCase(Locale.ROOT);
-  }
-
-  public boolean isUsedUp() {
-    return maxUses != null && usedCount >= maxUses;
   }
 
   public Long getId() {
@@ -121,14 +114,6 @@ public class PromoCode {
 
   public void setMaxUses(Integer maxUses) {
     this.maxUses = maxUses;
-  }
-
-  public int getUsedCount() {
-    return usedCount;
-  }
-
-  public void setUsedCount(int usedCount) {
-    this.usedCount = usedCount;
   }
 
   public LocalDateTime getValidUntil() {
