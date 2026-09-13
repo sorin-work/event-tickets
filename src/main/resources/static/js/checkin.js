@@ -80,3 +80,34 @@
       });
   });
 })();
+
+// A short beep after each scan: high for "let in", low for "not admitted",
+// so door staff do not have to look at the screen every time.
+(function () {
+  var AudioContext = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContext) return;
+  var audio = null;
+
+  function beep(frequency, duration) {
+    audio = audio || new AudioContext();
+    var oscillator = audio.createOscillator();
+    var gain = audio.createGain();
+    oscillator.frequency.value = frequency;
+    gain.gain.value = 0.15;
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + duration);
+  }
+
+  document.body.addEventListener("htmx:afterSettle", function (event) {
+    if (event.detail.elt.id !== "check-in-result") return;
+    var box = document.querySelector("#check-in-result .check-in-result");
+    if (!box) return;
+    if (box.classList.contains("alert-ok")) {
+      beep(880, 0.12);
+    } else {
+      beep(220, 0.35);
+    }
+  });
+})();
