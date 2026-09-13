@@ -59,6 +59,27 @@ class CheckoutControllerTest extends IntegrationTest {
   }
 
   @Test
+  void checkoutPageCountsDownToTheEndOfTheHold() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(get("/checkout/" + token))
+        .andExpect(content().string(containsString("data-countdown=\"2030-01-15T10:10:00Z\"")))
+        .andExpect(content().string(containsString("(until <span>12:10</span>)")))
+        .andExpect(content().string(containsString("Pay €6.00")));
+  }
+
+  @Test
+  void freeOrdersSayGetTickets() throws Exception {
+    TicketTier free = data.tier(event, "Guest list", "0", 10);
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + free.getId(), "1"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(get("/checkout/" + token))
+        .andExpect(content().string(containsString("Get tickets")));
+  }
+
+  @Test
   void returnsToEventPageWithAnError() throws Exception {
     mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "0"))
         .andExpect(redirectedUrl("/events/film-club"))
