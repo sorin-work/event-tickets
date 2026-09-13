@@ -131,6 +131,12 @@ public class DemoDataSeeder implements ApplicationRunner {
     events.publish(jazz.getId());
     promo(jazz, "FRIENDS10", DiscountType.PERCENT, "10", null);
     promo(jazz, "BAND", DiscountType.FIXED, "20", 10);
+    PromoForm tableDeal = new PromoForm();
+    tableDeal.setCode("TABLE4");
+    tableDeal.setDiscountType(DiscountType.PERCENT);
+    tableDeal.setAmount("15");
+    tableDeal.setTierId(table.getId());
+    promos.create(jazz.getId(), tableDeal);
     sell(earlyBird, 30, 20);
     sell(standing, 41, 18);
     sell(table, 15, 12);
@@ -196,8 +202,12 @@ public class DemoDataSeeder implements ApplicationRunner {
     pastForm.setStartsAt(today.minusDays(12).atTime(19, 30));
     pastForm.setEndsAt(today.minusDays(12).atTime(22, 30));
     events.update(past.getId(), pastForm);
-    for (Ticket ticket : pastTickets.subList(0, 52)) {
-      checkIn.checkIn(past.getId(), ticket.getCode(), "door@example.com");
+    // Arrivals spread over the hour before and after doors open.
+    java.time.Instant doors =
+        today.minusDays(12).atTime(19, 0).atZone(events.get(past.getId()).zone()).toInstant();
+    for (int i = 0; i < 52; i++) {
+      checkIn.checkIn(past.getId(), pastTickets.get(i).getCode(), "door@example.com");
+      pastTickets.get(i).checkIn(doors.plus(Duration.ofMinutes(i * 90L / 52)), "door@example.com");
     }
 
     log.info("Created demo events, orders and a waitlist");

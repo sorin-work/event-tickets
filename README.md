@@ -37,7 +37,7 @@ sign in with the demo account:
 - **Password:** `demo-password`
 
 On first start the app creates a few demo events with orders, promo codes
-(`FRIENDS10`, `BAND`), a sold-out film night with a waitlist and a past event
+(`FRIENDS10`, `BAND` and `TABLE4` for table seats only), a sold-out film night with a waitlist and a past event
 with check-ins. Set `SEED_DEMO=false` to start with an empty database.
 
 There is no mail server: emails the app would send (tickets, waitlist offers)
