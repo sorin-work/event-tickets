@@ -12,10 +12,13 @@
     if (isNaN(deadline)) return;
     var form = el.closest("form");
     var expired = document.querySelector("[data-countdown-expired]");
+    var title = document.title;
 
     function tick() {
       var left = Math.max(0, Math.round((deadline - Date.now()) / 1000));
       el.textContent = Math.floor(left / 60) + ":" + pad(left % 60);
+      // Keep the time visible in the tab while the buyer looks for their card.
+      document.title = left > 0 ? "(" + el.textContent + ") " + title : title;
       if (left === 0) {
         clearInterval(timer);
         if (form) {
