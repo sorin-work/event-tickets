@@ -40,6 +40,12 @@ server:
 logging:
   pattern:
     level: "%5p [%X{requestId:-}]"
+  level:
+    root: INFO
+    com.sorinwork.tickets: INFO
+    # Flyway prints every migration at INFO on startup; keep the summary only.
+    org.flywaydb.core.internal.command: WARN
+    org.hibernate.orm.deprecation: ERROR
 
 management:
   endpoints:
