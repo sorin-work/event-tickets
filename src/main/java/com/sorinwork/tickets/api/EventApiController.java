@@ -6,9 +6,12 @@ import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.event.TierService;
 import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.order.TierAvailability;
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.CacheControl;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -18,6 +21,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/v1/events")
 public class EventApiController {
+
+  /** Embeds may cache briefly; ticket counts change as people buy. */
+  static final CacheControl SHORT_CACHE = CacheControl.maxAge(Duration.ofSeconds(30)).cachePublic();
 
   private final EventService events;
   private final TierService tiers;
@@ -68,20 +74,25 @@ public class EventApiController {
       EventSummary event, String description, String venueAddress, List<TierInfo> tiers) {}
 
   @GetMapping
-  public List<EventSummary> upcoming() {
-    return events.upcomingPublished().stream().map(EventSummary::of).toList();
+  public ResponseEntity<List<EventSummary>> upcoming() {
+    return ResponseEntity.ok()
+        .cacheControl(SHORT_CACHE)
+        .body(events.upcomingPublished().stream().map(EventSummary::of).toList());
   }
 
   @GetMapping("/{slug}")
-  public EventDetails show(@PathVariable String slug) {
+  public ResponseEntity<EventDetails> show(@PathVariable String slug) {
     Event event = events.getPublic(slug);
     Map<Long, TierAvailability> counts = availability.forEvent(event.getId());
     List<TierInfo> tierInfo =
         tiers.forEvent(event.getId()).stream()
             .map(tier -> tierInfo(tier, event, counts.get(tier.getId())))
             .toList();
-    return new EventDetails(
-        EventSummary.of(event), event.getDescription(), event.getVenueAddress(), tierInfo);
+    return ResponseEntity.ok()
+        .cacheControl(SHORT_CACHE)
+        .body(
+            new EventDetails(
+                EventSummary.of(event), event.getDescription(), event.getVenueAddress(), tierInfo));
   }
 
   private static TierInfo tierInfo(TicketTier tier, Event event, TierAvailability count) {

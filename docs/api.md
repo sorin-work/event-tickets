@@ -13,6 +13,9 @@ Errors use the matching HTTP status and a body like:
 
 ## Public endpoints
 
+Public responses may be cached for 30 seconds (`Cache-Control: max-age=30,
+public`), so an embed does not hit the app on every page view.
+
 ### `GET /api/v1/events`
 
 Upcoming published events, soonest first.

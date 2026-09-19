@@ -33,7 +33,10 @@ class EventApiControllerTest extends IntegrationTest {
         .andExpect(jsonPath("$.length()").value(1))
         .andExpect(jsonPath("$[0].slug").value("open-air-cinema"))
         .andExpect(jsonPath("$[0].startsAt").value("2030-03-14T19:30:00"))
-        .andExpect(jsonPath("$[0].timeZone").value("Europe/Bucharest"));
+        .andExpect(jsonPath("$[0].timeZone").value("Europe/Bucharest"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                .string("Cache-Control", "max-age=30, public"));
   }
 
   @Test
