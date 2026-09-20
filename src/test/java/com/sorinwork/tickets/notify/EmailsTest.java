@@ -14,6 +14,7 @@ class EmailsTest extends IntegrationTest {
 
   @Autowired EventService events;
   @Autowired OutboxRepository outbox;
+  @Autowired com.sorinwork.tickets.ticket.TicketRepository tickets;
 
   @Test
   void paidOrdersGetAConfirmationWithTheTicketsLink() {
@@ -32,5 +33,8 @@ class EmailsTest extends IntegrationTest {
         .contains("Total: €24.00")
         .contains("http://localhost:8080/orders/" + order.getAccessToken());
     assertThat(message.getEventId()).isEqualTo(event.getId());
+    tickets
+        .findByOrderIdOrderById(order.getId())
+        .forEach(t -> assertThat(message.getBody()).contains(t.getCode() + "  Dancer – Ana Pop"));
   }
 }

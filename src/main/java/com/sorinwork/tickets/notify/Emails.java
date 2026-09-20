@@ -5,6 +5,8 @@ import com.sorinwork.tickets.config.AppProperties;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderItem;
+import com.sorinwork.tickets.ticket.Ticket;
+import com.sorinwork.tickets.ticket.TicketRepository;
 import com.sorinwork.tickets.waitlist.WaitlistEntry;
 import com.sorinwork.tickets.web.Formatters;
 import org.springframework.stereotype.Component;
@@ -17,7 +19,11 @@ public class Emails {
   private final AppProperties properties;
   private final Formatters fmt;
 
-  public Emails(Notifier notifier, AppProperties properties, Formatters fmt) {
+  private final TicketRepository tickets;
+
+  public Emails(
+      Notifier notifier, AppProperties properties, Formatters fmt, TicketRepository tickets) {
+    this.tickets = tickets;
     this.notifier = notifier;
     this.properties = properties;
     this.fmt = fmt;
@@ -88,6 +94,17 @@ public class Emails {
       body.append(item.getQuantity()).append(" × ").append(item.getTier().getName()).append('\n');
     }
     body.append("Total: ").append(Money.format(order.getTotalCents(), event.getCurrency()));
+    body.append("\n\nTickets:\n");
+    for (Ticket ticket : tickets.findByOrderIdOrderById(order.getId())) {
+      body.append("  ")
+          .append(ticket.getCode())
+          .append("  ")
+          .append(ticket.getTier().getName())
+          .append(" – ")
+          .append(ticket.getAttendeeName())
+          .append('\n');
+    }
+    body.setLength(body.length() - 1);
     body.append("\n\nYour tickets with their QR codes are here:\n");
     body.append(properties.url("/orders/" + order.getAccessToken())).append("\n\n");
     body.append("Show the QR code at the door, on your phone or printed.\n");
