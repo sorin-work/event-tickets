@@ -6,13 +6,14 @@
 <main id="main" class="container">
   <p><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="'&larr; ' + ${event.title}">&larr; Event</a></p>
   <h1>Attendees</h1>
-  <form class="search" method="get">
+  <form class="search no-print" method="get">
     <input type="search" name="q" th:value="${q}" placeholder="Name, email, ticket code or order" aria-label="Search attendees">
     <button class="btn" type="submit">Search</button>
     <input type="hidden" name="arrival" th:value="${arrival}">
     <a class="btn" th:href="@{/admin/events/{id}/attendees.csv(id=${event.id})}">Export CSV</a>
   </form>
-  <nav class="filters">
+  <p class="no-print"><button class="btn" type="button" onclick="window.print()">Print this page</button></p>
+  <nav class="filters no-print">
     <a th:href="@{''(q=${q})}" th:classappend="${arrival.name() == 'ALL'} ? 'active'">Everyone</a>
     <a th:href="@{''(q=${q},arrival='IN')}" th:classappend="${arrival.name() == 'IN'} ? 'active'">Checked in</a>
     <a th:href="@{''(q=${q},arrival='OUT')}" th:classappend="${arrival.name() == 'OUT'} ? 'active'">Not arrived</a>

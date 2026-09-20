@@ -638,3 +638,19 @@ form.inline {
 .skip-link:focus {
   left: 8px;
 }
+
+@media print {
+  .pager,
+  .filters {
+    display: none;
+  }
+
+  table {
+    font-size: 10pt;
+  }
+
+  th,
+  td {
+    padding: 4px 6px;
+  }
+}
