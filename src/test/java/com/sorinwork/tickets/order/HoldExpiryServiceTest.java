@@ -17,6 +17,7 @@ class HoldExpiryServiceTest extends IntegrationTest {
   @Autowired CheckoutService checkout;
   @Autowired EventService events;
   @Autowired OrderRepository orders;
+  @Autowired AvailabilityService availability;
 
   @Test
   void expiresOnlyHoldsThatRanOut() {
@@ -37,6 +38,24 @@ class HoldExpiryServiceTest extends IntegrationTest {
     assertThat(orders.findById(fresh.getId()).orElseThrow().getStatus())
         .isEqualTo(OrderStatus.PENDING);
     assertThat(orders.findById(paid.getId()).orElseThrow().getStatus()).isEqualTo(OrderStatus.PAID);
+  }
+
+  @Test
+  void aHoldEndsExactlyAtItsExpiryTime() {
+    Event event = data.event("Talk");
+    TicketTier tier = data.tier(event, "Seat", "0", 1);
+    events.publish(event.getId());
+    Order hold = checkout.start(event.getId(), Map.of(tier.getId(), 1));
+
+    clock.advance(Duration.ofMinutes(10).minusSeconds(1));
+    assertThat(expiry.expireHolds()).isZero();
+    assertThat(availability.forEvent(event.getId()).get(tier.getId()).isSoldOut()).isTrue();
+
+    clock.advance(Duration.ofSeconds(1));
+    assertThat(availability.forEvent(event.getId()).get(tier.getId()).remaining()).isEqualTo(1);
+    assertThat(expiry.expireHolds()).isEqualTo(1);
+    assertThat(orders.findById(hold.getId()).orElseThrow().getStatus())
+        .isEqualTo(OrderStatus.EXPIRED);
   }
 
   @Test
