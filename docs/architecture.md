@@ -50,6 +50,26 @@ order on their behalf, held for 24 hours, and emails them its checkout link.
 Someone asking for more tickets than are free keeps their place and blocks the
 people behind them, so nobody is skipped.
 
+## Promo codes
+
+A code's uses are not stored. They are counted from orders when needed: paid
+orders plus checkouts that still hold their seats. A checkout that runs out or
+an order that is cancelled therefore gives its use back automatically. Codes
+can be limited to one tier; then only that tier's tickets are discounted.
+Percentages are rounded half up to the cent.
+
+## Scheduled jobs
+
+Both run inside the app (`app.scheduling.enabled`, on by default):
+
+| Job                   | Every   | What it does                                                   |
+| --------------------- | ------- | -------------------------------------------------------------- |
+| `HoldExpiryService`   | 30 s    | Expires unpaid checkouts and hands their seats to the waitlist |
+| `ReminderService`     | 15 min  | Emails buyers about 24 hours before their event starts         |
+
+With several app instances each would run the jobs; the work is idempotent
+(status checks, `reminder_sent_at`), but one instance is the expected setup.
+
 ## Time
 
 Event start/end times and tier sales windows are wall-clock `LocalDateTime`s in
