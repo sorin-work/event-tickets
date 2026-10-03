@@ -7,6 +7,7 @@ import org.springframework.boot.context.properties.bind.DefaultValue;
 @ConfigurationProperties(prefix = "app")
 public record AppProperties(
     @DefaultValue("http://localhost:8080") String baseUrl,
+    @DefaultValue("") String organizerEmail,
     @DefaultValue Admin admin,
     @DefaultValue Checkout checkout,
     @DefaultValue Waitlist waitlist) {

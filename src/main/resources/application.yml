@@ -59,6 +59,8 @@ management:
 
 app:
   base-url: ${BASE_URL:http://localhost:8080}
+  # Shown on event pages and in emails so buyers know whom to ask.
+  organizer-email: ${ORGANIZER_EMAIL:}
   # Creates sample events, orders and a waitlist in an empty database.
   seed-demo: ${SEED_DEMO:false}
   admin:

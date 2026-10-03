@@ -108,6 +108,9 @@ public class Emails {
     body.append("\n\nYour tickets with their QR codes are here:\n");
     body.append(properties.url("/orders/" + order.getAccessToken())).append("\n\n");
     body.append("Show the QR code at the door, on your phone or printed.\n");
+    if (!properties.organizerEmail().isBlank()) {
+      body.append("Questions? Write to ").append(properties.organizerEmail()).append(".\n");
+    }
     notifier.send(
         order.getBuyerEmail(),
         "Your tickets for " + event.getTitle(),

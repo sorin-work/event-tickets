@@ -35,6 +35,8 @@
   <div class="container">
     Event Tickets · tickets for small venues and meetups ·
     <a th:href="@{/events/past}">past events</a>
+    <span th:if="${organizerEmail}"> · questions?
+      <a th:href="'mailto:' + ${organizerEmail}" th:text="${organizerEmail}">hello@example.com</a></span>
   </div>
 </footer>
 

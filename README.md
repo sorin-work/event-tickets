@@ -68,6 +68,7 @@ All settings are environment variables (or the matching `app.*` /
 | `DATABASE_PASSWORD`       | `tickets`                                | Database password                                               |
 | `PORT`                    | `8080`                                   | HTTP port inside the container / on your machine                |
 | `BASE_URL`                | `http://localhost:8080`                  | Public address, used for links in emails                        |
+| `ORGANIZER_EMAIL`         | _(empty)_                                | Contact address shown on public pages and in emails             |
 | `ADMIN_EMAIL`             | _(empty)_                                | First admin account, created when there are no admins           |
 | `ADMIN_PASSWORD`          | _(empty)_                                | Password of that account                                        |
 | `SEED_DEMO`               | `false`                                  | Fill an empty database with demo events and orders              |
