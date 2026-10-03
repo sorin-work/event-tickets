@@ -59,7 +59,7 @@ public class AttendeeService {
     DateTimeFormatter time = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(zone);
     Csv csv = new Csv(out);
     csv.row("Name", "Email", "Tier", "Ticket code", "Order", "Checked in");
-    for (Ticket ticket : tickets.findByEventIdAndOrderStatusOrderById(eventId, OrderStatus.PAID)) {
+    for (Ticket ticket : tickets.findForExport(eventId, OrderStatus.PAID)) {
       csv.row(
           ticket.getAttendeeName(),
           ticket.getAttendeeEmail(),

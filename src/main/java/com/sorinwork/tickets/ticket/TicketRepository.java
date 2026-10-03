@@ -56,7 +56,14 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       @Param("arrival") String arrival,
       Pageable pageable);
 
-  List<Ticket> findByEventIdAndOrderStatusOrderById(Long eventId, OrderStatus status);
+  /** Valid tickets with tier and order, in one query, for exports. */
+  @Query(
+      """
+      select t from Ticket t join fetch t.tier join fetch t.order o
+      where t.event.id = :eventId and o.status = :status
+      order by t.id
+      """)
+  List<Ticket> findForExport(@Param("eventId") long eventId, @Param("status") OrderStatus status);
 
   @Query(
       """
