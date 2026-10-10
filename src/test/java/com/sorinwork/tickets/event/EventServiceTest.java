@@ -107,6 +107,16 @@ class EventServiceTest extends IntegrationTest {
   }
 
   @Test
+  void cannotPublishAnEventThatAlreadyStarted() {
+    Event event = service.create(TestData.eventForm("Yesterday"));
+    data.tier(event, "Entry", "5", 50);
+    clock.set(java.time.Instant.parse("2030-03-15T10:00:00Z"));
+
+    assertThatThrownBy(() -> service.publish(event.getId()))
+        .hasMessageContaining("already started");
+  }
+
+  @Test
   void cannotPublishWithoutTiers() {
     Event event = service.create(TestData.eventForm("Open Mic"));
 

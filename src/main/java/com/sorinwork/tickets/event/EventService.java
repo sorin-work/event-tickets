@@ -88,6 +88,9 @@ public class EventService {
     if (event.getStatus() == EventStatus.CANCELLED) {
       throw new BusinessException("A cancelled event cannot be published again.");
     }
+    if (!event.startsAtInstant().isAfter(clock.instant())) {
+      throw new BusinessException("This event has already started; change its date first.");
+    }
     if (tiers.countByEventId(id) == 0) {
       throw new BusinessException("Add at least one ticket tier before publishing.");
     }
