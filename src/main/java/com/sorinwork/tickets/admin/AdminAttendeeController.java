@@ -20,9 +20,41 @@ public class AdminAttendeeController {
   private final EventService events;
   private final AttendeeService attendees;
 
-  public AdminAttendeeController(EventService events, AttendeeService attendees) {
+  private final com.sorinwork.tickets.ticket.CheckInService checkIn;
+  private final com.sorinwork.tickets.ticket.TicketRepository tickets;
+
+  public AdminAttendeeController(
+      EventService events,
+      AttendeeService attendees,
+      com.sorinwork.tickets.ticket.CheckInService checkIn,
+      com.sorinwork.tickets.ticket.TicketRepository tickets) {
     this.events = events;
     this.attendees = attendees;
+    this.checkIn = checkIn;
+    this.tickets = tickets;
+  }
+
+  /** For people who lost their QR code: find them in the list and let them in by hand. */
+  @org.springframework.web.bind.annotation.PostMapping(
+      "/admin/events/{eventId}/attendees/{ticketId}/check-in")
+  public String checkInByHand(
+      @PathVariable long eventId,
+      @PathVariable long ticketId,
+      @RequestParam(defaultValue = "") String q,
+      java.security.Principal principal,
+      org.springframework.web.servlet.mvc.support.RedirectAttributes redirect) {
+    var ticket =
+        tickets
+            .findById(ticketId)
+            .orElseThrow(() -> new com.sorinwork.tickets.common.NotFoundException("Ticket"));
+    var result = checkIn.checkIn(eventId, ticket.getCode(), principal.getName());
+    redirect.addFlashAttribute(
+        result.admitted() ? "flash" : "error",
+        result.admitted()
+            ? ticket.getAttendeeName() + " is checked in."
+            : "Not checked in: " + result.status().name().toLowerCase().replace('_', ' ') + ".");
+    redirect.addAttribute("q", q);
+    return "redirect:/admin/events/" + eventId + "/attendees";
   }
 
   @GetMapping("/admin/events/{eventId}/attendees")

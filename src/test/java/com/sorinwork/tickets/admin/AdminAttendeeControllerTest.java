@@ -108,6 +108,29 @@ class AdminAttendeeControllerTest extends IntegrationTest {
   }
 
   @Test
+  void checksSomeoneInByHand() throws Exception {
+    Order order = purchases.buy(tier, 1, "Lost Phone", "lost@example.com");
+    long ticketId = orders.tickets(order.getId()).get(0).getId();
+
+    mvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post(
+                    url + "/" + ticketId + "/check-in")
+                .with(
+                    org.springframework.security.test.web.servlet.request
+                        .SecurityMockMvcRequestPostProcessors.csrf())
+                .param("q", "lost"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
+                url + "?q=lost"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash()
+                .attribute("flash", "Lost Phone is checked in."));
+
+    org.assertj.core.api.Assertions.assertThat(orders.tickets(order.getId()).get(0).isCheckedIn())
+        .isTrue();
+  }
+
+  @Test
   void emptyState() throws Exception {
     mvc.perform(get(url)).andExpect(content().string(containsString("No tickets sold yet.")));
   }
