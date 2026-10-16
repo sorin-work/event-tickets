@@ -11,6 +11,8 @@ import com.sorinwork.tickets.order.AvailabilityService;
 import com.sorinwork.tickets.ticket.AttendeeService;
 import com.sorinwork.tickets.waitlist.WaitlistService;
 import jakarta.validation.Valid;
+import java.time.Clock;
+import java.time.Instant;
 import java.time.ZoneId;
 import java.util.List;
 import org.springframework.stereotype.Controller;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -40,7 +43,7 @@ public class AdminEventController {
   private final AvailabilityService availability;
   private final AppProperties properties;
   private final WaitlistService waitlist;
-  private final java.time.Clock clock;
+  private final Clock clock;
 
   public AdminEventController(
       EventService events,
@@ -50,7 +53,7 @@ public class AdminEventController {
       AvailabilityService availability,
       AppProperties properties,
       WaitlistService waitlist,
-      java.time.Clock clock) {
+      Clock clock) {
     this.clock = clock;
     this.events = events;
     this.tiers = tiers;
@@ -67,10 +70,8 @@ public class AdminEventController {
   }
 
   @GetMapping
-  public String list(
-      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "upcoming") String show,
-      Model model) {
-    java.time.Instant now = clock.instant();
+  public String list(@RequestParam(defaultValue = "upcoming") String show, Model model) {
+    Instant now = clock.instant();
     model.addAttribute(
         "events",
         events.listAll().stream()
@@ -141,9 +142,7 @@ public class AdminEventController {
 
   @PostMapping("/{id}/slug")
   public String changeSlug(
-      @PathVariable long id,
-      @org.springframework.web.bind.annotation.RequestParam String slug,
-      RedirectAttributes redirect) {
+      @PathVariable long id, @RequestParam String slug, RedirectAttributes redirect) {
     try {
       Event event = events.changeSlug(id, slug);
       redirect.addFlashAttribute("flash", "The event page is now at /events/" + event.getSlug());

@@ -8,11 +8,17 @@ import com.sorinwork.tickets.order.OrderExport;
 import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.ticket.CheckInService;
 import com.sorinwork.tickets.ticket.Ticket;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import org.springframework.http.ContentDisposition;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -34,8 +40,8 @@ public class AdminOrderController {
   @GetMapping("/admin/events/{eventId}/orders")
   public String list(
       @PathVariable long eventId,
-      @org.springframework.web.bind.annotation.RequestParam(required = false) OrderStatus status,
-      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "1") int page,
+      @RequestParam(required = false) OrderStatus status,
+      @RequestParam(defaultValue = "1") int page,
       Model model) {
     model.addAttribute("event", events.get(eventId));
     model.addAttribute("status", status);
@@ -45,15 +51,14 @@ public class AdminOrderController {
   }
 
   @GetMapping("/admin/events/{eventId}/orders.csv")
-  public void exportCsv(
-      @PathVariable long eventId, jakarta.servlet.http.HttpServletResponse response)
-      throws java.io.IOException {
+  public void exportCsv(@PathVariable long eventId, HttpServletResponse response)
+      throws IOException {
     var event = events.get(eventId);
     response.setContentType("text/csv;charset=UTF-8");
     response.setHeader(
-        org.springframework.http.HttpHeaders.CONTENT_DISPOSITION,
-        org.springframework.http.ContentDisposition.attachment()
-            .filename(event.getSlug() + "-orders.csv", java.nio.charset.StandardCharsets.UTF_8)
+        HttpHeaders.CONTENT_DISPOSITION,
+        ContentDisposition.attachment()
+            .filename(event.getSlug() + "-orders.csv", StandardCharsets.UTF_8)
             .build()
             .toString());
     export.writeCsv(eventId, event.zone(), response.getWriter());
@@ -70,9 +75,7 @@ public class AdminOrderController {
 
   @PostMapping("/admin/tickets/{ticketId}/name")
   public String rename(
-      @PathVariable long ticketId,
-      @org.springframework.web.bind.annotation.RequestParam String name,
-      RedirectAttributes redirect) {
+      @PathVariable long ticketId, @RequestParam String name, RedirectAttributes redirect) {
     try {
       Ticket ticket = orders.renameTicket(ticketId, name);
       redirect.addFlashAttribute(
@@ -87,7 +90,7 @@ public class AdminOrderController {
   @PostMapping("/admin/orders/{orderId}/note")
   public String saveNote(
       @PathVariable long orderId,
-      @org.springframework.web.bind.annotation.RequestParam(defaultValue = "") String note,
+      @RequestParam(defaultValue = "") String note,
       RedirectAttributes redirect) {
     try {
       orders.saveNote(orderId, note);

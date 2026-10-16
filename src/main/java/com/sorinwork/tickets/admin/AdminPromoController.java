@@ -7,6 +7,8 @@ import com.sorinwork.tickets.promo.DiscountType;
 import com.sorinwork.tickets.promo.PromoCodeService;
 import com.sorinwork.tickets.promo.PromoForm;
 import jakarta.validation.Valid;
+import java.time.LocalDateTime;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -74,10 +76,8 @@ public class AdminPromoController {
       @PathVariable long eventId,
       @PathVariable long promoId,
       @RequestParam(required = false) Integer maxUses,
-      @RequestParam(required = false)
-          @org.springframework.format.annotation.DateTimeFormat(
-              iso = org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME)
-          java.time.LocalDateTime validUntil,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+          LocalDateTime validUntil,
       RedirectAttributes redirect) {
     try {
       promos.updateLimits(eventId, promoId, maxUses, validUntil);
