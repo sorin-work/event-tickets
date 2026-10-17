@@ -59,7 +59,8 @@ public class CheckoutController {
   @GetMapping("/checkout/{token}")
   public String show(@PathVariable String token, Model model) {
     Order order = checkout.getByToken(token);
-    if (order.getStatus() == OrderStatus.PAID) {
+    if (order.getStatus() == OrderStatus.PAID
+        || (order.getStatus() == OrderStatus.CANCELLED && order.getPaidAt() != null)) {
       return "redirect:/orders/" + token;
     }
     model.addAttribute("form", new CheckoutForm());
@@ -137,7 +138,9 @@ public class CheckoutController {
   @GetMapping("/orders/{token}")
   public String confirmation(@PathVariable String token, Model model) {
     Order order = checkout.getByToken(token);
-    if (order.getStatus() != OrderStatus.PAID) {
+    boolean cancelledAfterPayment =
+        order.getStatus() == OrderStatus.CANCELLED && order.getPaidAt() != null;
+    if (order.getStatus() != OrderStatus.PAID && !cancelledAfterPayment) {
       return "redirect:/checkout/" + token;
     }
     model.addAttribute("order", order);

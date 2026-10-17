@@ -4,7 +4,10 @@
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container narrow">
-  <div class="alert alert-ok">Thank you! Your order is confirmed.</div>
+  <div th:if="${order.status.name() == 'PAID'}" class="alert alert-ok">Thank you! Your order is confirmed.</div>
+  <div th:if="${order.status.name() == 'CANCELLED'}" class="alert alert-danger">
+    This order was cancelled and its tickets are no longer valid.
+  </div>
   <h1>Your tickets</h1>
   <p>
     Order <strong th:text="${order.reference}">ET-7K3F9Q</strong> for
@@ -28,8 +31,10 @@
       <strong th:text="${ticket.tier.name}">Standing</strong>
       <div th:text="${ticket.attendeeName}">Ana Pop</div>
       <div class="ticket-code" th:text="${ticket.code}">ABCD2345EFGH</div>
+      <span th:if="${ticket.checkedIn}" class="badge badge-ok"
+            th:text="'Checked in ' + ${#temporals.format(ticket.checkedInAt.atZone(event.zone()), 'HH:mm')}">Checked in 19:42</span>
     </div>
-    <img class="qr" th:src="@{/orders/{token}/tickets/{id}/qr.png(token=${order.accessToken},id=${ticket.id})}" width="160" height="160"
+    <img th:if="${order.status.name() == 'PAID'}" class="qr" th:src="@{/orders/{token}/tickets/{id}/qr.png(token=${order.accessToken},id=${ticket.id})}" width="160" height="160"
          th:alt="'QR code for ticket ' + ${ticket.code}">
   </div>
 </main>

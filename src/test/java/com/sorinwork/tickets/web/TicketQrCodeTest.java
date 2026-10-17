@@ -21,6 +21,8 @@ class TicketQrCodeTest extends IntegrationTest {
 
   @Autowired EventService events;
   @Autowired TicketRepository tickets;
+  @Autowired com.sorinwork.tickets.order.OrderAdminService orderAdmin;
+  @Autowired com.sorinwork.tickets.ticket.CheckInService checkIn;
 
   Order mine;
   Order theirs;
@@ -57,6 +59,27 @@ class TicketQrCodeTest extends IntegrationTest {
   void ticketIdsAloneDoNotGiveAccess() throws Exception {
     mvc.perform(get("/tickets/" + theirTicket.getId() + "/qr.png"))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void cancelledOrdersSaySoAndShowNoQrCodes() throws Exception {
+    orderAdmin.cancel(mine.getId());
+
+    mvc.perform(get("/orders/" + mine.getAccessToken()))
+        .andExpect(content().string(containsString("This order was cancelled")))
+        .andExpect(content().string(org.hamcrest.Matchers.not(containsString("qr.png"))));
+    mvc.perform(get("/checkout/" + mine.getAccessToken()))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl(
+                "/orders/" + mine.getAccessToken()));
+  }
+
+  @Test
+  void showsWhenATicketWasUsed() throws Exception {
+    checkIn.checkIn(mine.getEvent().getId(), myTicket.getCode(), "door");
+
+    mvc.perform(get("/orders/" + mine.getAccessToken()))
+        .andExpect(content().string(containsString("Checked in 12:00")));
   }
 
   @Test
