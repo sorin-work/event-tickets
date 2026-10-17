@@ -68,6 +68,19 @@ class DoorApiControllerTest extends IntegrationTest {
   }
 
   @Test
+  void listsOnlyPeopleStillToArrive() throws Exception {
+    mvc.perform(
+        post("/api/v1/admin/events/" + event.getId() + "/check-in")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"code\": \"" + code + "\"}"));
+
+    mvc.perform(get("/api/v1/admin/events/" + event.getId() + "/attendees").param("arrival", "out"))
+        .andExpect(jsonPath("$.total").value(1));
+    mvc.perform(get("/api/v1/admin/events/" + event.getId() + "/attendees").param("arrival", "in"))
+        .andExpect(jsonPath("$.items[0].code").value(code));
+  }
+
+  @Test
   void unknownEvent() throws Exception {
     mvc.perform(get("/api/v1/admin/events/999/attendees")).andExpect(status().isNotFound());
   }

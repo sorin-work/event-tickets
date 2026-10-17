@@ -81,9 +81,16 @@ public class DoorApiController {
   public AttendeePage attendees(
       @PathVariable long eventId,
       @RequestParam(defaultValue = "") String q,
+      @RequestParam(defaultValue = "all") String arrival,
       @RequestParam(defaultValue = "1") int page) {
     events.get(eventId);
-    PageView<Ticket> view = attendees.attendees(eventId, q, page);
+    AttendeeService.Arrival filter =
+        switch (arrival.toLowerCase(java.util.Locale.ROOT)) {
+          case "in" -> AttendeeService.Arrival.IN;
+          case "out" -> AttendeeService.Arrival.OUT;
+          default -> AttendeeService.Arrival.ALL;
+        };
+    PageView<Ticket> view = attendees.attendees(eventId, q, filter, page);
     return new AttendeePage(
         view.items().stream().map(Attendee::of).toList(),
         view.page(),

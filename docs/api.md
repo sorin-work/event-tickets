@@ -106,10 +106,11 @@ whether to let the person in, plus the running count for the event:
 `status` is one of `CHECKED_IN`, `ALREADY_CHECKED_IN`, `NOT_FOUND`,
 `WRONG_EVENT` or `CANCELLED`. Only `CHECKED_IN` has `"admitted": true`.
 
-### `GET /api/v1/admin/events/{eventId}/attendees?q=&page=1`
+### `GET /api/v1/admin/events/{eventId}/attendees?q=&arrival=all&page=1`
 
 Valid tickets of the event by attendee name, 25 per page. `q` matches part of a
-name or email, or a whole ticket code or order reference.
+name or email, or a whole ticket code or order reference. `arrival` is `all`
+(default), `in` for people already checked in or `out` for those still to come.
 
 ```json
 {
