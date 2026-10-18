@@ -3,17 +3,24 @@
 Ticketing for small venues and meetups: publish an event, sell a few kinds of
 tickets, and let people in at the door.
 
-- **Events** with ticket tiers, prices, quantities and sales windows
+- **Events** with ticket tiers, prices, quantities, sales windows, an optional
+  venue capacity across tiers, and pausing sales for a tier
 - **Checkout** that holds the chosen seats for 10 minutes while the buyer fills
-  in their details (payment is simulated)
-- **Promo codes** with percentage or fixed discounts, usage limits and expiry
-- **Tickets** with QR codes on the buyer's confirmation page, emailed as a link
+  in their details, with a name per ticket (payment is simulated)
+- **Promo codes** with percentage or fixed discounts, usage limits, expiry and
+  optionally only for one tier
+- **Tickets** with QR codes, emailed as a link, plus "find my tickets" and a
+  reminder the day before
 - **Waitlist** for sold-out tiers: released tickets are offered in the order
-  people joined
-- **Door check-in** by scanning QR codes with a phone camera or USB scanner
-- **Attendee list** with search and CSV export
-- **Sales report** per event: tiers, revenue, promo codes and sales by day
+  people joined and held for them for 24 hours
+- **Door check-in** by scanning QR codes with a phone camera or USB scanner,
+  with a live counter, beeps and manual check-in from the attendee list
+- **Attendees and orders** with search, filters, notes, cancellation and CSV
+  export
+- **Sales report** per event: tiers, revenue, promo codes, sales by day and
+  arrivals per hour, also as CSV
 - **JSON API** for event listings and door scanner apps, see [docs/api.md](docs/api.md)
+- **Calendar files**, link previews, dark mode and a layout that works on phones
 
 ## Stack
 
@@ -37,11 +44,12 @@ sign in with the demo account:
 - **Password:** `demo-password`
 
 On first start the app creates a few demo events with orders, promo codes
-(`FRIENDS10`, `BAND` and `TABLE4` for table seats only), a sold-out film night with a waitlist and a past event
-with check-ins. Set `SEED_DEMO=false` to start with an empty database.
+(`FRIENDS10`, `BAND` and `TABLE4` for table seats only), a sold-out film night
+with a waitlist and a past event with check-ins. Set `SEED_DEMO=false` to start with an empty database.
 
-There is no mail server: emails the app would send (tickets, waitlist offers)
-can be read under **Outbox** in the admin area.
+There is no mail server: emails the app would send (tickets, waitlist offers,
+reminders) can be read under **Outbox** in the admin area. More background is
+in [docs/architecture.md](docs/architecture.md).
 
 ## Local development
 
