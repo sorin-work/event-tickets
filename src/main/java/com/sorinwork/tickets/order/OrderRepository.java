@@ -13,8 +13,6 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
   Optional<Order> findByAccessToken(String accessToken);
 
-  Optional<Order> findByReference(String reference);
-
   /** The order with its event, items and tiers loaded, for rendering checkout pages. */
   @Query(
       """

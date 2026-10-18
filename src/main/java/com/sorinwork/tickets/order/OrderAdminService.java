@@ -67,12 +67,6 @@ public class OrderAdminService {
     return order;
   }
 
-  /** Orders of an event, newest first; expired checkouts are left out. */
-  @Transactional(readOnly = true)
-  public PageView<Order> forEvent(long eventId, int page) {
-    return forEvent(eventId, null, page);
-  }
-
   /**
    * A page of the event's orders with the given status, or all visible ones when {@code status} is
    * null. {@code page} is 1-based.
