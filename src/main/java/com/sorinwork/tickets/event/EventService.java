@@ -119,6 +119,9 @@ public class EventService {
     if (slug.equals(event.getSlug())) {
       return event;
     }
+    if (RESERVED_SLUGS.contains(slug)) {
+      throw new BusinessException("/events/" + slug + " is used by the site itself.");
+    }
     if (events.existsBySlug(slug)) {
       throw new BusinessException("Another event already uses /events/" + slug + ".");
     }
@@ -172,11 +175,14 @@ public class EventService {
     String base = Slugs.slugify(title);
     String slug = base;
     int suffix = 2;
-    while (events.existsBySlug(slug)) {
+    while (RESERVED_SLUGS.contains(slug) || events.existsBySlug(slug)) {
       slug = base + "-" + suffix++;
     }
     return slug;
   }
+
+  /** Paths under /events/ that belong to pages of their own. */
+  static final java.util.Set<String> RESERVED_SLUGS = java.util.Set.of("past");
 
   private static String blankToNull(String value) {
     return value == null || value.isBlank() ? null : value.trim();

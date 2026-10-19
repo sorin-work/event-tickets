@@ -43,6 +43,15 @@ class EventServiceTest extends IntegrationTest {
   }
 
   @Test
+  void anEventCalledPastDoesNotHideThePastEventsPage() {
+    Event event = service.create(TestData.eventForm("Past"));
+
+    assertThat(event.getSlug()).isEqualTo("past-2");
+    assertThatThrownBy(() -> service.changeSlug(event.getId(), "past"))
+        .hasMessageContaining("used by the site");
+  }
+
+  @Test
   void updateKeepsTheSlug() {
     Event event = service.create(TestData.eventForm("Board Games"));
     EventForm changed = TestData.eventForm("Board Games Marathon");
