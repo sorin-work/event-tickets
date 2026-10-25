@@ -96,8 +96,19 @@ file.
 ```
 
 Integration tests boot the whole application against an in-memory H2 database,
-so no running Postgres is needed. `./mvnw spotless:apply` formats the code;
-`verify` fails on unformatted code.
+so no running Postgres is needed. They share one Spring context and a test
+clock (`TestClock`) that tests move forward to let holds and offers run out.
+
+| Command                                  | What it does                              |
+| ---------------------------------------- | ----------------------------------------- |
+| `./mvnw verify`                          | Format check, all tests, build the jar    |
+| `./mvnw test -Dtest=CheckoutServiceTest` | One test class                            |
+| `./mvnw spotless:apply`                  | Format the code (google-java-format)      |
+| `./mvnw spring-boot:run`                 | Run the app locally                       |
+| `docker build -t event-tickets .`        | Build the container image                 |
+
+CI runs the format check, the tests and the Docker build on every push
+(`.github/workflows/ci.yml`).
 
 ## Running behind a reverse proxy
 
