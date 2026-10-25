@@ -23,7 +23,7 @@
       <td th:text="${#temporals.format(event.startsAt, 'EEE d MMM yyyy, HH:mm')}">date</td>
       <td th:text="${event.venueName}">venue</td>
       <td class="num" th:text="${sold[event.id]} ?: 0">12</td>
-      <td><span class="badge" th:text="${event.status}">DRAFT</span></td>
+      <td><span class="badge" th:classappend="${event.status.name() == 'PUBLISHED'} ? 'badge-ok' : (${event.status.name() == 'CANCELLED'} ? 'badge-danger' : '')" th:text="${#strings.capitalize(#strings.toLowerCase(event.status.name()))}">DRAFT</span></td>
     </tr>
     </tbody>
   </table>

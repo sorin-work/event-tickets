@@ -29,7 +29,7 @@
       <tr th:each="event : ${upcoming}">
         <td><a th:href="@{/admin/events/{id}/edit(id=${event.id})}" th:text="${event.title}">Event</a></td>
         <td th:text="${@fmt.when(event)}">date</td>
-        <td><span class="badge" th:text="${event.status}">PUBLISHED</span></td>
+        <td><span class="badge" th:classappend="${event.status.name() == 'PUBLISHED'} ? 'badge-ok' : (${event.status.name() == 'CANCELLED'} ? 'badge-danger' : '')" th:text="${#strings.capitalize(#strings.toLowerCase(event.status.name()))}">PUBLISHED</span></td>
         <td><a th:href="@{/admin/events/{id}/check-in(id=${event.id})}">Check-in</a></td>
       </tr>
     </table>

@@ -8,7 +8,7 @@
   <p><a th:href="@{/admin/events}">&larr; All events</a></p>
   <h1 th:text="${event} ? ${event.title} : 'New event'">New event</h1>
   <div th:if="${event}" class="card status-bar">
-    <span>Status: <span class="badge" th:text="${event.status}">DRAFT</span></span>
+    <span>Status: <span class="badge" th:classappend="${event.status.name() == 'PUBLISHED'} ? 'badge-ok' : (${event.status.name() == 'CANCELLED'} ? 'badge-danger' : '')" th:text="${#strings.capitalize(#strings.toLowerCase(event.status.name()))}">DRAFT</span></span>
     <form th:if="${event.status.name() == 'DRAFT'}" method="post" th:action="@{/admin/events/{id}/publish(id=${event.id})}">
       <button class="btn btn-primary" type="submit">Publish</button>
     </form>
