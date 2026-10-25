@@ -47,5 +47,6 @@
     <nav th:replace="~{fragments/admin :: pager(${attendees}, ${'&q=' + #uris.escapeQueryParam(q) + '&arrival=' + arrival})}"></nav>
   </th:block>
 </main>
+<footer th:replace="~{fragments/admin :: footer}"></footer>
 </body>
 </html>

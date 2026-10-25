@@ -19,6 +19,10 @@
   </div>
 </header>
 
+<footer th:fragment="footer" class="site-footer">
+  <div class="container muted" th:text="'event-tickets ' + ${appVersion}">event-tickets 1.0.0</div>
+</footer>
+
 <div th:fragment="flash">
   <div th:if="${flash}" class="alert alert-ok" th:text="${flash}">Saved.</div>
   <div th:if="${error}" class="alert alert-danger" th:text="${error}">Something went wrong.</div>

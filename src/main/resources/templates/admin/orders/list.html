@@ -33,5 +33,6 @@
   </table>
   <nav th:replace="~{fragments/admin :: pager(${orders}, ${status} ? ${'&status=' + status} : '')}"></nav>
 </main>
+<footer th:replace="~{fragments/admin :: footer}"></footer>
 </body>
 </html>
