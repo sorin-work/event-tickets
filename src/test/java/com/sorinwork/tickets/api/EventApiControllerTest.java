@@ -55,6 +55,23 @@ class EventApiControllerTest extends IntegrationTest {
   }
 
   @Test
+  void soldOutTiersAndCancelledEvents() throws Exception {
+    purchases.buy(tier, 3, "Ana", "ana@example.com");
+
+    mvc.perform(get("/api/v1/events/open-air-cinema"))
+        .andExpect(jsonPath("$.tiers[0].remaining").value(0))
+        .andExpect(jsonPath("$.tiers[0].soldOut").value(true));
+
+    var event = events.getPublic("open-air-cinema");
+    events.cancel(event.getId());
+
+    mvc.perform(get("/api/v1/events/open-air-cinema"))
+        .andExpect(jsonPath("$.event.status").value("CANCELLED"))
+        .andExpect(jsonPath("$.tiers[0].soldOut").value(false));
+    mvc.perform(get("/api/v1/events")).andExpect(jsonPath("$.length()").value(0));
+  }
+
+  @Test
   void unknownEventIsAJson404() throws Exception {
     mvc.perform(get("/api/v1/events/draft-thing"))
         .andExpect(status().isNotFound())
