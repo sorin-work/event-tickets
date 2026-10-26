@@ -11,6 +11,12 @@ Errors use the matching HTTP status and a body like:
 { "error": "Not found" }
 ```
 
+| Status | When                                                              |
+| ------ | ----------------------------------------------------------------- |
+| `401`  | Door endpoint called without valid admin credentials (empty body) |
+| `404`  | Unknown event or slug, or a draft event                           |
+| `422`  | The request is well formed but not allowed right now              |
+
 ## Public endpoints
 
 Public responses may be cached for 30 seconds (`Cache-Control: max-age=30,
