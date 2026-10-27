@@ -51,6 +51,19 @@ There is no mail server: emails the app would send (tickets, waitlist offers,
 reminders) can be read under **Outbox** in the admin area. More background is
 in [docs/architecture.md](docs/architecture.md).
 
+### A quick tour
+
+1. Open **Summer Jazz Night**, pick two Standing tickets and continue. The seats
+   are now held for 10 minutes; the countdown is in the page and the tab.
+2. Apply `FRIENDS10`, fill in a name and email and "pay". The tickets page shows
+   a QR code per ticket; the email is in the admin **Outbox**.
+3. **Indie Film Club** is sold out: join the waitlist, then in the admin cancel
+   one of its orders. The first person on the waitlist gets an offer email with
+   a checkout link that holds the seat for 24 hours.
+4. In the admin open an event's **Check-in** page and type or scan a ticket
+   code; scanning it twice is refused. **Sales report** and **Attendees** show
+   the result.
+
 ## Local development
 
 You need Java 21 and a PostgreSQL database. The quickest way to get one is to
