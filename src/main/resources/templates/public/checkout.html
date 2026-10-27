@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org" lang="en">
-<head th:replace="~{fragments/layout :: head('Checkout')}"></head>
+<head th:replace="~{fragments/layout :: head('Checkout · ' + ${event.title})}"></head>
 <body>
 <header th:replace="~{fragments/layout :: header}"></header>
 <main id="main" class="container narrow">

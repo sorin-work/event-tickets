@@ -66,7 +66,10 @@ class CheckoutControllerTest extends IntegrationTest {
     mvc.perform(get("/checkout/" + token))
         .andExpect(content().string(containsString("data-countdown=\"2030-01-15T10:10:00Z\"")))
         .andExpect(content().string(containsString("(until <span>12:10</span>)")))
-        .andExpect(content().string(containsString("Pay €6.00")));
+        .andExpect(content().string(containsString("Pay €6.00")))
+        .andExpect(
+            content()
+                .string(containsString("<title>Checkout · Film Club · Event Tickets</title>")));
   }
 
   @Test
