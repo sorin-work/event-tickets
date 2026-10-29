@@ -11,7 +11,7 @@
 
   <groupId>com.sorinwork</groupId>
   <artifactId>event-tickets</artifactId>
-  <version>0.1.0-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>event-tickets</name>
   <description>Ticketing for small venues and meetups</description>
 
