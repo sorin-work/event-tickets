@@ -1,11 +1,13 @@
 package com.sorinwork.tickets.order;
 
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -24,6 +26,14 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
       where o.accessToken = :token
       """)
   Optional<Order> findWithItemsByAccessToken(@Param("token") String token);
+
+  /**
+   * Takes a shared row lock on the order ({@code FOR SHARE} on PostgreSQL). Check-in holds it so a
+   * cancellation cannot commit between checking that the order is paid and admitting its ticket.
+   */
+  @Lock(LockModeType.PESSIMISTIC_READ)
+  @Query("select o from Order o where o.id = :id")
+  Optional<Order> lockForShare(@Param("id") long id);
 
   List<Order> findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus status, Instant now);
 

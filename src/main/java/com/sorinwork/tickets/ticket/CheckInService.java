@@ -1,8 +1,10 @@
 package com.sorinwork.tickets.ticket;
 
 import com.sorinwork.tickets.common.NotFoundException;
+import com.sorinwork.tickets.order.OrderRepository;
 import com.sorinwork.tickets.order.OrderStatus;
 import java.time.Clock;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -13,10 +15,12 @@ import org.springframework.transaction.annotation.Transactional;
 public class CheckInService {
 
   private final TicketRepository tickets;
+  private final OrderRepository orders;
   private final Clock clock;
 
-  public CheckInService(TicketRepository tickets, Clock clock) {
+  public CheckInService(TicketRepository tickets, OrderRepository orders, Clock clock) {
     this.tickets = tickets;
+    this.orders = orders;
     this.clock = clock;
   }
 
@@ -25,6 +29,11 @@ public class CheckInService {
    * dashes and lower case are accepted.
    */
   public CheckInResult checkIn(long eventId, String rawCode, String staff) {
+    return checkIn(eventId, rawCode, staff, clock.instant());
+  }
+
+  /** Same as {@link #checkIn(long, String, String)} with a given arrival time, for demo data. */
+  public CheckInResult checkIn(long eventId, String rawCode, String staff, Instant at) {
     Optional<Ticket> found = tickets.findWithDetailsByCode(normalize(rawCode));
     if (found.isEmpty()) {
       return CheckInResult.of(CheckInResult.Status.NOT_FOUND, null);
@@ -40,8 +49,11 @@ public class CheckInService {
       return CheckInResult.of(CheckInResult.Status.ALREADY_CHECKED_IN, ticket);
     }
     // Another door may have scanned the same code a moment ago, or the order may have been
-    // cancelled since it was loaded: the update only lets the ticket in if neither happened.
-    int admitted = tickets.markCheckedIn(ticket.getId(), clock.instant(), staff, OrderStatus.PAID);
+    // cancelled since it was loaded: the update only lets the ticket in if neither happened. The
+    // shared lock on the order makes a cancellation wait for this transaction, or makes this one
+    // wait for the cancellation to commit and then see it.
+    orders.lockForShare(ticket.getOrder().getId());
+    int admitted = tickets.markCheckedIn(ticket.getId(), at, staff, OrderStatus.PAID);
     Ticket current = tickets.findWithDetailsByCode(ticket.getCode()).orElseThrow();
     if (admitted == 1) {
       return CheckInResult.of(CheckInResult.Status.CHECKED_IN, current);

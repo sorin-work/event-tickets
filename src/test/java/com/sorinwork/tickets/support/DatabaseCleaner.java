@@ -21,6 +21,10 @@ public class DatabaseCleaner {
                 + "where table_schema = 'public' and table_type = 'BASE TABLE' "
                 + "and table_name <> 'flyway_schema_history'",
             String.class);
+    if (isPostgres()) {
+      jdbc.execute("TRUNCATE TABLE " + String.join(", ", tables) + " RESTART IDENTITY CASCADE");
+      return;
+    }
     jdbc.execute("SET REFERENTIAL_INTEGRITY FALSE");
     try {
       for (String table : tables) {
@@ -29,5 +33,12 @@ public class DatabaseCleaner {
     } finally {
       jdbc.execute("SET REFERENTIAL_INTEGRITY TRUE");
     }
+  }
+
+  private boolean isPostgres() {
+    String product =
+        jdbc.execute(
+            (java.sql.Connection connection) -> connection.getMetaData().getDatabaseProductName());
+    return "PostgreSQL".equals(product);
   }
 }
