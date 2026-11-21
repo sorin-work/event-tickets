@@ -7,8 +7,17 @@ import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderAdminService;
+import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.support.IntegrationTest;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,5 +107,77 @@ class CheckInServiceTest extends IntegrationTest {
 
     assertThat(checkIn.checkedInCount(event.getId())).isZero();
     assertThat(checkIn.checkIn(event.getId(), code, "door").admitted()).isTrue();
+  }
+
+  @Test
+  void theUpdateAdmitsATicketOnlyOnce() {
+    long id = tickets.findByCode(code).orElseThrow().getId();
+
+    assertThat(tickets.markCheckedIn(id, clock.instant(), "north door", OrderStatus.PAID))
+        .isEqualTo(1);
+    assertThat(tickets.markCheckedIn(id, clock.instant(), "south door", OrderStatus.PAID)).isZero();
+    assertThat(tickets.findByCode(code).orElseThrow().getCheckedInBy()).isEqualTo("north door");
+  }
+
+  @Test
+  void theUpdateRefusesATicketWhoseOrderWasCancelled() {
+    long id = tickets.findByCode(code).orElseThrow().getId();
+    orders.cancel(order.getId());
+
+    assertThat(tickets.markCheckedIn(id, clock.instant(), "door", OrderStatus.PAID)).isZero();
+    assertThat(tickets.findByCode(code).orElseThrow().isCheckedIn()).isFalse();
+  }
+
+  @Test
+  void alreadyCheckedInNamesTheFirstScan() {
+    checkIn.checkIn(event.getId(), code, "north door");
+
+    CheckInResult again = checkIn.checkIn(event.getId(), code, "south door");
+
+    assertThat(again.status()).isEqualTo(CheckInResult.Status.ALREADY_CHECKED_IN);
+    assertThat(again.ticket().getCheckedInBy()).isEqualTo("north door");
+  }
+
+  @Test
+  void undoOfATicketThatIsNotCheckedInChangesNothing() {
+    long id = tickets.findByCode(code).orElseThrow().getId();
+
+    Ticket ticket = checkIn.undo(id);
+
+    assertThat(ticket.isCheckedIn()).isFalse();
+    assertThat(checkIn.checkIn(event.getId(), code, "door").admitted()).isTrue();
+  }
+
+  @Test
+  void scannersAtSeveralDoorsAdmitATicketOnce() throws Exception {
+    int doors = 8;
+    ExecutorService pool = Executors.newFixedThreadPool(doors);
+    CountDownLatch start = new CountDownLatch(1);
+    List<Future<CheckInResult>> scans = new ArrayList<>();
+    try {
+      for (int i = 0; i < doors; i++) {
+        String staff = "door " + i;
+        Callable<CheckInResult> scan =
+            () -> {
+              start.await();
+              return checkIn.checkIn(event.getId(), code, staff);
+            };
+        scans.add(pool.submit(scan));
+      }
+      start.countDown();
+      long admitted = 0;
+      for (Future<CheckInResult> scan : scans) {
+        CheckInResult result = scan.get(30, TimeUnit.SECONDS);
+        if (result.admitted()) {
+          admitted++;
+        } else {
+          assertThat(result.status()).isEqualTo(CheckInResult.Status.ALREADY_CHECKED_IN);
+        }
+      }
+      assertThat(admitted).isEqualTo(1);
+    } finally {
+      pool.shutdownNow();
+    }
+    assertThat(checkIn.checkedInCount(event.getId())).isEqualTo(1);
   }
 }
