@@ -49,7 +49,7 @@ class CheckInMessagesTest extends IntegrationTest {
     scan(event);
 
     assertThat(scan(event))
-        .isEqualTo("<strong>Ana Pop</strong> already checked in at Tue 15 Jan 2030, 12:00");
+        .isEqualTo("<strong>Ana Pop</strong> already checked in at Tue 15 Jan 2030, 12:00 by door");
   }
 
   @Test

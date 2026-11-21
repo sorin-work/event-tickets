@@ -33,7 +33,8 @@ public class CheckInMessages {
           "<strong>"
               + escape(ticket.getAttendeeName())
               + "</strong> already checked in at "
-              + fmt.instant(ticket.getCheckedInAt(), event);
+              + fmt.instant(ticket.getCheckedInAt(), event)
+              + (ticket.getCheckedInBy() == null ? "" : " by " + escape(ticket.getCheckedInBy()));
       case WRONG_EVENT ->
           "This ticket is for <strong>" + escape(ticket.getEvent().getTitle()) + "</strong>";
       case CANCELLED -> "The order for this ticket was cancelled";
