@@ -64,6 +64,27 @@ a check-in is the reverse update. Before the update the scan takes a shared
 lock on the order (`FOR SHARE`), so a cancellation committing at that moment
 either waits for the scan or is seen by it.
 
+## Lock order
+
+Several things change orders and events at once: buyers paying or giving seats
+back, admins cancelling, the expiry job, the waitlist. To keep them from
+deadlocking, every path takes row locks in the same order:
+
+1. order rows, in id order (`OrderRepository.lockByAccessToken`, `lockById`,
+   `lockForEvent`);
+2. then the event row (`EventRepository.lockById`), which checkout and the
+   waitlist use to serialise seat counting;
+3. then anything else (tickets, waitlist entries, promo codes).
+
+Giving seats back locks the order and then the event. Starting again locks
+the browser's previous order before the event. Cancelling an order locks it
+before the waitlist takes the event lock. Cancelling an event locks its open
+orders before it changes the event row. The expiry job locks run-out holds
+with `SKIP LOCKED`, so an order a buyer is paying for or giving back at that
+moment is left for the next run instead of failing the whole batch. If the
+database still picks a checkout change as a deadlock victim, the controller
+retries it once.
+
 ## Waitlist
 
 Whenever tickets go back on sale (a hold expires, an order or event is

@@ -592,4 +592,8 @@ on a waitlist offer. `start` sets a `hold_<event id>` cookie, and a new start
 from the same browser expires the previous open checkout first. One change
 from the plan: in that case `TicketsReleased` is published only after the new
 order is saved, so the buyer keeps first pick of their own seats and the
-waitlist gets what is left. Releasing on tab close stays out.
+waitlist gets what is left. Review added a lock order for the whole app
+(order rows, then the event row, documented in `docs/architecture.md`): release,
+admin and event cancellation and the expiry job follow it, the job skips rows
+that are locked, and checkout changes are retried once after a deadlock.
+Releasing on tab close stays out.
