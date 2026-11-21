@@ -2,12 +2,14 @@ package com.sorinwork.tickets.order;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.support.PostgresTest;
 import com.sorinwork.tickets.support.Race;
 import com.sorinwork.tickets.ticket.TicketRepository;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ class ReleaseRaceTest extends PostgresTest {
   @Autowired OrderRepository orders;
   @Autowired TicketRepository tickets;
   @Autowired AvailabilityService availability;
+  @Autowired OrderAdminService orderAdmin;
+  @Autowired HoldExpiryService holdExpiry;
 
   @Test
   void anOrderIsEitherPaidWithTicketsOrReleasedWithout() throws Exception {
@@ -64,5 +68,62 @@ class ReleaseRaceTest extends PostgresTest {
     assertThat(orders.findByAccessToken(first).orElseThrow().getStatus())
         .isEqualTo(OrderStatus.EXPIRED);
     assertThat(availability.forEvent(event.getId()).get(tier.getId()).held()).isEqualTo(3);
+  }
+
+  @Test
+  void aBuyerGivingSeatsBackWhileAnAdminCancelsNeverDeadlocks() throws Exception {
+    Event event = data.event("Film Club");
+    TicketTier tier = data.tier(event, "Seat", "6", 50);
+    events.publish(event.getId());
+
+    for (int round = 0; round < 10; round++) {
+      Order order = checkout.start(event.getId(), Map.of(tier.getId(), 2));
+      List<Callable<Object>> calls =
+          List.of(
+              () -> checkout.release(order.getAccessToken()),
+              () -> orderAdmin.cancel(order.getId()));
+
+      List<Race.Outcome<Object>> outcomes = Race.run(calls);
+
+      // Whoever comes second is told politely ("Expired checkouts cannot be cancelled"), or finds
+      // nothing to do; nobody gets a lock error.
+      assertThat(outcomes)
+          .allSatisfy(
+              o -> {
+                if (!o.succeeded()) {
+                  assertThat(o.error()).isInstanceOf(BusinessException.class);
+                }
+              });
+      assertThat(orders.findById(order.getId()).orElseThrow().getStatus())
+          .isIn(OrderStatus.EXPIRED, OrderStatus.CANCELLED);
+    }
+    assertThat(availability.forEvent(event.getId()).get(tier.getId()).remaining()).isEqualTo(50);
+  }
+
+  @Test
+  void buyersGivingSeatsBackWhileTheExpiryJobRunsNeverDeadlock() throws Exception {
+    Event event = data.event("Small Gig");
+    TicketTier tier = data.tier(event, "Floor", "15", 40);
+    events.publish(event.getId());
+    List<Order> held = new ArrayList<>();
+    for (int i = 0; i < 6; i++) {
+      held.add(checkout.start(event.getId(), Map.of(tier.getId(), 2)));
+    }
+    clock.advance(Duration.ofMinutes(11));
+
+    List<Callable<Object>> calls = new ArrayList<>();
+    for (Order order : held) {
+      calls.add(() -> checkout.release(order.getAccessToken()));
+    }
+    calls.add(() -> holdExpiry.expireHolds());
+    calls.add(() -> holdExpiry.expireHolds());
+
+    List<Race.Outcome<Object>> outcomes = Race.run(calls);
+
+    assertThat(outcomes).allSatisfy(o -> assertThat(o.succeeded()).isTrue());
+    for (Order order : held) {
+      assertThat(orders.findById(order.getId()).orElseThrow().getStatus())
+          .isEqualTo(OrderStatus.EXPIRED);
+    }
   }
 }
