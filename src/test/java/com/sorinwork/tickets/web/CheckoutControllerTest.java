@@ -7,6 +7,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.flash;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -15,8 +16,10 @@ import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderRepository;
+import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.support.IntegrationTest;
 import com.sorinwork.tickets.ticket.TicketRepository;
+import jakarta.servlet.http.Cookie;
 import java.time.Duration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -206,5 +209,71 @@ class CheckoutControllerTest extends IntegrationTest {
     }
 
     assertThat(tickets.findByOrderIdOrderById(order.getId())).hasSize(2);
+  }
+
+  private String holdCookie() {
+    return CheckoutController.HOLD_COOKIE_PREFIX + event.getId();
+  }
+
+  @Test
+  void startingACheckoutRemembersItInACookie() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"))
+        .andExpect(
+            header()
+                .string(
+                    "Set-Cookie",
+                    containsString(holdCookie() + "=" + orders.findAll().get(0).getAccessToken())))
+        .andExpect(header().string("Set-Cookie", containsString("HttpOnly")))
+        .andExpect(header().string("Set-Cookie", containsString("SameSite=Lax")));
+  }
+
+  @Test
+  void startingAgainReplacesTheBrowsersOpenCheckout() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "3"));
+    Order first = orders.findAll().get(0);
+
+    mvc.perform(
+        post("/events/film-club/checkout")
+            .with(csrf())
+            .cookie(new Cookie(holdCookie(), first.getAccessToken()))
+            .param("qty_" + tier.getId(), "2"));
+
+    assertThat(orders.findById(first.getId()).orElseThrow().getStatus())
+        .isEqualTo(OrderStatus.EXPIRED);
+    assertThat(orders.findAll()).filteredOn(o -> o.getStatus() == OrderStatus.PENDING).hasSize(1);
+  }
+
+  @Test
+  void checkoutPageOffersToGiveTheTicketsBack() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
+    String token = orders.findAll().get(0).getAccessToken();
+
+    mvc.perform(get("/checkout/" + token))
+        .andExpect(content().string(containsString("/checkout/" + token + "/release")))
+        .andExpect(content().string(containsString("Cancel and give the tickets back")));
+  }
+
+  @Test
+  void givingTheTicketsBackReturnsToTheEventPage() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"));
+    Order order = orders.findAll().get(0);
+
+    mvc.perform(post("/checkout/" + order.getAccessToken() + "/release").with(csrf()))
+        .andExpect(redirectedUrl("/events/film-club"))
+        .andExpect(flash().attribute("notice", containsString("given back")))
+        .andExpect(header().string("Set-Cookie", containsString("Max-Age=0")));
+
+    assertThat(orders.findById(order.getId()).orElseThrow().getStatus())
+        .isEqualTo(OrderStatus.EXPIRED);
+  }
+
+  @Test
+  void aPaidOrderCannotBeGivenBack() throws Exception {
+    Order paid = purchases.buy(tier, 1, "Ana", "ana@example.com");
+
+    mvc.perform(post("/checkout/" + paid.getAccessToken() + "/release").with(csrf()))
+        .andExpect(redirectedUrl("/checkout/" + paid.getAccessToken()));
+
+    assertThat(orders.findById(paid.getId()).orElseThrow().getStatus()).isEqualTo(OrderStatus.PAID);
   }
 }
