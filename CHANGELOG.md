@@ -4,6 +4,11 @@
 
 ### Added
 
+- One visitor (one address) can hold at most 12 seats of an event across open
+  checkouts and start at most 20 checkouts a minute, so a script cannot make
+  an event look sold out (`CHECKOUT_MAX_HELD_SEATS`,
+  `CHECKOUT_STARTS_PER_MINUTE`).
+
 - Buyers can give held tickets back from the checkout page, and decline a
   waitlist offer. Choosing tickets again from the same browser replaces the
   previous checkout instead of holding seats twice.

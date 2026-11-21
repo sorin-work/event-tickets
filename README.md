@@ -98,6 +98,8 @@ All settings are environment variables (or the matching `app.*` /
 | `SEED_DEMO`               | `false`                                  | Fill an empty database with demo events and orders              |
 | `CHECKOUT_HOLD_DURATION`  | `10m`                                    | How long seats are held while a buyer checks out                |
 | `WAITLIST_OFFER_DURATION` | `24h`                                    | How long released tickets are held for someone on the waitlist  |
+| `CHECKOUT_MAX_HELD_SEATS` | `12`                                     | Seats one visitor can hold across open checkouts of an event (`0`: no cap) |
+| `CHECKOUT_STARTS_PER_MINUTE` | `20`                                  | Checkouts one visitor can start per minute (`0`: no limit)      |
 | `JAVA_OPTS`               | see `Dockerfile`                         | JVM options for the container                                   |
 
 Docker Compose also reads `WEB_PORT` (default `4411`) and `DB_PORT`
@@ -141,7 +143,11 @@ CI runs the format check, the tests and the Docker build on every push
 
 Put nginx, Caddy or Traefik in front for HTTPS and point it at the app port.
 The app understands `X-Forwarded-Proto` and `X-Forwarded-For`, so redirects
-stay on https. Set `BASE_URL` to the public address. A minimal nginx block:
+stay on https. Set `BASE_URL` to the public address. The visitor limits at
+checkout (`CHECKOUT_MAX_HELD_SEATS`, `CHECKOUT_STARTS_PER_MINUTE`) go by the
+client address, so the proxy must send `X-Forwarded-For`; without it every
+buyer has the proxy's address and they all share one limit. A minimal nginx
+block:
 
 ```nginx
 location / {

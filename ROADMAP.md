@@ -55,7 +55,7 @@ the top of the CHANGELOG are updated in the same pull request.
 | 2  | Promo code limits that hold under load       | Shipped | checkout | S    | -          |
 | 3  | Letting go of a hold                         | Shipped | checkout | S    | -          |
 | 4  | Changing quantities without overselling      | Shipped | events   | M    | -          |
-| 5  | A cap on the seats one visitor can hold      | Next    | checkout | M    | 3          |
+| 5  | A cap on the seats one visitor can hold      | Shipped | checkout | M    | 3          |
 | 6  | Race tests against real PostgreSQL           | Later   | tests    | M    | -          |
 | 7  | Waitlist offers that follow the tier's rules | Later   | waitlist | S    | -          |
 | 8  | Refunds recorded with cancellations          | Later   | orders   | M    | -          |
@@ -93,41 +93,7 @@ the top of the CHANGELOG are updated in the same pull request.
 
 ## Next
 
-### 5. A cap on the seats one visitor can hold
-
-Holding seats costs nothing. A script that fetches the event page (for the
-CSRF token) and posts `/events/{slug}/checkout` fifty times holds fifty times
-`max_per_order` seats for ten minutes, and can do it again when they run out.
-A popular event looks sold out all evening and the waitlist fills with real
-buyers. There is no limit on checkout starts anywhere.
-
-- A client key on each order: a hash of the client address (with
-  `forward-headers-strategy: native` this is the `X-Forwarded-For` client
-  behind a proxy) and an app secret, in a new `client_key` column. Not the raw
-  address, so the table does not become a log of buyers' IPs.
-- In `CheckoutService.start`, under the event lock that is already taken,
-  count the seats held by open checkouts with the same key for this event. If
-  the new request would take it over `app.checkout.max-held-seats` (default
-  12), refuse with "You already have tickets reserved; finish or cancel that
-  checkout first" and a link to it when the browser cookie from item 3 knows
-  it.
-- A small in-memory rate limit on checkout starts per key (say 20 a minute),
-  in a `RateLimiter` under `config/`. It is per process, which is fine for the
-  single instance the architecture notes expect.
-- Waitlist holds have no client key and never count; they are made by the
-  app.
-- Tricky: shared addresses. A school or a venue's wifi puts many honest buyers
-  behind one IP. The default is generous, it is per event, and item 3 makes
-  an honest retry release its own hold first, which is why this depends on 3.
-  `0` turns the cap off.
-- Tricky: behind a proxy that does not send `X-Forwarded-For`, every buyer
-  has the proxy's address and shares one cap. The README section on reverse
-  proxies says so, next to the existing header lines.
-- Left out: a captcha. It needs a third-party script, which the content
-  security policy does not allow, and a cap catches the cheap attack.
-- Tests: integration tests: a second checkout from the same address over the
-  cap is refused, another address is not affected, expired holds stop
-  counting, cap `0` means no limit, waitlist holds are ignored.
+Everything that was here has shipped; see the end of this file.
 
 ## Later
 
@@ -570,8 +536,27 @@ and 2 held in open checkouts, which end by 19:42." on the field. A change that
 frees seats (quantity up, capacity up or removed, a paused tier resumed)
 publishes `TicketsReleased`, so the waitlist goes first; raising the quantity
 of a tier that stays paused does not, so no offer is made for a tier that is
-not on sale. Left out: a sales start moved into the past, because a tier that
-has not started selling cannot have sold out and gathered a waitlist; offers
-that check sales windows are item 7. `SeatChangeRaceTest` lowers a tier and the
+not on sale. After review a later sales end or an earlier sales start counts
+as freeing seats too, payment takes the event lock so a limit lowered at the
+last second of a hold holds, and a hold ending on another day is shown with
+its date. Offers that check sales windows are still item 7. `SeatChangeRaceTest` lowers a tier and the
 venue on PostgreSQL while buyers check out and checks that sold plus held never
 exceeds the limit.
+
+### 5. A cap on the seats one visitor can hold
+
+Orders started from the public page carry a `client_key`, an HMAC of the
+client address with a random per-process secret (`config/ClientKeys`). Under
+the event lock, `CheckoutService` refuses a new checkout when the visitor
+already holds seats of the event elsewhere and the total would pass
+`CHECKOUT_MAX_HELD_SEATS` (default 12), with "You already have 10 tickets
+reserved for this event. Finish or cancel that checkout first." One change
+from the plan: a single checkout is not capped, only stacking is, so a tier
+that allows 20 per order still sells 20 to one buyer. Starting checkouts is
+limited to `CHECKOUT_STARTS_PER_MINUTE` (20) per key in memory
+(`config/RateLimiter`). The browser's own previous checkout is released before
+counting (item 3), waitlist offers are not counted, and `0` turns either limit
+off. The README says that the proxy must send `X-Forwarded-For`. Still open:
+the per-process secret means keys change on restart and differ between
+instances, which is fine for one instance; a configured secret would be needed
+for more.

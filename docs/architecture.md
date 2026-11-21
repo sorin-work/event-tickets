@@ -71,6 +71,22 @@ still be paid. When a change puts seats back on sale (more tickets, a larger or
 no capacity, a paused tier resumed), `TicketsReleased` is published so the
 waitlist is offered them before anyone else.
 
+One visitor cannot stack open checkouts. Each order started from the public
+page stores a client key: an HMAC of the client address with a random secret
+per process, so the table never holds buyers' addresses. Under the event lock,
+a new checkout is refused when the visitor already holds seats of the event in
+other open checkouts and the total would pass `app.checkout.max-held-seats`
+(12). A single checkout is still bounded only by the tiers' per-order maximum,
+the browser's own previous checkout is given back before counting, and waitlist
+offers have no key. Starting checkouts is also limited per key and minute
+(`app.checkout.starts-per-minute`, 20), in memory (`config/RateLimiter`). Both
+limits share a key between everyone behind one address, which is why the
+defaults are generous; `0` turns either off.
+
+Paying takes the order row and then the event lock too, and judges the hold
+only once it has both, so an admin lowering a limit and a payment at the last
+second of a hold cannot both win.
+
 ## Lock order
 
 Several things change orders and events at once: buyers paying or giving seats
