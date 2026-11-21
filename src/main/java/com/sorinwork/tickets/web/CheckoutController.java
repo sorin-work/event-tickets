@@ -1,6 +1,7 @@
 package com.sorinwork.tickets.web;
 
 import com.sorinwork.tickets.common.BusinessException;
+import com.sorinwork.tickets.config.AppProperties;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.CheckoutForm;
@@ -8,12 +9,19 @@ import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
 import com.sorinwork.tickets.order.OrderItem;
 import com.sorinwork.tickets.order.OrderStatus;
+import com.sorinwork.tickets.waitlist.WaitlistService;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import java.time.Clock;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.ResponseCookie;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -31,13 +39,25 @@ public class CheckoutController {
 
   static final String QUANTITY_PREFIX = "qty_";
 
+  /** Cookie with the browser's open checkout for an event, so starting again replaces it. */
+  static final String HOLD_COOKIE_PREFIX = "hold_";
+
   private final EventService events;
   private final CheckoutService checkout;
+  private final WaitlistService waitlist;
+  private final AppProperties properties;
   private final Clock clock;
 
-  public CheckoutController(EventService events, CheckoutService checkout, Clock clock) {
+  public CheckoutController(
+      EventService events,
+      CheckoutService checkout,
+      WaitlistService waitlist,
+      AppProperties properties,
+      Clock clock) {
     this.events = events;
     this.checkout = checkout;
+    this.waitlist = waitlist;
+    this.properties = properties;
     this.clock = clock;
   }
 
@@ -45,10 +65,19 @@ public class CheckoutController {
   public String start(
       @PathVariable String slug,
       @RequestParam Map<String, String> params,
+      HttpServletRequest request,
+      HttpServletResponse response,
       RedirectAttributes redirect) {
     Event event = events.getPublic(slug);
     try {
-      Order order = checkout.start(event.getId(), quantities(params));
+      Order order =
+          checkout.start(event.getId(), quantities(params), previousHold(request, event.getId()));
+      setHoldCookie(
+          request,
+          response,
+          event.getId(),
+          order.getAccessToken(),
+          properties.checkout().holdDuration());
       return "redirect:/checkout/" + order.getAccessToken();
     } catch (BusinessException e) {
       redirect.addFlashAttribute("error", e.getMessage());
@@ -91,6 +120,33 @@ public class CheckoutController {
       return render(checkout.getByToken(token), model);
     }
     return "redirect:/orders/" + token;
+  }
+
+  /** The buyer gives the seats back, or declines a waitlist offer. */
+  @PostMapping("/checkout/{token}/release")
+  public String release(
+      @PathVariable String token,
+      HttpServletRequest request,
+      HttpServletResponse response,
+      RedirectAttributes redirect) {
+    Order order = checkout.getByToken(token);
+    boolean offer = waitlist.isOffer(order.getId());
+    try {
+      order = checkout.release(token);
+    } catch (ObjectOptimisticLockingFailureException e) {
+      // Paid or expired at the same moment; the checkout page shows which.
+      return "redirect:/checkout/" + token;
+    }
+    if (order.getStatus() != OrderStatus.EXPIRED) {
+      return "redirect:/checkout/" + token;
+    }
+    setHoldCookie(request, response, order.getEvent().getId(), "", Duration.ZERO);
+    redirect.addFlashAttribute(
+        "notice",
+        offer
+            ? "You declined the offer. The tickets go to the next person on the waitlist."
+            : "Your tickets have been given back. You can choose again.");
+    return "redirect:/events/" + order.getEvent().getSlug();
   }
 
   @PostMapping("/checkout/{token}/promo")
@@ -155,7 +211,39 @@ public class CheckoutController {
     model.addAttribute("order", order);
     model.addAttribute("event", order.getEvent());
     model.addAttribute("holdActive", order.isHoldActive(clock.instant()));
+    model.addAttribute("offer", waitlist.isOffer(order.getId()));
     return "public/checkout";
+  }
+
+  private static String previousHold(HttpServletRequest request, long eventId) {
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+      return null;
+    }
+    for (Cookie cookie : cookies) {
+      if (cookie.getName().equals(HOLD_COOKIE_PREFIX + eventId) && !cookie.getValue().isBlank()) {
+        return cookie.getValue();
+      }
+    }
+    return null;
+  }
+
+  /** Remembers (or with an empty token and zero lifetime, forgets) the browser's open checkout. */
+  private static void setHoldCookie(
+      HttpServletRequest request,
+      HttpServletResponse response,
+      long eventId,
+      String token,
+      Duration lifetime) {
+    ResponseCookie cookie =
+        ResponseCookie.from(HOLD_COOKIE_PREFIX + eventId, token)
+            .path("/")
+            .httpOnly(true)
+            .secure(request.isSecure())
+            .sameSite("Lax")
+            .maxAge(lifetime)
+            .build();
+    response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
   }
 
   /** "Standing 1", "Standing 2", "VIP" ... in the order tickets are issued. */

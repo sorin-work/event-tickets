@@ -212,6 +212,12 @@ public class WaitlistService {
     return result;
   }
 
+  /** Whether the order holds tickets offered to someone on the waitlist. */
+  @Transactional(readOnly = true)
+  public boolean isOffer(long orderId) {
+    return entries.findByOfferOrderId(orderId).isPresent();
+  }
+
   @Transactional(readOnly = true)
   public long waitingCount(long tierId) {
     return entries.countByTierIdAndStatus(tierId, WaitlistStatus.WAITING);

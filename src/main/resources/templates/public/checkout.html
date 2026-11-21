@@ -75,6 +75,12 @@
     <button class="btn btn-primary" type="submit"
             th:text="${order.totalCents == 0} ? 'Get tickets' : 'Pay ' + ${@fmt.money(order.totalCents, event.currency)}">Pay</button>
   </form>
+  <form th:if="${holdActive}" class="release-form" method="post"
+        th:action="@{/checkout/{t}/release(t=${order.accessToken})}"
+        onsubmit="return confirm('Give these tickets back?')">
+    <button class="btn-link" type="submit"
+            th:text="${offer} ? 'No thanks, offer the tickets to the next person' : 'Cancel and give the tickets back'">Cancel and give the tickets back</button>
+  </form>
 </main>
 <script th:src="@{/js/countdown.js}" defer></script>
 </body>
