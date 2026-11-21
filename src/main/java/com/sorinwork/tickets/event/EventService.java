@@ -3,6 +3,8 @@ package com.sorinwork.tickets.event;
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.common.Slugs;
+import com.sorinwork.tickets.order.OrderRepository;
+import com.sorinwork.tickets.order.OrderStatus;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -16,16 +18,19 @@ public class EventService {
 
   private final EventRepository events;
   private final TicketTierRepository tiers;
+  private final OrderRepository orders;
   private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
   public EventService(
       EventRepository events,
       TicketTierRepository tiers,
+      OrderRepository orders,
       ApplicationEventPublisher publisher,
       Clock clock) {
     this.events = events;
     this.tiers = tiers;
+    this.orders = orders;
     this.publisher = publisher;
     this.clock = clock;
   }
@@ -148,6 +153,9 @@ public class EventService {
     if (event.getStatus() == EventStatus.CANCELLED) {
       return event;
     }
+    // Cancelling changes every open order of the event: lock them before the event row, the same
+    // order as a buyer giving seats back or the expiry job, so none of them can deadlock with this.
+    orders.lockForEvent(id, List.of(OrderStatus.PAID, OrderStatus.PENDING));
     changeStatus(event, EventStatus.CANCELLED);
     events.flush();
     publisher.publishEvent(new EventCancelled(id));

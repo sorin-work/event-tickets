@@ -147,6 +147,8 @@ public class OrderAdminService {
    * the seats go back on sale.
    */
   public Order cancel(long orderId) {
+    // Order row before event row (taken by the waitlist when the seats are released).
+    orders.lockById(orderId).orElseThrow(() -> new NotFoundException("Order " + orderId));
     Order order = get(orderId);
     if (order.getStatus() == OrderStatus.CANCELLED) {
       throw new BusinessException("This order is already cancelled.");

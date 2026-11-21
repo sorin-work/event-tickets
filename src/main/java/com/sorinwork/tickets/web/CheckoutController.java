@@ -20,6 +20,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
@@ -70,8 +72,9 @@ public class CheckoutController {
       RedirectAttributes redirect) {
     Event event = events.getPublic(slug);
     try {
-      Order order =
-          checkout.start(event.getId(), quantities(params), previousHold(request, event.getId()));
+      Map<Long, Integer> selection = quantities(params);
+      String previous = previousHold(request, event.getId());
+      Order order = retryOnce(() -> checkout.start(event.getId(), selection, previous));
       setHoldCookie(
           request,
           response,
@@ -131,8 +134,9 @@ public class CheckoutController {
       RedirectAttributes redirect) {
     Order order = checkout.getByToken(token);
     boolean offer = waitlist.isOffer(order.getId());
+    boolean ranOut = !order.isHoldActive(clock.instant());
     try {
-      order = checkout.release(token);
+      order = retryOnce(() -> checkout.release(token));
     } catch (ObjectOptimisticLockingFailureException e) {
       // Paid or expired at the same moment; the checkout page shows which.
       return "redirect:/checkout/" + token;
@@ -143,9 +147,11 @@ public class CheckoutController {
     setHoldCookie(request, response, order.getEvent().getId(), "", Duration.ZERO);
     redirect.addFlashAttribute(
         "notice",
-        offer
-            ? "You declined the offer. The tickets go to the next person on the waitlist."
-            : "Your tickets have been given back. You can choose again.");
+        ranOut
+            ? "Your reservation had already run out and the tickets were released."
+            : offer
+                ? "You declined the offer. The tickets go to the next person on the waitlist."
+                : "Your tickets have been given back. You can choose again.");
     return "redirect:/events/" + order.getEvent().getSlug();
   }
 
@@ -213,6 +219,19 @@ public class CheckoutController {
     model.addAttribute("holdActive", order.isHoldActive(clock.instant()));
     model.addAttribute("offer", waitlist.isOffer(order.getId()));
     return "public/checkout";
+  }
+
+  /**
+   * Runs a checkout change again once when the database picked it as a deadlock victim or could not
+   * get a lock in time. The lock order makes this rare; one retry turns it into a short wait
+   * instead of an error page.
+   */
+  private static <T> T retryOnce(Supplier<T> change) {
+    try {
+      return change.get();
+    } catch (PessimisticLockingFailureException e) {
+      return change.get();
+    }
   }
 
   private static String previousHold(HttpServletRequest request, long eventId) {

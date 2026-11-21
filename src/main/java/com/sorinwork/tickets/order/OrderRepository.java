@@ -1,6 +1,7 @@
 package com.sorinwork.tickets.order;
 
 import jakarta.persistence.LockModeType;
+import jakarta.persistence.QueryHint;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -9,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
 public interface OrderRepository extends JpaRepository<Order, Long> {
@@ -36,6 +38,33 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
   Optional<Order> lockForShare(@Param("id") long id);
 
   List<Order> findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus status, Instant now);
+
+  // Lock order (docs/architecture.md): order rows first, in id order, then the event row.
+
+  /** The order with a row lock, for changes a buyer and an admin or a job could make at once. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select o from Order o where o.accessToken = :token")
+  Optional<Order> lockByAccessToken(@Param("token") String token);
+
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select o from Order o where o.id = :id")
+  Optional<Order> lockById(@Param("id") long id);
+
+  /** Locks the event's orders with the given statuses, before the event itself is changed. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query(
+      "select o from Order o where o.event.id = :eventId and o.status in :statuses order by o.id")
+  List<Order> lockForEvent(
+      @Param("eventId") long eventId, @Param("statuses") List<OrderStatus> statuses);
+
+  /**
+   * Holds that ran out, locked; rows another transaction is changing right now (a buyer paying or
+   * giving the seats back) are skipped and left for the next run ({@code SKIP LOCKED}).
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @QueryHints(@QueryHint(name = "jakarta.persistence.lock.timeout", value = "-2"))
+  @Query("select o from Order o where o.status = :status and o.holdExpiresAt <= :now order by o.id")
+  List<Order> lockRunOutHolds(@Param("status") OrderStatus status, @Param("now") Instant now);
 
   @Query(
       value =

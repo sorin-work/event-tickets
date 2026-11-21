@@ -43,7 +43,7 @@ public class HoldExpiryService {
   @Transactional
   public int expireHolds() {
     Instant now = clock.instant();
-    List<Order> stale = orders.findByStatusAndHoldExpiresAtLessThanEqual(OrderStatus.PENDING, now);
+    List<Order> stale = orders.lockRunOutHolds(OrderStatus.PENDING, now);
     Set<Long> events = new LinkedHashSet<>();
     for (Order order : stale) {
       order.setStatus(OrderStatus.EXPIRED);

@@ -80,9 +80,12 @@ public class CheckoutService {
    * @param previousToken access token of the checkout the same browser started before, or null
    */
   public Order start(long eventId, Map<Long, Integer> quantities, String previousToken) {
+    // Order row before event row, as everywhere else.
+    Order previous =
+        previousToken == null ? null : orders.lockByAccessToken(previousToken).orElse(null);
     Event event =
         events.lockById(eventId).orElseThrow(() -> new NotFoundException("Event " + eventId));
-    boolean replaced = previousToken != null && expirePrevious(eventId, previousToken);
+    boolean replaced = previous != null && expirePrevious(eventId, previous);
     if (!event.isPublished()) {
       throw new BusinessException("Tickets for this event are not on sale.");
     }
@@ -131,11 +134,8 @@ public class CheckoutService {
   }
 
   /** Ends the browser's previous open checkout for the event, if there is one. */
-  private boolean expirePrevious(long eventId, String token) {
-    Order previous = orders.findByAccessToken(token).orElse(null);
-    if (previous == null
-        || !previous.getEvent().getId().equals(eventId)
-        || !previous.isHoldActive(clock.instant())) {
+  private boolean expirePrevious(long eventId, Order previous) {
+    if (!previous.getEvent().getId().equals(eventId) || !previous.isHoldActive(clock.instant())) {
       return false;
     }
     previous.setStatus(OrderStatus.EXPIRED);
@@ -147,19 +147,20 @@ public class CheckoutService {
   /**
    * The buyer gives the held seats back instead of letting the hold run out. For a waitlist offer
    * this is declining it, and the seats are offered to the next person. Orders that are paid,
-   * cancelled or already expired are left as they are.
+   * cancelled or already expired are left as they are. A pending order whose time is up gets the
+   * same treatment the expiry job would give it.
    */
   public Order release(String token) {
-    Order order = getByToken(token);
+    // Order row before event row, as everywhere else.
+    Order order = orders.lockByAccessToken(token).orElseThrow(() -> new NotFoundException("Order"));
     events.lockById(order.getEvent().getId());
-    if (order.getStatus() != OrderStatus.PENDING) {
-      return order;
+    if (order.getStatus() == OrderStatus.PENDING) {
+      order.setStatus(OrderStatus.EXPIRED);
+      orders.flush();
+      publisher.publishEvent(new OrderEvents.HoldExpired(order.getId()));
+      publisher.publishEvent(new OrderEvents.TicketsReleased(order.getEvent().getId()));
     }
-    order.setStatus(OrderStatus.EXPIRED);
-    orders.flush();
-    publisher.publishEvent(new OrderEvents.HoldExpired(order.getId()));
-    publisher.publishEvent(new OrderEvents.TicketsReleased(order.getEvent().getId()));
-    return order;
+    return getByToken(token);
   }
 
   /** Applies a promo code to an open checkout, replacing any code applied before. */
