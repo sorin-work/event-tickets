@@ -87,7 +87,8 @@ public class CheckoutController {
       return "redirect:/orders/" + token;
     } catch (BusinessException e) {
       model.addAttribute("error", e.getMessage());
-      return render(order, model);
+      // Reload: the failed attempt may have changed the order, e.g. removed a withdrawn discount.
+      return render(checkout.getByToken(token), model);
     }
     return "redirect:/orders/" + token;
   }

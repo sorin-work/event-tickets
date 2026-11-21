@@ -185,7 +185,11 @@ public class CheckoutService {
   /**
    * Completes checkout with the buyer's details. Payment is simulated: the order is marked paid and
    * its tickets are issued straight away.
+   *
+   * @throws PromoCodeWithdrawn when the order's promo code was switched off since it was applied;
+   *     the discount is removed (and stays removed) so the buyer sees the new total before paying
    */
+  @Transactional(noRollbackFor = PromoCodeWithdrawn.class)
   public Order complete(String token, CheckoutForm form) {
     Order order = getByToken(token);
     Instant now = clock.instant();
@@ -195,6 +199,15 @@ public class CheckoutService {
     if (!order.isHoldActive(now)) {
       throw new BusinessException(
           "Your reservation has expired. Please choose your tickets again.");
+    }
+    PromoCode promo = order.getPromoCode();
+    if (promo != null && !promo.isActive()) {
+      // Never take a different amount from the one on the buyer's screen.
+      releasePromoCode(order);
+      throw new PromoCodeWithdrawn(
+          "The promo code "
+              + promo.getCode()
+              + " is no longer valid, so its discount has been removed. Please check the new total.");
     }
     order.setBuyerName(form.getName().trim());
     order.setBuyerEmail(form.getEmail().trim().toLowerCase(Locale.ROOT));
@@ -267,6 +280,14 @@ public class CheckoutService {
     }
     if (tier.getSalesEnd() != null && !now.isBefore(tier.getSalesEnd())) {
       throw new BusinessException("Sales for " + tier.getName() + " have ended.");
+    }
+  }
+
+  /** The order's promo code stopped being valid between applying it and paying. */
+  public static class PromoCodeWithdrawn extends BusinessException {
+
+    public PromoCodeWithdrawn(String message) {
+      super(message);
     }
   }
 }
