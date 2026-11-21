@@ -336,9 +336,11 @@ class CheckoutServiceTest extends IntegrationTest {
 
   @Test
   void oneVisitorCannotStackCheckoutsBeyondTheCap() {
+    TicketTier balcony = data.tier(event, "Balcony", "20", 10);
     checkout.start(event.getId(), select(standing, 10), null, "visitor-a");
 
-    assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 2), null, "visitor-a"))
+    // 10 held and 3 more would pass the cap of 12.
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(balcony, 3), null, "visitor-a"))
         .hasMessage(
             "You already have 10 tickets reserved for this event. Finish or cancel that checkout"
                 + " first.");
