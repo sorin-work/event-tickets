@@ -146,8 +146,10 @@ The app understands `X-Forwarded-Proto` and `X-Forwarded-For`, so redirects
 stay on https. Set `BASE_URL` to the public address. The visitor limits at
 checkout (`CHECKOUT_MAX_HELD_SEATS`, `CHECKOUT_STARTS_PER_MINUTE`) go by the
 client address, so the proxy must send `X-Forwarded-For`; without it every
-buyer has the proxy's address and they all share one limit. A minimal nginx
-block:
+buyer has the proxy's address and they all share one limit. Keep the app port
+private so nobody can go around the proxy: `docker-compose.yml` publishes it on
+`127.0.0.1` only (`127.0.0.1:${WEB_PORT:-4411}:8080`), and a proxy on the same
+machine reaches it there. A minimal nginx block:
 
 ```nginx
 location / {

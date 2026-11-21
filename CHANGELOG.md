@@ -13,6 +13,12 @@
   waitlist offer. Choosing tickets again from the same browser replaces the
   previous checkout instead of holding seats twice.
 
+### Changed
+
+- Docker Compose publishes the app port on `127.0.0.1` only, so a reverse
+  proxy in front cannot be bypassed. Drop the `127.0.0.1:` in
+  `docker-compose.yml` to reach the app from other machines without a proxy.
+
 ### Fixed
 
 - A tier's quantity or the venue capacity could be set below what was sold and

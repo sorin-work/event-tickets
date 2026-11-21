@@ -556,7 +556,14 @@ that allows 20 per order still sells 20 to one buyer. Starting checkouts is
 limited to `CHECKOUT_STARTS_PER_MINUTE` (20) per key in memory
 (`config/RateLimiter`). The browser's own previous checkout is released before
 counting (item 3), waitlist offers are not counted, and `0` turns either limit
-off. The README says that the proxy must send `X-Forwarded-For`. Still open:
+off. Starts are counted per event and visitor, IPv6 visitors are keyed by
+their /64 and mapped IPv4 addresses as IPv4, and the limiter's memory is capped
+at 10,000 keys, swept every minute. The README says that the proxy must send
+`X-Forwarded-For`, and Docker Compose now publishes the app port on 127.0.0.1
+only. The refusal has no link to the visitor's other checkout on purpose: the
+only way to find it is by client key, and everyone behind the same address
+shares that key, so a link would hand one person's checkout to another. Still
+open:
 the per-process secret means keys change on restart and differ between
 instances, which is fine for one instance; a configured secret would be needed
 for more.

@@ -78,8 +78,10 @@ a new checkout is refused when the visitor already holds seats of the event in
 other open checkouts and the total would pass `app.checkout.max-held-seats`
 (12). A single checkout is still bounded only by the tiers' per-order maximum,
 the browser's own previous checkout is given back before counting, and waitlist
-offers have no key. Starting checkouts is also limited per key and minute
-(`app.checkout.starts-per-minute`, 20), in memory (`config/RateLimiter`). Both
+offers have no key. Starting checkouts is also limited per event, key and minute
+(`app.checkout.starts-per-minute`, 20), in memory (`config/RateLimiter`, at
+most 10,000 keys, the oldest dropped first and finished windows swept every
+minute). IPv6 visitors are keyed by their /64. Both
 limits share a key between everyone behind one address, which is why the
 defaults are generous; `0` turns either off.
 
