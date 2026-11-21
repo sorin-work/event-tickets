@@ -604,13 +604,15 @@ times through the same update. Item 6 is left with the checkout races.
 
 ### 2. Promo code limits that hold under load
 
-Applying a code now takes a row lock on it (`PromoCodeRepository.lockById`)
-before counting uses, and changing a code's limits in the admin area takes the
-same lock. Payment checks that the code is still active; if not, the discount
+Applying a code now finds and locks it in one query
+(`PromoCodeRepository.lockByEventIdAndCode`) before counting uses. Changing a
+code's limits or switching it off in the admin area takes the same lock, and
+`PromoCode` has a `version`, so an admin change can neither lose nor be lost. Payment checks that the code is still active; if not, the discount
 is removed for good (the exception is excluded from rollback), nothing is
 paid, and the checkout page shows the new total with the buyer's details kept.
 A code that expires during the hold is honoured, as planned. The tier check at
 payment was left out: a code's tier and amount cannot be edited after it is
 created, so they cannot change under a hold. `PromoRaceTest` runs ten buyers
 against a two-use code on PostgreSQL: without the lock seven got it, with it
-two.
+two. A second race has an admin lowering the limit and switching the code off
+while buyers apply.
