@@ -21,8 +21,15 @@ public record AppProperties(
   /** Credentials for the first admin account, created on startup when no admin exists. */
   public record Admin(String email, String password, @DefaultValue("Admin") String name) {}
 
-  /** How long seats stay reserved while a buyer fills in the checkout form. */
-  public record Checkout(@DefaultValue("10m") Duration holdDuration) {}
+  /**
+   * How long seats stay reserved while a buyer fills in the checkout form, how many seats one
+   * visitor may hold in open checkouts of one event, and how many checkouts one visitor may start
+   * per minute. {@code 0} turns either limit off.
+   */
+  public record Checkout(
+      @DefaultValue("10m") Duration holdDuration,
+      @DefaultValue("12") int maxHeldSeats,
+      @DefaultValue("20") int startsPerMinute) {}
 
   /** How long released tickets stay reserved for the person they were offered to. */
   public record Waitlist(@DefaultValue("24h") Duration offerDuration) {}

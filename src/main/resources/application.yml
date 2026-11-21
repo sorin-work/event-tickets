@@ -68,5 +68,9 @@ app:
     password: ${ADMIN_PASSWORD:}
   checkout:
     hold-duration: ${CHECKOUT_HOLD_DURATION:10m}
+    # Seats one visitor (one address) can hold at once per event, and checkouts they can start
+    # per minute. 0 turns a limit off.
+    max-held-seats: ${CHECKOUT_MAX_HELD_SEATS:12}
+    starts-per-minute: ${CHECKOUT_STARTS_PER_MINUTE:20}
   waitlist:
     offer-duration: ${WAITLIST_OFFER_DURATION:24h}

@@ -35,6 +35,7 @@ public class CheckoutService {
   private final TicketRepository tickets;
   private final PromoCodeRepository promoCodes;
   private final AvailabilityService availability;
+  private final OrderItemRepository itemRows;
   private final AppProperties properties;
   private final Emails emails;
   private final ApplicationEventPublisher publisher;
@@ -47,6 +48,7 @@ public class CheckoutService {
       TicketRepository tickets,
       PromoCodeRepository promoCodes,
       AvailabilityService availability,
+      OrderItemRepository itemRows,
       AppProperties properties,
       Emails emails,
       ApplicationEventPublisher publisher,
@@ -57,6 +59,7 @@ public class CheckoutService {
     this.tickets = tickets;
     this.promoCodes = promoCodes;
     this.availability = availability;
+    this.itemRows = itemRows;
     this.properties = properties;
     this.emails = emails;
     this.publisher = publisher;
@@ -80,6 +83,16 @@ public class CheckoutService {
    * @param previousToken access token of the checkout the same browser started before, or null
    */
   public Order start(long eventId, Map<Long, Integer> quantities, String previousToken) {
+    return start(eventId, quantities, previousToken, null);
+  }
+
+  /**
+   * Same as {@link #start(long, Map, String)} for a visitor identified by {@code clientKey} (see
+   * {@code ClientKeys}). Seats the visitor already holds in other open checkouts of the event count
+   * towards {@code app.checkout.max-held-seats}.
+   */
+  public Order start(
+      long eventId, Map<Long, Integer> quantities, String previousToken, String clientKey) {
     // Order row before event row, as everywhere else.
     Order previous =
         previousToken == null ? null : orders.lockByAccessToken(previousToken).orElse(null);
@@ -125,12 +138,35 @@ public class CheckoutService {
     if (order.getItems().isEmpty()) {
       throw new BusinessException("Choose at least one ticket.");
     }
+    checkHeldByClient(eventId, clientKey, order.ticketCount(), now);
+    order.setClientKey(clientKey);
     Order saved = orders.saveAndFlush(order);
     if (replaced) {
       // Only what the new selection did not take again goes to the waitlist.
       publisher.publishEvent(new OrderEvents.TicketsReleased(eventId));
     }
     return saved;
+  }
+
+  /**
+   * One visitor cannot stack open checkouts of an event beyond {@code max-held-seats}, so a script
+   * cannot make an event look sold out. A single checkout is limited by the tiers' per-order
+   * maximum as before; this only counts once the visitor already holds seats elsewhere. Runs under
+   * the event lock, so two requests from the same visitor cannot both pass. The browser's own
+   * previous checkout was already given back.
+   */
+  private void checkHeldByClient(long eventId, String clientKey, int wanted, Instant now) {
+    int max = properties.checkout().maxHeldSeats();
+    if (clientKey == null || max <= 0) {
+      return;
+    }
+    long held = itemRows.heldByClient(eventId, clientKey, now, OrderStatus.PENDING);
+    if (held > 0 && held + wanted > max) {
+      throw new BusinessException(
+          "You already have "
+              + held
+              + " tickets reserved for this event. Finish or cancel that checkout first.");
+    }
   }
 
   /** Ends the browser's previous open checkout for the event, if there is one. */

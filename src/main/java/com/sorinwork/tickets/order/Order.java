@@ -79,6 +79,10 @@ public class Order {
   @Column(name = "reminder_sent_at")
   private Instant reminderSentAt;
 
+  /** Keyed hash of the address that started the checkout; null for waitlist offers. */
+  @Column(name = "client_key")
+  private String clientKey;
+
   /** Internal note, only shown to admins. */
   @Column(name = "admin_note")
   private String adminNote;
@@ -215,6 +219,14 @@ public class Order {
 
   public void setReminderSentAt(Instant reminderSentAt) {
     this.reminderSentAt = reminderSentAt;
+  }
+
+  public String getClientKey() {
+    return clientKey;
+  }
+
+  public void setClientKey(String clientKey) {
+    this.clientKey = clientKey;
   }
 
   public String getAdminNote() {

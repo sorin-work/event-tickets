@@ -2,6 +2,8 @@ package com.sorinwork.tickets.web;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.config.AppProperties;
+import com.sorinwork.tickets.config.CheckoutLimits;
+import com.sorinwork.tickets.config.ClientKeys;
 import com.sorinwork.tickets.event.Event;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.order.CheckoutForm;
@@ -48,6 +50,8 @@ public class CheckoutController {
   private final CheckoutService checkout;
   private final WaitlistService waitlist;
   private final AppProperties properties;
+  private final ClientKeys clientKeys;
+  private final CheckoutLimits limits;
   private final Clock clock;
 
   public CheckoutController(
@@ -55,11 +59,15 @@ public class CheckoutController {
       CheckoutService checkout,
       WaitlistService waitlist,
       AppProperties properties,
+      ClientKeys clientKeys,
+      CheckoutLimits limits,
       Clock clock) {
     this.events = events;
     this.checkout = checkout;
     this.waitlist = waitlist;
     this.properties = properties;
+    this.clientKeys = clientKeys;
+    this.limits = limits;
     this.clock = clock;
   }
 
@@ -72,9 +80,13 @@ public class CheckoutController {
       RedirectAttributes redirect) {
     Event event = events.getPublic(slug);
     try {
+      String clientKey = clientKeys.of(request.getRemoteAddr());
+      if (!limits.mayStart(clientKey)) {
+        throw new BusinessException("Too many attempts. Please wait a minute and try again.");
+      }
       Map<Long, Integer> selection = quantities(params);
       String previous = previousHold(request, event.getId());
-      Order order = retryOnce(() -> checkout.start(event.getId(), selection, previous));
+      Order order = retryOnce(() -> checkout.start(event.getId(), selection, previous, clientKey));
       setHoldCookie(
           request,
           response,

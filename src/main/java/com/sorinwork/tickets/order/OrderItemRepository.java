@@ -48,6 +48,19 @@ public interface OrderItemRepository extends JpaRepository<OrderItem, Long> {
       @Param("paid") OrderStatus paid,
       @Param("pending") OrderStatus pending);
 
+  /** Seats held right now by open checkouts of the event started by one visitor. */
+  @Query(
+      """
+      select coalesce(sum(i.quantity), 0) from OrderItem i join i.order o
+      where o.event.id = :eventId and o.clientKey = :clientKey
+        and o.status = :pending and o.holdExpiresAt > :now
+      """)
+  long heldByClient(
+      @Param("eventId") long eventId,
+      @Param("clientKey") String clientKey,
+      @Param("now") Instant now,
+      @Param("pending") OrderStatus pending);
+
   /** When the last open checkout holding seats of the tier runs out, or null if none does. */
   @Query(
       """
