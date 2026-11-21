@@ -323,7 +323,8 @@ class CheckoutServiceTest extends IntegrationTest {
   void onlySeatsTheNewSelectionLeavesGoToTheWaitlist() {
     String first = checkout.start(event.getId(), select(vip, 2)).getAccessToken();
     WaitlistEntry ben =
-        waitlist.join(event, new WaitlistForm(vip.getId(), "Ben", "ben@example.com", 1));
+        waitlist.join(
+            events.get(event.getId()), new WaitlistForm(vip.getId(), "Ben", "ben@example.com", 1));
 
     Order second = checkout.start(event.getId(), select(vip, 1), first);
 
