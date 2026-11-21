@@ -28,6 +28,8 @@ class CheckInServiceTest extends IntegrationTest {
   @Autowired EventService events;
   @Autowired OrderAdminService orders;
   @Autowired TicketRepository tickets;
+  @Autowired org.springframework.transaction.support.TransactionTemplate transactions;
+  @Autowired org.springframework.jdbc.core.JdbcTemplate jdbc;
 
   Event event;
   TicketTier tier;
@@ -179,5 +181,22 @@ class CheckInServiceTest extends IntegrationTest {
       pool.shutdownNow();
     }
     assertThat(checkIn.checkedInCount(event.getId())).isEqualTo(1);
+  }
+
+  @Test
+  void anOrderCancelledAfterTheTicketWasLoadedIsNotLetIn() {
+    CheckInResult result =
+        transactions.execute(
+            status -> {
+              // The ticket and its paid order are now in this transaction's persistence context.
+              assertThat(tickets.findWithDetailsByCode(code).orElseThrow().getOrder().getStatus())
+                  .isEqualTo(OrderStatus.PAID);
+              // Cancelled behind its back, as a cancel committing at that moment would be.
+              jdbc.update("update orders set status = 'CANCELLED' where id = ?", order.getId());
+              return checkIn.checkIn(event.getId(), code, "door");
+            });
+
+    assertThat(result.status()).isEqualTo(CheckInResult.Status.CANCELLED);
+    assertThat(tickets.findByCode(code).orElseThrow().isCheckedIn()).isFalse();
   }
 }
