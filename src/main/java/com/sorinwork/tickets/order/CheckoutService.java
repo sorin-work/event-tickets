@@ -242,6 +242,12 @@ public class CheckoutService {
    */
   @Transactional(noRollbackFor = PromoCodeWithdrawn.class)
   public Order complete(String token, CheckoutForm form) {
+    // Order row, then event row (docs/architecture.md). The event lock makes paying wait for an
+    // admin changing a limit, and the hold is judged after both locks, so a hold that ran out
+    // while waiting is not paid past a limit that no longer counted it.
+    Order locked =
+        orders.lockByAccessToken(token).orElseThrow(() -> new NotFoundException("Order"));
+    events.lockById(locked.getEvent().getId());
     Order order = getByToken(token);
     Instant now = clock.instant();
     if (order.getStatus() == OrderStatus.PAID) {

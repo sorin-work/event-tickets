@@ -118,9 +118,14 @@ public class CheckoutController {
     } catch (ObjectOptimisticLockingFailureException e) {
       return "redirect:/orders/" + token;
     } catch (BusinessException e) {
-      model.addAttribute("error", e.getMessage());
       // Reload: the failed attempt may have changed the order, e.g. removed a withdrawn discount.
-      return render(checkout.getByToken(token), model);
+      Order current = checkout.getByToken(token);
+      if (current.getStatus() == OrderStatus.PAID) {
+        // A second submit that waited for the first one: show the tickets.
+        return "redirect:/orders/" + token;
+      }
+      model.addAttribute("error", e.getMessage());
+      return render(current, model);
     }
     return "redirect:/orders/" + token;
   }
