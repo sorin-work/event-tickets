@@ -49,7 +49,8 @@ with a waitlist and a past event with check-ins. Set `SEED_DEMO=false` to start 
 
 There is no mail server: emails the app would send (tickets, waitlist offers,
 reminders) can be read under **Outbox** in the admin area. More background is
-in [docs/architecture.md](docs/architecture.md).
+in [docs/architecture.md](docs/architecture.md). Ideas for what comes next
+are in [ROADMAP.md](ROADMAP.md).
 
 ### A quick tour
 
