@@ -88,4 +88,22 @@ class PromoCheckoutControllerTest extends IntegrationTest {
         .andExpect(content().string(containsString("name=\"_csrf\"")));
     mvc.perform(get("/webjars/htmx.org/dist/htmx.min.js")).andExpect(status().isOk());
   }
+
+  @Test
+  void paymentWithAWithdrawnCodeShowsTheNewTotal() throws Exception {
+    mvc.perform(post("/checkout/" + token + "/promo").with(csrf()).param("code", "FRIENDS"));
+    PromoCode friends = promos.findAll().get(0);
+    friends.setActive(false);
+    promos.save(friends);
+
+    mvc.perform(
+            post("/checkout/" + token)
+                .with(csrf())
+                .param("name", "Ana Pop")
+                .param("email", "ana@example.com"))
+        .andExpect(status().isOk())
+        .andExpect(content().string(containsString("FRIENDS is no longer valid")))
+        .andExpect(content().string(containsString("Pay €40.00")))
+        .andExpect(content().string(containsString("value=\"Ana Pop\"")));
+  }
 }

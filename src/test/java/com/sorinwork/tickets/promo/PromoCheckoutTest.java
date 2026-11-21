@@ -9,6 +9,7 @@ import com.sorinwork.tickets.event.TicketTier;
 import com.sorinwork.tickets.order.CheckoutForm;
 import com.sorinwork.tickets.order.CheckoutService;
 import com.sorinwork.tickets.order.Order;
+import com.sorinwork.tickets.order.OrderStatus;
 import com.sorinwork.tickets.support.IntegrationTest;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -240,5 +241,42 @@ class PromoCheckoutTest extends IntegrationTest {
 
     assertThatThrownBy(() -> checkout.applyPromoCode(token, "FRIENDS"))
         .hasMessageContaining("expired");
+  }
+
+  @Test
+  void aCodeSwitchedOffBeforePaymentIsNotCharged() {
+    PromoCode friends = promo("FRIENDS", DiscountType.PERCENT, 25);
+    String token = order(1).getAccessToken();
+    checkout.applyPromoCode(token, "FRIENDS");
+    friends.setActive(false);
+    promos.save(friends);
+
+    assertThatThrownBy(() -> checkout.complete(token, new CheckoutForm("Ana", "ana@example.com")))
+        .isInstanceOf(CheckoutService.PromoCodeWithdrawn.class)
+        .hasMessageContaining("FRIENDS is no longer valid");
+
+    // The discount is gone for good, the order is not paid, and the hold is kept.
+    Order order = checkout.getByToken(token);
+    assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
+    assertThat(order.getPromoCode()).isNull();
+    assertThat(order.getTotalCents()).isEqualTo(4000);
+    assertThat(order.isHoldActive(clock.instant())).isTrue();
+
+    Order paid = checkout.complete(token, new CheckoutForm("Ana", "ana@example.com"));
+    assertThat(paid.getTotalCents()).isEqualTo(4000);
+  }
+
+  @Test
+  void aCodeThatExpiresDuringTheHoldIsHonoured() {
+    PromoCode early = promo("EARLY", DiscountType.PERCENT, 25);
+    early.setValidUntil(LocalDateTime.of(2030, 1, 15, 12, 5));
+    promos.save(early);
+    String token = order(1).getAccessToken();
+    checkout.applyPromoCode(token, "EARLY");
+    clock.advance(Duration.ofMinutes(8));
+
+    Order paid = checkout.complete(token, new CheckoutForm("Ana", "ana@example.com"));
+
+    assertThat(paid.getTotalCents()).isEqualTo(3000);
   }
 }
