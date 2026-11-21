@@ -49,86 +49,49 @@ the top of the CHANGELOG are updated in the same pull request.
 
 ## Overview
 
-| #   | Item                                          | Group | Area      | Size | Depends on |
-| --- | --------------------------------------------- | ----- | --------- | ---- | ---------- |
-| 1   | Check-in that cannot admit a ticket twice     | Next  | door      | S    | -          |
-| 2   | Promo code limits that hold under load        | Next  | checkout  | S    | -          |
-| 3   | Letting go of a hold                          | Next  | checkout  | S    | -          |
-| 4   | Changing quantities without overselling       | Next  | events    | M    | -          |
-| 5   | A cap on the seats one visitor can hold       | Next  | checkout  | M    | 3          |
-| 6   | Race tests against real PostgreSQL            | Later | tests     | M    | -          |
-| 7   | Waitlist offers that follow the tier's rules  | Later | waitlist  | S    | -          |
-| 8   | Refunds recorded with cancellations           | Later | orders    | M    | -          |
-| 9   | Cancelling single tickets                     | Later | orders    | M    | 8          |
-| 10  | Real payments through a provider              | Later | checkout  | L    | 8          |
-| 11  | Sending email for real                        | Later | notify    | M    | -          |
-| 12  | Throttled admin sign-in                       | Later | security  | S    | -          |
-| 13  | Limits on public forms that send email        | Later | security  | S    | -          |
-| 14  | Door staff accounts                           | Later | admin     | M    | -          |
-| 15  | Scanner tokens for the door API               | Later | api       | M    | 14         |
-| 16  | Audit log of admin actions                    | Later | admin     | M    | -          |
-| 17  | Scheduled backups and a tested restore        | Later | ops       | S    | -          |
-| 18  | Upgrade guide and a migration check           | Later | ops       | S    | 6          |
-| 19  | Scheduled jobs with several instances         | Later | ops       | M    | -          |
-| 20  | Metrics for operators                         | Later | ops       | S    | -          |
-| 21  | Accessibility pass                            | Later | ui        | M    | -          |
-| 22  | Complimentary tickets and a guest list        | Later | orders    | S    | -          |
-| 23  | Selling at the door                           | Later | door      | M    | 22         |
-| 24  | Buyers passing a ticket on                    | Later | tickets   | M    | -          |
-| 25  | Questions at checkout                         | Later | checkout  | M    | -          |
-| 26  | Hidden tiers behind an access code            | Later | events    | M    | -          |
-| 27  | Tiers that take several seats                 | Later | events    | M    | -          |
-| 28  | Booking fees and tax on orders                | Later | orders    | M    | -          |
-| 29  | Buyers cancelling before a deadline           | Later | orders    | M    | 8          |
-| 30  | Event series                                  | Later | events    | M    | -          |
-| 31  | Forgetting buyers after an event              | Later | privacy   | M    | -          |
-| 32  | Sales across all events                       | Later | report    | S    | -          |
-| 33  | Pay what you want                             | Maybe | events    | M    | -          |
-| 34  | Webhooks for orders and check-ins             | Maybe | api       | M    | -          |
-| 35  | An embeddable ticket widget                   | Maybe | web       | M    | -          |
-| 36  | Translations                                  | Maybe | ui        | M    | -          |
-| 37  | Reserved seating with a seat map              | Maybe | events    | L    | -          |
-| 38  | Offline check-in for scanner apps             | Maybe | door      | L    | 1, 15      |
-| 39  | Wallet passes                                 | Maybe | tickets   | L    | -          |
+| #  | Item                                         | Group   | Area     | Size | Depends on |
+| -- | -------------------------------------------- | ------- | -------- | ---- | ---------- |
+| 1  | Check-in that cannot admit a ticket twice    | Shipped | door     | S    | -          |
+| 2  | Promo code limits that hold under load       | Next    | checkout | S    | -          |
+| 3  | Letting go of a hold                         | Next    | checkout | S    | -          |
+| 4  | Changing quantities without overselling      | Next    | events   | M    | -          |
+| 5  | A cap on the seats one visitor can hold      | Next    | checkout | M    | 3          |
+| 6  | Race tests against real PostgreSQL           | Later   | tests    | M    | -          |
+| 7  | Waitlist offers that follow the tier's rules | Later   | waitlist | S    | -          |
+| 8  | Refunds recorded with cancellations          | Later   | orders   | M    | -          |
+| 9  | Cancelling single tickets                    | Later   | orders   | M    | 8          |
+| 10 | Real payments through a provider             | Later   | checkout | L    | 8          |
+| 11 | Sending email for real                       | Later   | notify   | M    | -          |
+| 12 | Throttled admin sign-in                      | Later   | security | S    | -          |
+| 13 | Limits on public forms that send email       | Later   | security | S    | -          |
+| 14 | Door staff accounts                          | Later   | admin    | M    | -          |
+| 15 | Scanner tokens for the door API              | Later   | api      | M    | 14         |
+| 16 | Audit log of admin actions                   | Later   | admin    | M    | -          |
+| 17 | Scheduled backups and a tested restore       | Later   | ops      | S    | -          |
+| 18 | Upgrade guide and a migration check          | Later   | ops      | S    | 6          |
+| 19 | Scheduled jobs with several instances        | Later   | ops      | M    | -          |
+| 20 | Metrics for operators                        | Later   | ops      | S    | -          |
+| 21 | Accessibility pass                           | Later   | ui       | M    | -          |
+| 22 | Complimentary tickets and a guest list       | Later   | orders   | S    | -          |
+| 23 | Selling at the door                          | Later   | door     | M    | 22         |
+| 24 | Buyers passing a ticket on                   | Later   | tickets  | M    | -          |
+| 25 | Questions at checkout                        | Later   | checkout | M    | -          |
+| 26 | Hidden tiers behind an access code           | Later   | events   | M    | -          |
+| 27 | Tiers that take several seats                | Later   | events   | M    | -          |
+| 28 | Booking fees and tax on orders               | Later   | orders   | M    | -          |
+| 29 | Buyers cancelling before a deadline          | Later   | orders   | M    | 8          |
+| 30 | Event series                                 | Later   | events   | M    | -          |
+| 31 | Forgetting buyers after an event             | Later   | privacy  | M    | -          |
+| 32 | Sales across all events                      | Later   | report   | S    | -          |
+| 33 | Pay what you want                            | Maybe   | events   | M    | -          |
+| 34 | Webhooks for orders and check-ins            | Maybe   | api      | M    | -          |
+| 35 | An embeddable ticket widget                  | Maybe   | web      | M    | -          |
+| 36 | Translations                                 | Maybe   | ui       | M    | -          |
+| 37 | Reserved seating with a seat map             | Maybe   | events   | L    | -          |
+| 38 | Offline check-in for scanner apps            | Maybe   | door     | L    | 1, 15      |
+| 39 | Wallet passes                                | Maybe   | tickets  | L    | -          |
 
 ## Next
-
-### 1. Check-in that cannot admit a ticket twice
-
-`CheckInService.checkIn` reads the ticket, checks `isCheckedIn()` and then
-sets `checkedInAt`. Nothing locks the row and `Ticket` has no `version`. Two
-phones at two doors scanning the same screenshot at the same moment both read
-`checked_in_at` as null and both answer `CHECKED_IN`; the second write just
-replaces `checked_in_by`. A shared screenshot is exactly the case the door
-check exists for. The manual check-in in `AdminAttendeeController` and the
-door API (`DoorApiController.checkIn`) go through the same method, so all
-three have the gap.
-
-- A conditional update in `TicketRepository`: set `checkedInAt` and
-  `checkedInBy` where the id matches, `checkedInAt is null` and the ticket's
-  order is still `PAID`. It returns the number of rows changed. One row means
-  this scan let the person in; zero means somebody else did first (or the
-  order was cancelled a moment ago), so the service reloads the ticket and
-  answers `ALREADY_CHECKED_IN` with the first scan's time and staff name, or
-  `CANCELLED`.
-- The checks before it (not found, wrong event) stay as they are; they only
-  decide which message to show.
-- `undo` gets the same treatment (`checkedInAt is not null`), so an undo that
-  races a scan cannot leave a half state.
-- Tricky: the persistence context. After a bulk update the loaded `Ticket`
-  is stale; clear or refresh it before building the `CheckInResult`, or the
-  page shows "checked in by nobody".
-- Tricky: H2 and PostgreSQL both make the second update wait for the first
-  and then match zero rows, which is the behaviour I want. Item 6 proves it
-  on PostgreSQL.
-- Undecided: a "this ticket was scanned 3 seconds ago at the other door"
-  message. The data is there (`checkedInAt`, `checkedInBy`); I would show the
-  time and staff name in the existing already-checked-in message and nothing
-  more.
-- Tests: in `ticket/CheckInServiceTest`, a second check-in of the same ticket
-  after the first committed, a check-in of a ticket whose order was cancelled
-  after it was loaded, undo of a ticket that is not checked in, and two
-  threads checking in the same code where exactly one is admitted.
 
 ### 2. Promo code limits that hold under load
 
@@ -652,3 +615,18 @@ conflicts shown clearly afterwards. Depends on 1 and 15.
 Apple Wallet and Google Wallet passes for each ticket. Needs signing
 certificates and developer accounts; the QR code page works on every phone
 already.
+
+## Shipped
+
+### 1. Check-in that cannot admit a ticket twice
+
+A scan is now one conditional update (`TicketRepository.markCheckedIn`): it
+sets `checked_in_at` only where it is empty and the order is still `PAID`, and
+`CheckInService` reports `ALREADY_CHECKED_IN` or `CANCELLED` from the reloaded
+ticket when the update changed nothing. Scanning, the attendee list and the
+door API all go through it, and undo is the reverse update. The
+already-checked-in message now names the staff member as well as the time, as
+planned. A test in `CheckInServiceTest` runs eight scanners at once; on H2 it
+fails reliably against the old code and passes now. Still open: the same test
+on PostgreSQL, which is item 6.
+

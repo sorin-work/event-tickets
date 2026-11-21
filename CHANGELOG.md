@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Two scanners checking in the same ticket at the same moment both let the
+  person in. A ticket is now admitted once, and the second door sees who
+  checked it in and when.
+
 ## 1.0.0 - 2026-10-29
 
 First stable release.

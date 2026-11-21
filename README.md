@@ -14,7 +14,8 @@ tickets, and let people in at the door.
 - **Waitlist** for sold-out tiers: released tickets are offered in the order
   people joined and held for them for 24 hours
 - **Door check-in** by scanning QR codes with a phone camera or USB scanner,
-  with a live counter, beeps and manual check-in from the attendee list
+  with a live counter, beeps and manual check-in from the attendee list; a
+  ticket gets in once, even with several doors scanning
 - **Attendees and orders** with search, filters, notes, cancellation and CSV
   export
 - **Sales report** per event: tiers, revenue, promo codes, sales by day and

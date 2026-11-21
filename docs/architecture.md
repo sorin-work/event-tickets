@@ -40,6 +40,16 @@ runs out stops counting immediately; `HoldExpiryService` marks such orders
 Paying (simulated) moves the order to `PAID` and issues one ticket per seat.
 Orders carry a `version` column so a double submit cannot pay twice.
 
+## Checking in
+
+A scan is one conditional `UPDATE` on the ticket: it sets `checked_in_at` only
+where it is still empty and the ticket's order is still `PAID`. Two phones
+scanning the same code at the same moment both run it, the database makes the
+second wait for the first, and the second then changes no row and answers
+"already checked in at 19:42 by north door". The same applies to the attendee
+list's manual check-in and the door API, which call the same service. Undoing
+a check-in is the reverse update.
+
 ## Waitlist
 
 Whenever tickets go back on sale (a hold expires, an order or event is
