@@ -35,7 +35,9 @@ services:
       db:
         condition: service_healthy
     ports:
-      - '${WEB_PORT:-4411}:8080'
+      # Only reachable from this machine. Put a reverse proxy in front for other machines (see
+      # the README); to publish the app port directly, drop the 127.0.0.1.
+      - '127.0.0.1:${WEB_PORT:-4411}:8080'
     healthcheck:
       test: ['CMD-SHELL', 'curl -fs http://localhost:8080/actuator/health/readiness || exit 1']
       interval: 10s
