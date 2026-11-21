@@ -114,6 +114,17 @@ Integration tests boot the whole application against an in-memory H2 database,
 so no running Postgres is needed. They share one Spring context and a test
 clock (`TestClock`) that tests move forward to let holds and offers run out.
 
+Race tests (for example two scanners and one ticket) need a real PostgreSQL,
+because H2 only imitates its row locks.
+They run when `TEST_DATABASE_URL` points at an empty database and are skipped
+otherwise; CI starts one:
+
+```bash
+docker run -d --name tickets-test-db -p 5433:5432 -e POSTGRES_USER=tickets \
+  -e POSTGRES_PASSWORD=tickets -e POSTGRES_DB=tickets postgres:17-alpine
+TEST_DATABASE_URL=jdbc:postgresql://localhost:5433/tickets ./mvnw verify
+```
+
 | Command                                  | What it does                              |
 | ---------------------------------------- | ----------------------------------------- |
 | `./mvnw verify`                          | Format check, all tests, build the jar    |

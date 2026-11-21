@@ -48,7 +48,9 @@ scanning the same code at the same moment both run it, the database makes the
 second wait for the first, and the second then changes no row and answers
 "already checked in at 19:42 by north door". The same applies to the attendee
 list's manual check-in and the door API, which call the same service. Undoing
-a check-in is the reverse update.
+a check-in is the reverse update. Before the update the scan takes a shared
+lock on the order (`FOR SHARE`), so a cancellation committing at that moment
+either waits for the scan or is seen by it.
 
 ## Waitlist
 

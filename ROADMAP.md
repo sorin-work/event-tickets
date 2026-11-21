@@ -626,7 +626,10 @@ sets `checked_in_at` only where it is empty and the order is still `PAID`, and
 ticket when the update changed nothing. Scanning, the attendee list and the
 door API all go through it, and undo is the reverse update. The
 already-checked-in message now names the staff member as well as the time, as
-planned. A test in `CheckInServiceTest` runs eight scanners at once; on H2 it
-fails reliably against the old code and passes now. Still open: the same test
-on PostgreSQL, which is item 6.
+planned. The scan also takes a shared lock on the order first, so a
+cancellation cannot slip in between. `CheckInRaceTest` runs ten scanners at
+once on a real PostgreSQL (`support/PostgresTest`, enabled by
+`TEST_DATABASE_URL`, which CI now sets with a PostgreSQL service): the old code
+admitted all ten, the new one admits one. The demo seeder sets its past arrival
+times through the same update. Item 6 is left with the checkout races.
 
