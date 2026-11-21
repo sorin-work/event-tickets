@@ -324,4 +324,31 @@ class CheckoutControllerTest extends IntegrationTest {
     mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"))
         .andExpect(flash().attributeCount(0));
   }
+
+  @Test
+  void theStartLimitIsPerEvent() throws Exception {
+    Event other = data.event("Quiz Night");
+    TicketTier quiz = data.tier(other, "Team seat", "5", 100);
+    events.publish(other.getId());
+    String previous = "none";
+    for (int i = 0; i < 20; i++) {
+      mvc.perform(
+          post("/events/film-club/checkout")
+              .with(csrf())
+              .cookie(new Cookie(holdCookie(), previous))
+              .param("qty_" + tier.getId(), "1"));
+      previous =
+          orders.findAll().stream()
+              .filter(o -> o.getStatus() == OrderStatus.PENDING)
+              .findFirst()
+              .orElseThrow()
+              .getAccessToken();
+    }
+
+    mvc.perform(post("/events/quiz-night/checkout").with(csrf()).param("qty_" + quiz.getId(), "1"))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrlPattern(
+                "/checkout/*"))
+        .andExpect(flash().attributeCount(0));
+  }
 }
