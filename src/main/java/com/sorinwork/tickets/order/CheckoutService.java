@@ -69,8 +69,20 @@ public class CheckoutService {
    * @param quantities tier id to number of tickets; zero entries are ignored
    */
   public Order start(long eventId, Map<Long, Integer> quantities) {
+    return start(eventId, quantities, null);
+  }
+
+  /**
+   * Holds the selected tickets in place of the browser's previous checkout for the event. That
+   * checkout, if it is still open, gives its seats back first, so the buyer can choose them again.
+   * If the new selection is refused, nothing changes and the previous hold is kept.
+   *
+   * @param previousToken access token of the checkout the same browser started before, or null
+   */
+  public Order start(long eventId, Map<Long, Integer> quantities, String previousToken) {
     Event event =
         events.lockById(eventId).orElseThrow(() -> new NotFoundException("Event " + eventId));
+    boolean replaced = previousToken != null && expirePrevious(eventId, previousToken);
     if (!event.isPublished()) {
       throw new BusinessException("Tickets for this event are not on sale.");
     }
@@ -110,7 +122,44 @@ public class CheckoutService {
     if (order.getItems().isEmpty()) {
       throw new BusinessException("Choose at least one ticket.");
     }
-    return orders.save(order);
+    Order saved = orders.saveAndFlush(order);
+    if (replaced) {
+      // Only what the new selection did not take again goes to the waitlist.
+      publisher.publishEvent(new OrderEvents.TicketsReleased(eventId));
+    }
+    return saved;
+  }
+
+  /** Ends the browser's previous open checkout for the event, if there is one. */
+  private boolean expirePrevious(long eventId, String token) {
+    Order previous = orders.findByAccessToken(token).orElse(null);
+    if (previous == null
+        || !previous.getEvent().getId().equals(eventId)
+        || !previous.isHoldActive(clock.instant())) {
+      return false;
+    }
+    previous.setStatus(OrderStatus.EXPIRED);
+    orders.flush();
+    publisher.publishEvent(new OrderEvents.HoldExpired(previous.getId()));
+    return true;
+  }
+
+  /**
+   * The buyer gives the held seats back instead of letting the hold run out. For a waitlist offer
+   * this is declining it, and the seats are offered to the next person. Orders that are paid,
+   * cancelled or already expired are left as they are.
+   */
+  public Order release(String token) {
+    Order order = getByToken(token);
+    events.lockById(order.getEvent().getId());
+    if (order.getStatus() != OrderStatus.PENDING) {
+      return order;
+    }
+    order.setStatus(OrderStatus.EXPIRED);
+    orders.flush();
+    publisher.publishEvent(new OrderEvents.HoldExpired(order.getId()));
+    publisher.publishEvent(new OrderEvents.TicketsReleased(order.getEvent().getId()));
+    return order;
   }
 
   /** Applies a promo code to an open checkout, replacing any code applied before. */
