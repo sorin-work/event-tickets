@@ -1,5 +1,6 @@
 package com.sorinwork.tickets.admin;
 
+import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.event.EventService;
 import com.sorinwork.tickets.event.TierForm;
 import com.sorinwork.tickets.event.TierService;
@@ -71,7 +72,14 @@ public class AdminTierController {
       model.addAttribute("tier", tiers.get(eventId, tierId));
       return "admin/tiers/form";
     }
-    tiers.update(eventId, tierId, form);
+    try {
+      tiers.update(eventId, tierId, form);
+    } catch (BusinessException e) {
+      binding.rejectValue("quantity", "taken", e.getMessage());
+      model.addAttribute("event", events.get(eventId));
+      model.addAttribute("tier", tiers.get(eventId, tierId));
+      return "admin/tiers/form";
+    }
     redirect.addFlashAttribute("flash", "Ticket tier saved.");
     return "redirect:/admin/events/" + eventId + "/edit";
   }

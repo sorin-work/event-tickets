@@ -126,18 +126,22 @@ public class AdminEventController {
       BindingResult binding,
       Model model,
       RedirectAttributes redirect) {
-    if (binding.hasErrors()) {
-      Event event = events.get(id);
-      model.addAttribute("event", event);
-      model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
-      model.addAttribute("tiers", tiers.forEvent(id));
-      model.addAttribute("availability", availability.forEvent(id));
-      model.addAttribute("waiting", waitlist.waitingPerTier(id));
-      return "admin/events/form";
+    if (!binding.hasErrors()) {
+      try {
+        events.update(id, form);
+        redirect.addFlashAttribute("flash", "Event saved.");
+        return "redirect:/admin/events/" + id + "/edit";
+      } catch (BusinessException e) {
+        binding.rejectValue("capacity", "taken", e.getMessage());
+      }
     }
-    events.update(id, form);
-    redirect.addFlashAttribute("flash", "Event saved.");
-    return "redirect:/admin/events/" + id + "/edit";
+    Event event = events.get(id);
+    model.addAttribute("event", event);
+    model.addAttribute("publicUrl", properties.url("/events/" + event.getSlug()));
+    model.addAttribute("tiers", tiers.forEvent(id));
+    model.addAttribute("availability", availability.forEvent(id));
+    model.addAttribute("waiting", waitlist.waitingPerTier(id));
+    return "admin/events/form";
   }
 
   @PostMapping("/{id}/slug")
