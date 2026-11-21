@@ -10,6 +10,12 @@
 
 ### Fixed
 
+- A tier's quantity or the venue capacity could be set below what was sold and
+  held, so open checkouts could still be paid past the limit. It is now
+  refused with the numbers, and the time the last hold ends.
+- More tickets for a sold-out tier, a larger venue or a resumed tier went to
+  whoever came first instead of the people on the waitlist.
+
 - Two scanners checking in the same ticket at the same moment both let the
   person in. A ticket is now admitted once, and the second door sees who
   checked it in and when.

@@ -64,6 +64,13 @@ a check-in is the reverse update. Before the update the scan takes a shared
 lock on the order (`FOR SHARE`), so a cancellation committing at that moment
 either waits for the scan or is seen by it.
 
+Admins changing a tier's quantity or the venue capacity take the same event
+lock (`SeatLimits`). A number below what is sold plus what open checkouts hold
+is refused, with the time the last hold ends, because every open checkout can
+still be paid. When a change puts seats back on sale (more tickets, a larger or
+no capacity, a paused tier resumed), `TicketsReleased` is published so the
+waitlist is offered them before anyone else.
+
 ## Lock order
 
 Several things change orders and events at once: buyers paying or giving seats

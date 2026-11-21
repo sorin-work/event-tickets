@@ -54,7 +54,7 @@ the top of the CHANGELOG are updated in the same pull request.
 | 1  | Check-in that cannot admit a ticket twice    | Shipped | door     | S    | -          |
 | 2  | Promo code limits that hold under load       | Shipped | checkout | S    | -          |
 | 3  | Letting go of a hold                         | Shipped | checkout | S    | -          |
-| 4  | Changing quantities without overselling      | Next    | events   | M    | -          |
+| 4  | Changing quantities without overselling      | Shipped | events   | M    | -          |
 | 5  | A cap on the seats one visitor can hold      | Next    | checkout | M    | 3          |
 | 6  | Race tests against real PostgreSQL           | Later   | tests    | M    | -          |
 | 7  | Waitlist offers that follow the tier's rules | Later   | waitlist | S    | -          |
@@ -92,43 +92,6 @@ the top of the CHANGELOG are updated in the same pull request.
 | 39 | Wallet passes                                | Maybe   | tickets  | L    | -          |
 
 ## Next
-
-### 4. Changing quantities without overselling
-
-`TierService.update` writes the new `quantity` straight to the tier and
-`EventService.update` does the same with the venue `capacity`. Neither takes
-the event lock and neither looks at what is sold. Two problems follow:
-
-- Lowering below what is sold plus held is accepted. Availability clamps to
-  zero so nothing new is sold, but every open checkout can still be paid, and
-  then more seats are sold than the tier or venue has. The admin is not told.
-- Raising the quantity or capacity, or un-pausing a tier, puts seats on sale
-  without publishing `TicketsReleased`, so the people on the waitlist are
-  skipped and the new seats go to whoever refreshes the page first.
-
-The plan:
-
-- Both updates lock the event (`lockById`) and compute availability before
-  writing. A tier quantity below `sold + held`, or a capacity below the total
-  taken across tiers, is refused with "30 are sold and 2 are held in open
-  checkouts; the holds end at 19:42". Refusing below held seats too is the
-  only way the number can never be exceeded.
-- After a change that frees seats (quantity or capacity up, tier un-paused, a
-  sales start moved into the past) the service flushes and publishes
-  `TicketsReleased`, so the waitlist gets them first.
-- Tier delete (`TierService.delete`) already refuses tiers with orders; no
-  change.
-- Tricky: the check must use the same numbers as checkout. Reuse
-  `AvailabilityService.forEvent` inside the lock rather than writing a second
-  count query.
-- Tricky: the event form also changes the time zone and start time. Only the
-  capacity part needs the lock; the rest saves as today.
-- Undecided: let an admin knowingly oversell (a guest list on top of a sold
-  out venue). No: comps are item 22 and count against the capacity.
-- Tests: `admin/AdminTierControllerTest` and `order/EventCapacityTest`: refused
-  below sold, refused below sold plus held, accepted at exactly that number,
-  raising a sold-out tier with people waiting makes an offer, un-pausing makes
-  an offer.
 
 ### 5. A cap on the seats one visitor can hold
 
@@ -597,3 +560,18 @@ waitlist gets what is left. Review added a lock order for the whole app
 admin and event cancellation and the expiry job follow it, the job skips rows
 that are locked, and checkout changes are retried once after a deadlock.
 Releasing on tab close stays out.
+
+### 4. Changing quantities without overselling
+
+`TierService.update` and `EventService.update` now take the event lock and ask
+`SeatLimits` whether the new quantity or capacity still covers what is sold
+plus held; if not, the admin form shows "That is fewer than are taken: 30 sold
+and 2 held in open checkouts, which end by 19:42." on the field. A change that
+frees seats (quantity up, capacity up or removed, a paused tier resumed)
+publishes `TicketsReleased`, so the waitlist goes first; raising the quantity
+of a tier that stays paused does not, so no offer is made for a tier that is
+not on sale. Left out: a sales start moved into the past, because a tier that
+has not started selling cannot have sold out and gathered a waitlist; offers
+that check sales windows are item 7. `SeatChangeRaceTest` lowers a tier and the
+venue on PostgreSQL while buyers check out and checks that sold plus held never
+exceeds the limit.
