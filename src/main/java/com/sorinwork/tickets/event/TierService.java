@@ -5,6 +5,7 @@ import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.order.OrderEvents;
 import com.sorinwork.tickets.order.SeatLimits;
 import java.time.Clock;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -70,7 +71,10 @@ public class TierService {
     TicketTier tier = get(eventId, tierId);
     limits.checkTierQuantity(tier, form.getQuantity());
     boolean freesSeats =
-        form.getQuantity() > tier.getQuantity() || (tier.isPaused() && !form.isPaused());
+        form.getQuantity() > tier.getQuantity()
+            || (tier.isPaused() && !form.isPaused())
+            || later(form.getSalesEnd(), tier.getSalesEnd())
+            || earlier(form.getSalesStart(), tier.getSalesStart());
     tier.setName(form.getName().trim());
     tier.setPriceCents(form.priceCents());
     tier.setQuantity(form.getQuantity());
@@ -111,6 +115,16 @@ public class TierService {
     for (int i = 0; i < ordered.size(); i++) {
       ordered.get(i).setPosition(i);
     }
+  }
+
+  /** A sales end moved later or removed: sales go on for longer. */
+  private static boolean later(LocalDateTime after, LocalDateTime before) {
+    return before != null && (after == null || after.isAfter(before));
+  }
+
+  /** A sales start moved earlier or removed: sales open sooner. */
+  private static boolean earlier(LocalDateTime after, LocalDateTime before) {
+    return before != null && (after == null || after.isBefore(before));
   }
 
   private void apply(TicketTier tier, TierForm form) {
