@@ -2,10 +2,13 @@ package com.sorinwork.tickets.event;
 
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
+import com.sorinwork.tickets.order.OrderEvents;
+import com.sorinwork.tickets.order.SeatLimits;
 import java.time.Clock;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,11 +18,23 @@ public class TierService {
 
   private final TicketTierRepository tiers;
   private final EventService events;
+  private final EventRepository eventRows;
+  private final SeatLimits limits;
+  private final ApplicationEventPublisher publisher;
   private final Clock clock;
 
-  public TierService(TicketTierRepository tiers, EventService events, Clock clock) {
+  public TierService(
+      TicketTierRepository tiers,
+      EventService events,
+      EventRepository eventRows,
+      SeatLimits limits,
+      ApplicationEventPublisher publisher,
+      Clock clock) {
     this.tiers = tiers;
     this.events = events;
+    this.eventRows = eventRows;
+    this.limits = limits;
+    this.publisher = publisher;
     this.clock = clock;
   }
 
@@ -45,12 +60,25 @@ public class TierService {
     return tiers.save(tier);
   }
 
+  /**
+   * Saves a tier. Under the event lock, like checkout: a quantity below what is sold and held is
+   * refused, and seats that come back on sale (more tickets, sales resumed) go to the waitlist
+   * first.
+   */
   public TicketTier update(long eventId, long tierId, TierForm form) {
+    eventRows.lockById(eventId).orElseThrow(() -> new NotFoundException("Event " + eventId));
     TicketTier tier = get(eventId, tierId);
+    limits.checkTierQuantity(tier, form.getQuantity());
+    boolean freesSeats =
+        form.getQuantity() > tier.getQuantity() || (tier.isPaused() && !form.isPaused());
     tier.setName(form.getName().trim());
     tier.setPriceCents(form.priceCents());
     tier.setQuantity(form.getQuantity());
     apply(tier, form);
+    if (freesSeats && !tier.isPaused()) {
+      tiers.flush();
+      publisher.publishEvent(new OrderEvents.TicketsReleased(eventId));
+    }
     return tier;
   }
 

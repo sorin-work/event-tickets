@@ -3,8 +3,10 @@ package com.sorinwork.tickets.event;
 import com.sorinwork.tickets.common.BusinessException;
 import com.sorinwork.tickets.common.NotFoundException;
 import com.sorinwork.tickets.common.Slugs;
+import com.sorinwork.tickets.order.OrderEvents;
 import com.sorinwork.tickets.order.OrderRepository;
 import com.sorinwork.tickets.order.OrderStatus;
+import com.sorinwork.tickets.order.SeatLimits;
 import java.time.Clock;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +20,7 @@ public class EventService {
 
   private final EventRepository events;
   private final TicketTierRepository tiers;
+  private final SeatLimits limits;
   private final OrderRepository orders;
   private final ApplicationEventPublisher publisher;
   private final Clock clock;
@@ -25,11 +28,13 @@ public class EventService {
   public EventService(
       EventRepository events,
       TicketTierRepository tiers,
+      SeatLimits limits,
       OrderRepository orders,
       ApplicationEventPublisher publisher,
       Clock clock) {
     this.events = events;
     this.tiers = tiers;
+    this.limits = limits;
     this.orders = orders;
     this.publisher = publisher;
     this.clock = clock;
@@ -80,11 +85,23 @@ public class EventService {
     return events.save(event);
   }
 
+  /**
+   * Saves an event. Under the event lock, like checkout: a venue capacity below what is sold and
+   * held is refused, and a larger (or no) capacity offers the extra seats to the waitlist first.
+   */
   public Event update(long id, EventForm form) {
-    Event event = get(id);
+    Event event = events.lockById(id).orElseThrow(() -> new NotFoundException("Event " + id));
+    limits.checkCapacity(event, form.getCapacity());
+    Integer before = event.getCapacity();
+    Integer after = form.getCapacity();
+    boolean freesSeats = before != null && (after == null || after > before);
     event.setTitle(form.getTitle().trim());
     apply(event, form);
     event.setUpdatedAt(clock.instant());
+    if (freesSeats) {
+      events.flush();
+      publisher.publishEvent(new OrderEvents.TicketsReleased(id));
+    }
     return event;
   }
 
