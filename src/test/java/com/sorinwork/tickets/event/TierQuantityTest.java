@@ -4,19 +4,26 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.sorinwork.tickets.order.CheckoutService;
+import com.sorinwork.tickets.order.OrderEvents;
 import com.sorinwork.tickets.support.IntegrationTest;
 import com.sorinwork.tickets.waitlist.WaitlistEntry;
 import com.sorinwork.tickets.waitlist.WaitlistForm;
 import com.sorinwork.tickets.waitlist.WaitlistRepository;
 import com.sorinwork.tickets.waitlist.WaitlistService;
 import com.sorinwork.tickets.waitlist.WaitlistStatus;
+import java.time.LocalDateTime;
 import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.test.context.event.ApplicationEvents;
+import org.springframework.test.context.event.RecordApplicationEvents;
 
 /** Changing how many tickets a tier has once some are sold or held. */
+@RecordApplicationEvents
 class TierQuantityTest extends IntegrationTest {
+
+  @Autowired ApplicationEvents applicationEvents;
 
   @Autowired TierService tiers;
   @Autowired EventService events;
@@ -99,5 +106,43 @@ class TierQuantityTest extends IntegrationTest {
 
     change(6, false);
     assertThat(statusOf(dana)).isEqualTo(WaitlistStatus.OFFERED);
+  }
+
+  @Test
+  void aHoldEndingOnAnotherDayIsShownWithItsDate() {
+    purchases.buy(tier, 5, "Ana", "ana@example.com");
+    joinWaitlist();
+    // The waitlist offer for the sixth ticket is held for 24 hours.
+    change(6, false);
+
+    assertThatThrownBy(() -> change(5, false))
+        .hasMessage(
+            "That is fewer than are taken: 5 sold and 1 held in open checkouts,"
+                + " which end by Wed 16 Jan, 12:00.");
+  }
+
+  private long releases() {
+    return applicationEvents.stream(OrderEvents.TicketsReleased.class).count();
+  }
+
+  @Test
+  void aLaterSalesEndOrEarlierSalesStartPutsSeatsBackOnSale() {
+    TierForm form = TierForm.from(tiers.get(event.getId(), tier.getId()));
+    form.setSalesStart(LocalDateTime.of(2030, 1, 14, 9, 0));
+    form.setSalesEnd(LocalDateTime.of(2030, 1, 20, 18, 0));
+    tiers.update(event.getId(), tier.getId(), form);
+    long before = releases();
+
+    form.setSalesEnd(LocalDateTime.of(2030, 1, 21, 18, 0));
+    tiers.update(event.getId(), tier.getId(), form);
+    assertThat(releases()).isEqualTo(before + 1);
+
+    form.setSalesStart(LocalDateTime.of(2030, 1, 13, 9, 0));
+    tiers.update(event.getId(), tier.getId(), form);
+    assertThat(releases()).isEqualTo(before + 2);
+
+    form.setName("Front floor");
+    tiers.update(event.getId(), tier.getId(), form);
+    assertThat(releases()).isEqualTo(before + 2);
   }
 }
