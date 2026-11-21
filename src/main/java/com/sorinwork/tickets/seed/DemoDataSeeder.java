@@ -206,8 +206,11 @@ public class DemoDataSeeder implements ApplicationRunner {
     java.time.Instant doors =
         today.minusDays(12).atTime(19, 0).atZone(events.get(past.getId()).zone()).toInstant();
     for (int i = 0; i < 52; i++) {
-      checkIn.checkIn(past.getId(), pastTickets.get(i).getCode(), "door@example.com");
-      pastTickets.get(i).checkIn(doors.plus(Duration.ofMinutes(i * 90L / 52)), "door@example.com");
+      checkIn.checkIn(
+          past.getId(),
+          pastTickets.get(i).getCode(),
+          "door@example.com",
+          doors.plus(Duration.ofMinutes(i * 90L / 52)));
     }
 
     log.info("Created demo events, orders and a waitlist");
