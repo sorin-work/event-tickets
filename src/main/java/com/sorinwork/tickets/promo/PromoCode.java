@@ -13,6 +13,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Locale;
@@ -56,6 +57,9 @@ public class PromoCode {
 
   @Column(name = "created_at", nullable = false)
   private Instant createdAt;
+
+  /** Refuses an admin change made from an out-of-date copy instead of losing another one. */
+  @Version private long version;
 
   protected PromoCode() {}
 

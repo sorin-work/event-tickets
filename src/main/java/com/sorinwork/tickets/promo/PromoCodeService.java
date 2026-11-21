@@ -54,11 +54,8 @@ public class PromoCodeService {
   /** Changes how often and until when a code can be used. {@code null} means no limit. */
   public PromoCode updateLimits(
       long eventId, long promoId, Integer maxUses, java.time.LocalDateTime validUntil) {
-    codes
-        .findByIdAndEventId(promoId, eventId)
-        .orElseThrow(() -> new NotFoundException("Promo code " + promoId));
     // Same lock as applying the code, so the count cannot change while the limit is checked.
-    PromoCode promo = codes.lockById(promoId).orElseThrow();
+    PromoCode promo = locked(eventId, promoId);
     long used = codes.countRedemptions(promoId, clock.instant());
     if (maxUses != null && maxUses < Math.max(1, used)) {
       throw new BusinessException(
@@ -80,11 +77,14 @@ public class PromoCodeService {
   }
 
   public PromoCode setActive(long eventId, long promoId, boolean active) {
-    PromoCode promo =
-        codes
-            .findByIdAndEventId(promoId, eventId)
-            .orElseThrow(() -> new NotFoundException("Promo code " + promoId));
+    PromoCode promo = locked(eventId, promoId);
     promo.setActive(active);
     return promo;
+  }
+
+  private PromoCode locked(long eventId, long promoId) {
+    return codes
+        .lockByIdAndEventId(promoId, eventId)
+        .orElseThrow(() -> new NotFoundException("Promo code " + promoId));
   }
 }

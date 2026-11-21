@@ -120,10 +120,11 @@ public class CheckoutService {
     if (code == null || code.isEmpty()) {
       throw new BusinessException("Enter a promo code.");
     }
+    // Locked and read in one query. The only code already loaded in this transaction is the one
+    // on the order, and applying that one again changes nothing.
     PromoCode promo =
         promoCodes
-            .findByEventIdAndCode(order.getEvent().getId(), code)
-            .flatMap(found -> promoCodes.lockById(found.getId()))
+            .lockByEventIdAndCode(order.getEvent().getId(), code)
             .filter(PromoCode::isActive)
             .orElseThrow(() -> new BusinessException("That promo code is not valid."));
     LocalDateTime eventNow = LocalDateTime.now(clock.withZone(order.getEvent().zone()));

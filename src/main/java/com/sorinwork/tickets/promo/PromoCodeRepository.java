@@ -18,12 +18,19 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
   Optional<PromoCode> findByEventIdAndCode(Long eventId, String code);
 
   /**
-   * Loads the code with a row lock. Applying a code is the only thing that adds a use, so taking
-   * this lock before counting uses means two buyers cannot both take its last use.
+   * Finds the code and locks its row in the same query, so what is read is current. Applying a code
+   * is the only thing that adds a use, so taking this lock before counting uses means two buyers
+   * cannot both take its last use. Admin changes to the code take the same lock.
    */
   @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select p from PromoCode p where p.id = :id")
-  Optional<PromoCode> lockById(@Param("id") long id);
+  @Query("select p from PromoCode p where p.event.id = :eventId and p.code = :code")
+  Optional<PromoCode> lockByEventIdAndCode(
+      @Param("eventId") long eventId, @Param("code") String code);
+
+  /** Same lock as {@link #lockByEventIdAndCode}, by id, for the admin area. */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select p from PromoCode p where p.id = :id and p.event.id = :eventId")
+  Optional<PromoCode> lockByIdAndEventId(@Param("id") long id, @Param("eventId") long eventId);
 
   Optional<PromoCode> findByIdAndEventId(Long id, Long eventId);
 
