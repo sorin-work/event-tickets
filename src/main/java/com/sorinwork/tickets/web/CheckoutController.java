@@ -81,7 +81,7 @@ public class CheckoutController {
     Event event = events.getPublic(slug);
     try {
       String clientKey = clientKeys.of(request.getRemoteAddr());
-      if (!limits.mayStart(clientKey)) {
+      if (!limits.mayStart(event.getId(), clientKey)) {
         throw new BusinessException("Too many attempts. Please wait a minute and try again.");
       }
       Map<Long, Integer> selection = quantities(params);
