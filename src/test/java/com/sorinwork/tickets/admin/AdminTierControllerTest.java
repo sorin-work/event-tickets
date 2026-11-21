@@ -23,6 +23,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 class AdminTierControllerTest extends IntegrationTest {
 
   @Autowired TicketTierRepository tiers;
+  @Autowired com.sorinwork.tickets.event.EventService events;
 
   Event event;
 
@@ -113,5 +114,25 @@ class AdminTierControllerTest extends IntegrationTest {
 
     mvc.perform(get("/admin/events/" + event.getId() + "/tiers/" + tierId + "/edit"))
         .andExpect(status().isNotFound());
+  }
+
+  @Test
+  void aQuantityBelowWhatIsSoldIsShownOnTheForm() throws Exception {
+    TicketTier tier = data.tier(event, "Floor", "10", 5);
+    events.publish(event.getId());
+    purchases.buy(tier, 3, "Ana", "ana@example.com");
+
+    mvc.perform(
+            post("/admin/events/" + event.getId() + "/tiers/" + tier.getId())
+                .with(csrf())
+                .param("name", "Floor")
+                .param("price", "10")
+                .param("quantity", "2")
+                .param("maxPerOrder", "10"))
+        .andExpect(status().isOk())
+        .andExpect(model().attributeHasFieldErrors("form", "quantity"))
+        .andExpect(content().string(containsString("That is fewer than are taken: 3 sold.")));
+
+    assertThat(tiers.findById(tier.getId()).orElseThrow().getQuantity()).isEqualTo(5);
   }
 }
