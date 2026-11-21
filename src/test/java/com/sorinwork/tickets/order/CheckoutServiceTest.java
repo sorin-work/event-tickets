@@ -333,4 +333,47 @@ class CheckoutServiceTest extends IntegrationTest {
         .isEqualTo(WaitlistStatus.OFFERED);
     assertThat(vipLeft()).isZero();
   }
+
+  @Test
+  void oneVisitorCannotStackCheckoutsBeyondTheCap() {
+    checkout.start(event.getId(), select(standing, 10), null, "visitor-a");
+
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 2), null, "visitor-a"))
+        .hasMessage(
+            "You already have 10 tickets reserved for this event. Finish or cancel that checkout"
+                + " first.");
+  }
+
+  @Test
+  void theCapIsPerVisitor() {
+    checkout.start(event.getId(), select(standing, 10), null, "visitor-a");
+
+    assertThat(checkout.start(event.getId(), select(vip, 2), null, "visitor-b").ticketCount())
+        .isEqualTo(2);
+  }
+
+  @Test
+  void holdsThatRanOutStopCountingTowardsTheCap() {
+    checkout.start(event.getId(), select(standing, 10), null, "visitor-a");
+    clock.advance(Duration.ofMinutes(11));
+
+    assertThat(checkout.start(event.getId(), select(vip, 2), null, "visitor-a").ticketCount())
+        .isEqualTo(2);
+  }
+
+  @Test
+  void startingAgainFromTheSameBrowserIsNotStacking() {
+    String first =
+        checkout.start(event.getId(), select(standing, 10), null, "visitor-a").getAccessToken();
+
+    assertThat(checkout.start(event.getId(), select(standing, 9, vip, 2), first, "visitor-a"))
+        .satisfies(order -> assertThat(order.ticketCount()).isEqualTo(11));
+  }
+
+  @Test
+  void checkoutsWithoutAVisitorAreNotCapped() {
+    checkout.start(event.getId(), select(standing, 10));
+
+    assertThat(checkout.start(event.getId(), select(vip, 2)).ticketCount()).isEqualTo(2);
+  }
 }

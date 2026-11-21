@@ -29,6 +29,7 @@ class CheckoutControllerTest extends IntegrationTest {
 
   @Autowired EventService events;
   @Autowired OrderRepository orders;
+  @Autowired com.sorinwork.tickets.order.CheckoutService checkout;
   @Autowired TicketRepository tickets;
 
   Event event;
@@ -275,5 +276,52 @@ class CheckoutControllerTest extends IntegrationTest {
         .andExpect(redirectedUrl("/checkout/" + paid.getAccessToken()));
 
     assertThat(orders.findById(paid.getId()).orElseThrow().getStatus()).isEqualTo(OrderStatus.PAID);
+  }
+
+  @Test
+  void aVisitorHoldingSeatsIsToldToFinishFirst() throws Exception {
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "10"));
+
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "5"))
+        .andExpect(redirectedUrl("/events/film-club"))
+        .andExpect(flash().attribute("error", containsString("You already have 10 tickets")));
+
+    mvc.perform(
+            post("/events/film-club/checkout")
+                .with(csrf())
+                .with(
+                    request -> {
+                      request.setRemoteAddr("198.51.100.20");
+                      return request;
+                    })
+                .param("qty_" + tier.getId(), "5"))
+        .andExpect(status().is3xxRedirection())
+        .andExpect(flash().attributeCount(0));
+  }
+
+  @Test
+  void tooManyStartsInAMinuteAreRefused() throws Exception {
+    // Twenty starts from one browser, each replacing the one before, so the seat cap never applies.
+    String previous = "none";
+    for (int i = 0; i < 20; i++) {
+      mvc.perform(
+          post("/events/film-club/checkout")
+              .with(csrf())
+              .cookie(new Cookie(holdCookie(), previous))
+              .param("qty_" + tier.getId(), "1"));
+      previous =
+          orders.findAll().stream()
+              .filter(o -> o.getStatus() == OrderStatus.PENDING)
+              .findFirst()
+              .orElseThrow()
+              .getAccessToken();
+    }
+
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"))
+        .andExpect(flash().attribute("error", containsString("Too many attempts")));
+
+    clock.advance(java.time.Duration.ofMinutes(1));
+    mvc.perform(post("/events/film-club/checkout").with(csrf()).param("qty_" + tier.getId(), "1"))
+        .andExpect(flash().attributeCount(0));
   }
 }

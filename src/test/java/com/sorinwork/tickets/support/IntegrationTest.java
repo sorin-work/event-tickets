@@ -20,10 +20,12 @@ public abstract class IntegrationTest {
   @Autowired protected TestClock clock;
   @Autowired protected Purchases purchases;
   @Autowired private DatabaseCleaner databaseCleaner;
+  @Autowired private com.sorinwork.tickets.config.CheckoutLimits checkoutLimits;
 
   @BeforeEach
   void cleanDatabase() {
     databaseCleaner.clean();
     clock.reset();
+    checkoutLimits.clear();
   }
 }
