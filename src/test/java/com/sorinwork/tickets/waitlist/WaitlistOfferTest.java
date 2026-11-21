@@ -176,4 +176,26 @@ class WaitlistOfferTest extends IntegrationTest {
 
     assertThat(waitlist.offerReleasedTickets(event.getId())).isZero();
   }
+
+  @Test
+  void decliningAnOfferPassesItToTheNextPerson() throws Exception {
+    WaitlistEntry ana = join("Ana", 1);
+    WaitlistEntry bob = join("Bob", 1);
+    orders.cancel(first.getId());
+    String token = offerToken(ana);
+
+    mvc.perform(
+            org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get(
+                "/checkout/" + token))
+        .andExpect(
+            org.springframework.test.web.servlet.result.MockMvcResultMatchers.content()
+                .string(org.hamcrest.Matchers.containsString("No thanks")));
+
+    checkout.release(token);
+
+    assertThat(entries.findById(ana.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.EXPIRED);
+    assertThat(entries.findById(bob.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.OFFERED);
+  }
 }

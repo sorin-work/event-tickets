@@ -11,6 +11,11 @@ import com.sorinwork.tickets.event.TicketTierRepository;
 import com.sorinwork.tickets.support.IntegrationTest;
 import com.sorinwork.tickets.ticket.Ticket;
 import com.sorinwork.tickets.ticket.TicketRepository;
+import com.sorinwork.tickets.waitlist.WaitlistEntry;
+import com.sorinwork.tickets.waitlist.WaitlistForm;
+import com.sorinwork.tickets.waitlist.WaitlistRepository;
+import com.sorinwork.tickets.waitlist.WaitlistService;
+import com.sorinwork.tickets.waitlist.WaitlistStatus;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -27,6 +32,9 @@ class CheckoutServiceTest extends IntegrationTest {
   @Autowired TicketTierRepository tiers;
   @Autowired TicketRepository tickets;
   @Autowired OrderRepository orders;
+  @Autowired AvailabilityService availability;
+  @Autowired WaitlistService waitlist;
+  @Autowired WaitlistRepository waitlistEntries;
 
   Event event;
   TicketTier standing;
@@ -243,5 +251,85 @@ class CheckoutServiceTest extends IntegrationTest {
     assertThatThrownBy(
             () -> checkout.complete(order.getAccessToken(), new CheckoutForm("Ana", "a@b.co")))
         .hasMessageContaining("expired");
+  }
+
+  private int vipLeft() {
+    return availability.forEvent(event.getId()).get(vip.getId()).remaining();
+  }
+
+  @Test
+  void releasingAHoldFreesItsSeatsAtOnce() {
+    Order order = checkout.start(event.getId(), select(vip, 2));
+    assertThat(vipLeft()).isZero();
+
+    Order released = checkout.release(order.getAccessToken());
+
+    assertThat(released.getStatus()).isEqualTo(OrderStatus.EXPIRED);
+    assertThat(vipLeft()).isEqualTo(2);
+  }
+
+  @Test
+  void releasingTwiceIsHarmless() {
+    String token = checkout.start(event.getId(), select(vip, 1)).getAccessToken();
+    checkout.release(token);
+
+    assertThat(checkout.release(token).getStatus()).isEqualTo(OrderStatus.EXPIRED);
+    assertThat(vipLeft()).isEqualTo(2);
+  }
+
+  @Test
+  void releasingAPaidOrderDoesNothing() {
+    Order paid = purchases.buy(vip, 1, "Ana", "ana@example.com");
+
+    assertThat(checkout.release(paid.getAccessToken()).getStatus()).isEqualTo(OrderStatus.PAID);
+    assertThat(vipLeft()).isEqualTo(1);
+  }
+
+  @Test
+  void startingAgainFromTheSameBrowserCanTakeTheSameSeats() {
+    String first = checkout.start(event.getId(), select(vip, 2)).getAccessToken();
+
+    Order second = checkout.start(event.getId(), select(vip, 2), first);
+
+    assertThat(second.ticketCount()).isEqualTo(2);
+    assertThat(checkout.getByToken(first).getStatus()).isEqualTo(OrderStatus.EXPIRED);
+    assertThat(vipLeft()).isZero();
+  }
+
+  @Test
+  void aRefusedNewSelectionKeepsThePreviousHold() {
+    String first = checkout.start(event.getId(), select(vip, 2)).getAccessToken();
+
+    assertThatThrownBy(() -> checkout.start(event.getId(), select(vip, 3), first))
+        .isInstanceOf(BusinessException.class);
+
+    assertThat(checkout.getByToken(first).getStatus()).isEqualTo(OrderStatus.PENDING);
+    assertThat(vipLeft()).isZero();
+  }
+
+  @Test
+  void aCheckoutOfAnotherEventIsNotReplaced() {
+    Event other = data.event("Other Night");
+    TicketTier seat = data.tier(other, "Seat", "10", 5);
+    events.publish(other.getId());
+    String elsewhere = checkout.start(other.getId(), select(seat, 1)).getAccessToken();
+
+    checkout.start(event.getId(), select(vip, 1), elsewhere);
+
+    assertThat(checkout.getByToken(elsewhere).getStatus()).isEqualTo(OrderStatus.PENDING);
+  }
+
+  @Test
+  void onlySeatsTheNewSelectionLeavesGoToTheWaitlist() {
+    String first = checkout.start(event.getId(), select(vip, 2)).getAccessToken();
+    WaitlistEntry ben =
+        waitlist.join(event, new WaitlistForm(vip.getId(), "Ben", "ben@example.com", 1));
+
+    Order second = checkout.start(event.getId(), select(vip, 1), first);
+
+    assertThat(second.ticketCount()).isEqualTo(1);
+    assertThat(waitlistEntries.findById(ben.getId()).orElseThrow().getStatus())
+        .isEqualTo(WaitlistStatus.OFFERED);
+    assertThat(vipLeft()).isZero();
   }
 }
