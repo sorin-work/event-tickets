@@ -124,11 +124,6 @@ public class Ticket {
     this.checkedInBy = by;
   }
 
-  public void undoCheckIn() {
-    this.checkedInAt = null;
-    this.checkedInBy = null;
-  }
-
   public Instant getCreatedAt() {
     return createdAt;
   }

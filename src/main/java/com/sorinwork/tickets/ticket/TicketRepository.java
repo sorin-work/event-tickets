@@ -1,14 +1,17 @@
 package com.sorinwork.tickets.ticket;
 
 import com.sorinwork.tickets.order.OrderStatus;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 
 public interface TicketRepository extends JpaRepository<Ticket, Long> {
 
@@ -71,6 +74,40 @@ public interface TicketRepository extends JpaRepository<Ticket, Long> {
       where t.code = :code
       """)
   Optional<Ticket> findWithDetailsByCode(@Param("code") String code);
+
+  /**
+   * Checks the ticket in unless it already is or its order is no longer paid, in one statement so
+   * two scanners cannot both admit it.
+   *
+   * @return 1 when this call checked the ticket in, 0 otherwise
+   */
+  @Transactional
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(
+      """
+      update Ticket t set t.checkedInAt = :at, t.checkedInBy = :by
+      where t.id = :id and t.checkedInAt is null
+        and t.order.id in (select o.id from Order o where o.status = :paid)
+      """)
+  int markCheckedIn(
+      @Param("id") long id,
+      @Param("at") Instant at,
+      @Param("by") String by,
+      @Param("paid") OrderStatus paid);
+
+  /**
+   * Reverts a check-in, if there is one.
+   *
+   * @return 1 when a check-in was undone, 0 when the ticket was not checked in
+   */
+  @Transactional
+  @Modifying(flushAutomatically = true, clearAutomatically = true)
+  @Query(
+      """
+      update Ticket t set t.checkedInAt = null, t.checkedInBy = null
+      where t.id = :id and t.checkedInAt is not null
+      """)
+  int clearCheckIn(@Param("id") long id);
 
   long countByEventIdAndCheckedInAtIsNotNullAndOrderStatus(Long eventId, OrderStatus status);
 

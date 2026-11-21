@@ -39,15 +39,24 @@ public class CheckInService {
     if (ticket.isCheckedIn()) {
       return CheckInResult.of(CheckInResult.Status.ALREADY_CHECKED_IN, ticket);
     }
-    ticket.checkIn(clock.instant(), staff);
-    return CheckInResult.of(CheckInResult.Status.CHECKED_IN, ticket);
+    // Another door may have scanned the same code a moment ago, or the order may have been
+    // cancelled since it was loaded: the update only lets the ticket in if neither happened.
+    int admitted = tickets.markCheckedIn(ticket.getId(), clock.instant(), staff, OrderStatus.PAID);
+    Ticket current = tickets.findWithDetailsByCode(ticket.getCode()).orElseThrow();
+    if (admitted == 1) {
+      return CheckInResult.of(CheckInResult.Status.CHECKED_IN, current);
+    }
+    if (current.getOrder().getStatus() != OrderStatus.PAID) {
+      return CheckInResult.of(CheckInResult.Status.CANCELLED, current);
+    }
+    return CheckInResult.of(CheckInResult.Status.ALREADY_CHECKED_IN, current);
   }
 
   /** Reverts a check-in made by mistake, e.g. a scan of the wrong person's phone. */
   public Ticket undo(long ticketId) {
-    Ticket ticket = tickets.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket"));
-    ticket.undoCheckIn();
-    return ticket;
+    tickets.findById(ticketId).orElseThrow(() -> new NotFoundException("Ticket"));
+    tickets.clearCheckIn(ticketId);
+    return tickets.findById(ticketId).orElseThrow();
   }
 
   @Transactional(readOnly = true)
