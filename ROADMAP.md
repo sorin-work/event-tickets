@@ -53,7 +53,7 @@ the top of the CHANGELOG are updated in the same pull request.
 | -- | -------------------------------------------- | ------- | -------- | ---- | ---------- |
 | 1  | Check-in that cannot admit a ticket twice    | Shipped | door     | S    | -          |
 | 2  | Promo code limits that hold under load       | Shipped | checkout | S    | -          |
-| 3  | Letting go of a hold                         | Next    | checkout | S    | -          |
+| 3  | Letting go of a hold                         | Shipped | checkout | S    | -          |
 | 4  | Changing quantities without overselling      | Next    | events   | M    | -          |
 | 5  | A cap on the seats one visitor can hold      | Next    | checkout | M    | 3          |
 | 6  | Race tests against real PostgreSQL           | Later   | tests    | M    | -          |
@@ -92,42 +92,6 @@ the top of the CHANGELOG are updated in the same pull request.
 | 39 | Wallet passes                                | Maybe   | tickets  | L    | -          |
 
 ## Next
-
-### 3. Letting go of a hold
-
-A hold can only run out. A buyer who picked three tickets instead of two goes
-back to the event page and starts again: the first checkout keeps its seats
-for ten minutes and the second takes more. With five tickets left, one
-undecided buyer can make the event look sold out for everyone else, and the
-waitlist waits for nothing. The checkout page has no way to give the seats
-back.
-
-- `CheckoutService.release(token)`: lock the event, and if the order is still
-  `PENDING` mark it `EXPIRED` (the same status a hold that ran out gets),
-  publish `HoldExpired` and `TicketsReleased`. Paid, cancelled or already
-  expired orders are left alone and the call is a no-op, so a release racing
-  a payment is decided by the order's `version` like a double submit.
-- A "Cancel and give the tickets back" button on the checkout page
-  (`POST /checkout/{token}/release`), back to the event page with a message.
-- Starting again from the same browser: `start` sets a cookie per event
-  (`hold_<eventId>`, the access token, `HttpOnly`, `SameSite=Lax`, lifetime of
-  the hold). When the same browser starts another checkout for that event, the
-  previous hold is released in the same transaction before availability is
-  computed, so the buyer can take their own seats again.
-- Tricky: a waitlist offer is also a `PENDING` order. Releasing it is the
-  person declining the offer. `WaitlistService.onHoldExpired` already marks
-  the entry `EXPIRED`, and `TicketsReleased` offers the seats to the next
-  person. The offer page gets a "No thanks" wording instead of "Cancel".
-- Tricky: the cookie is only a hint. The token in it is checked like any
-  other (same event, still pending); a stale or forged cookie releases nothing
-  that is not the browser's own.
-- Left out: releasing on tab close (`sendBeacon`). It is not reliable, and the
-  buyer may still have the checkout open in another tab.
-- Tests: integration tests in `order/CheckoutServiceTest` and
-  `web/CheckoutControllerTest`: release frees seats at once, a second release
-  is harmless, release after payment does nothing, starting again from the
-  same browser reuses the seats, a released waitlist offer goes to the next
-  person.
 
 ### 4. Changing quantities without overselling
 
@@ -616,3 +580,16 @@ created, so they cannot change under a hold. `PromoRaceTest` runs ten buyers
 against a two-use code on PostgreSQL: without the lock seven got it, with it
 two. A second race has an admin lowering the limit and switching the code off
 while buyers apply.
+
+### 3. Letting go of a hold
+
+`CheckoutService.release` expires a pending order under the event lock and
+publishes `HoldExpired` and `TicketsReleased`, so the seats go to the waitlist
+first; paid, cancelled and expired orders are left alone and a race with a
+payment is settled by the order's `version`. The checkout page has "Cancel and
+give the tickets back", or "No thanks, offer the tickets to the next person"
+on a waitlist offer. `start` sets a `hold_<event id>` cookie, and a new start
+from the same browser expires the previous open checkout first. One change
+from the plan: in that case `TicketsReleased` is published only after the new
+order is saved, so the buyer keeps first pick of their own seats and the
+waitlist gets what is left. Releasing on tab close stays out.

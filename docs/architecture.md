@@ -37,6 +37,18 @@ Two buyers racing for the last seat are serialised by that lock. A hold that
 runs out stops counting immediately; `HoldExpiryService` marks such orders
 `EXPIRED` every 30 seconds so admin pages and reports stay accurate.
 
+A buyer can also end a hold early ("Cancel and give the tickets back" on the
+checkout page, "No thanks" on a waitlist offer). The order becomes `EXPIRED`
+under the event lock and the seats go to the waitlist first, exactly as when a
+hold runs out. Starting a checkout sets a cookie per event (`hold_<event id>`,
+the access token, `HttpOnly`, for the length of the hold). When the same
+browser starts again, its previous open checkout for that event is expired in
+the same transaction before availability is computed, so the buyer can take
+those seats again. Only the seats the new selection leaves free are then
+offered to the waitlist. If the new selection is refused, the transaction rolls
+back and the previous hold stays. The cookie is only a hint: the token in it
+must belong to an open checkout of the same event.
+
 Paying (simulated) moves the order to `PAID` and issues one ticket per seat.
 Orders carry a `version` column so a double submit cannot pay twice.
 

@@ -6,7 +6,8 @@ tickets, and let people in at the door.
 - **Events** with ticket tiers, prices, quantities, sales windows, an optional
   venue capacity across tiers, and pausing sales for a tier
 - **Checkout** that holds the chosen seats for 10 minutes while the buyer fills
-  in their details, with a name per ticket (payment is simulated)
+  in their details, with a name per ticket (payment is simulated); buyers can
+  give the seats back, and starting again replaces their previous checkout
 - **Promo codes** with percentage or fixed discounts, usage limits, expiry and
   optionally only for one tier
 - **Tickets** with QR codes, emailed as a link, plus "find my tickets" and a

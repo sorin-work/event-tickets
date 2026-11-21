@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+### Added
+
+- Buyers can give held tickets back from the checkout page, and decline a
+  waitlist offer. Choosing tickets again from the same browser replaces the
+  previous checkout instead of holding seats twice.
+
 ### Fixed
 
 - Two scanners checking in the same ticket at the same moment both let the
