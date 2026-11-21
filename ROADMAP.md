@@ -52,7 +52,7 @@ the top of the CHANGELOG are updated in the same pull request.
 | #  | Item                                         | Group   | Area     | Size | Depends on |
 | -- | -------------------------------------------- | ------- | -------- | ---- | ---------- |
 | 1  | Check-in that cannot admit a ticket twice    | Shipped | door     | S    | -          |
-| 2  | Promo code limits that hold under load       | Next    | checkout | S    | -          |
+| 2  | Promo code limits that hold under load       | Shipped | checkout | S    | -          |
 | 3  | Letting go of a hold                         | Next    | checkout | S    | -          |
 | 4  | Changing quantities without overselling      | Next    | events   | M    | -          |
 | 5  | A cap on the seats one visitor can hold      | Next    | checkout | M    | 3          |
@@ -92,37 +92,6 @@ the top of the CHANGELOG are updated in the same pull request.
 | 39 | Wallet passes                                | Maybe   | tickets  | L    | -          |
 
 ## Next
-
-### 2. Promo code limits that hold under load
-
-`CheckoutService.applyPromoCode` counts a code's redemptions
-(`PromoCodeRepository.countRedemptions`) and then attaches the code to the
-order. Nothing is locked between the count and the write, so two buyers
-applying the last use of `TABLE4` at the same moment both get it, and the
-code ends up used more often than `max_uses` allows. `complete` never looks at
-the code again either: a code an admin switched off while the buyer was
-typing their name is still honoured at payment.
-
-- Lock the code row (`PESSIMISTIC_WRITE`, a `lockById` next to the event one)
-  before counting. Applying is the only thing that adds a use, so serialising
-  appliers of one code is enough; checkouts that run out and cancelled orders
-  only ever give uses back.
-- At `complete`, check the code again: still active, and its tier (for
-  tier-only codes) still on the order. If it fails, drop the discount and
-  show the new total with a message instead of taking the payment, so the
-  buyer never pays an amount they did not see.
-- `max_uses` lowered by an admin below the current uses: holds that already
-  carry the code keep it. The admin form says how many uses are taken.
-- Tricky: lock order. `start` locks the event; applying a code would lock the
-  code and not the event. Keep it that way (one lock each, never both in the
-  other order) so the two cannot deadlock.
-- Tricky: expiry. A code whose `valid_until` passes during a 10 minute hold.
-  I lean towards honouring it until the hold ends, because the buyer applied
-  it in time; the check at payment is then only about `active`. Recorded in
-  the docs.
-- Tests: `promo/PromoCheckoutTest` gets a deactivated code at payment, an
-  expired-during-hold code, and two threads applying a one-use code where one
-  gets "used up".
 
 ### 3. Letting go of a hold
 
@@ -633,3 +602,15 @@ once on a real PostgreSQL (`support/PostgresTest`, enabled by
 admitted all ten, the new one admits one. The demo seeder sets its past arrival
 times through the same update. Item 6 is left with the checkout races.
 
+### 2. Promo code limits that hold under load
+
+Applying a code now takes a row lock on it (`PromoCodeRepository.lockById`)
+before counting uses, and changing a code's limits in the admin area takes the
+same lock. Payment checks that the code is still active; if not, the discount
+is removed for good (the exception is excluded from rollback), nothing is
+paid, and the checkout page shows the new total with the buyer's details kept.
+A code that expires during the hold is honoured, as planned. The tier check at
+payment was left out: a code's tier and amount cannot be edited after it is
+created, so they cannot change under a hold. `PromoRaceTest` runs ten buyers
+against a two-use code on PostgreSQL: without the lock seven got it, with it
+two.

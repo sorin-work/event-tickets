@@ -70,6 +70,13 @@ an order that is cancelled therefore gives its use back automatically. Codes
 can be limited to one tier; then only that tier's tickets are discounted.
 Percentages are rounded half up to the cent.
 
+Applying a code locks its row (`SELECT ... FOR UPDATE`) before counting its
+uses. Applying is the only thing that adds a use, so two buyers cannot both
+take the last one. Payment looks at the code once more: if it was switched
+off in the meantime, the discount is removed, nothing is charged and the
+checkout page shows the new total. A code whose end date passes while the
+buyer's seats are held is still honoured, because it was valid when applied.
+
 ## Scheduled jobs
 
 Both run inside the app (`app.scheduling.enabled`, on by default):

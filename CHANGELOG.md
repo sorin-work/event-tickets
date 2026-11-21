@@ -7,6 +7,11 @@
 - Two scanners checking in the same ticket at the same moment both let the
   person in. A ticket is now admitted once, and the second door sees who
   checked it in and when.
+- Two buyers applying the last use of a promo code at the same moment could
+  both get it. A code is now never used more often than its limit.
+- A promo code switched off while a buyer was checking out was still honoured
+  at payment. The discount is now removed and the buyer sees the new total
+  before paying.
 
 ## 1.0.0 - 2026-10-29
 
