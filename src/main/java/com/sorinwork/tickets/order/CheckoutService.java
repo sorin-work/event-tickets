@@ -123,6 +123,7 @@ public class CheckoutService {
     PromoCode promo =
         promoCodes
             .findByEventIdAndCode(order.getEvent().getId(), code)
+            .flatMap(found -> promoCodes.lockById(found.getId()))
             .filter(PromoCode::isActive)
             .orElseThrow(() -> new BusinessException("That promo code is not valid."));
     LocalDateTime eventNow = LocalDateTime.now(clock.withZone(order.getEvent().zone()));

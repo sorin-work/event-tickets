@@ -1,10 +1,12 @@
 package com.sorinwork.tickets.promo;
 
+import jakarta.persistence.LockModeType;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -14,6 +16,14 @@ public interface PromoCodeRepository extends JpaRepository<PromoCode, Long> {
   List<PromoCode> findByEventIdOrderByCode(Long eventId);
 
   Optional<PromoCode> findByEventIdAndCode(Long eventId, String code);
+
+  /**
+   * Loads the code with a row lock. Applying a code is the only thing that adds a use, so taking
+   * this lock before counting uses means two buyers cannot both take its last use.
+   */
+  @Lock(LockModeType.PESSIMISTIC_WRITE)
+  @Query("select p from PromoCode p where p.id = :id")
+  Optional<PromoCode> lockById(@Param("id") long id);
 
   Optional<PromoCode> findByIdAndEventId(Long id, Long eventId);
 
